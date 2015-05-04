@@ -6,29 +6,17 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
 	"agento"
 )
 
 func main() {
-	hostname, err := os.Hostname()
+	config := agento.Configuration{}
+	config.LoadDefaults()
+	config.LoadFromFile("/etc/agento.json")
 
-	if err != nil {
-		fmt.Println("Could not determine local hostname: " + err.Error())
-		return
-	}
-
-	firstDot := strings.Index(hostname, ".")
-	if firstDot <= 0 {
-		fmt.Println("Could not extract domain name from '" + hostname + "'")
-		return
-	}
-
-	targetServer := "agento" + hostname[firstDot:]
-	full_frequency := 1
+	full_frequency := config.Client.Interval
 	i := full_frequency
 
 	machineStats := agento.MachineStats{}
@@ -39,7 +27,7 @@ func main() {
 
 		if err == nil {
 			receiver.ReadJson(json)
-			res, err := http.Post("http://"+targetServer+":12345/report", "image/jpeg", bytes.NewReader(json))
+			res, err := http.Post(config.Client.ServerUrl, "image/jpeg", bytes.NewReader(json))
 			if err != nil {
 				fmt.Println(err, i)
 				continue
@@ -52,7 +40,7 @@ func main() {
 
 		i++
 
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Second * time.Duration(config.Client.Interval))
 	}
 
 	return

@@ -13,6 +13,8 @@ import (
 	"agento"
 )
 
+var config = agento.Configuration{}
+
 var m agento.MachineStats
 
 func echoHandler(w http.ResponseWriter, req *http.Request) {
@@ -20,11 +22,11 @@ func echoHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func sendToInflux(stats agento.MachineStats) {
-	u, err := url.Parse("http://127.0.0.1:8086")
+	u, err := url.Parse(config.Server.Influxdb.Url)
 	conf := client.Config{
 		URL:      *u,
-		Username: "root",
-		Password: "root",
+		Username: config.Server.Influxdb.Username,
+		Password: config.Server.Influxdb.Password,
 	}
 
 	con, err := client.NewClient(conf)
@@ -77,8 +79,8 @@ func sendToInflux(stats agento.MachineStats) {
 
 	bps := client.BatchPoints{
 		Points:          points,
-		Database:        "db1",
-		RetentionPolicy: "default",
+		Database:        config.Server.Influxdb.Database,
+		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
 	}
 
 	_, err = con.Write(bps)
@@ -112,6 +114,8 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	config.LoadDefaults()
+	config.LoadFromFile("/etc/agento.json")
 	http.HandleFunc("/echo/", echoHandler)
 	http.HandleFunc("/report", reportHandler)
 	err := http.ListenAndServe(":12345", nil)
