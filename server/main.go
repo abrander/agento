@@ -1,0 +1,122 @@
+package main
+
+import (
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"time"
+
+	"github.com/influxdb/influxdb/client"
+
+	"agento"
+)
+
+var m agento.MachineStats
+
+func echoHandler(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, req.RequestURI)
+}
+
+func sendToInflux(stats agento.MachineStats) {
+	u, err := url.Parse("http://127.0.0.1:8086")
+	conf := client.Config{
+		URL:      *u,
+		Username: "root",
+		Password: "root",
+	}
+
+	con, err := client.NewClient(conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, _, err = con.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cpuMap := stats.CpuStats.GetMap()
+
+	nPoints := len(*stats.MemInfo)
+
+	points := make([]client.Point, nPoints+len(*cpuMap))
+
+	i := 0
+
+	for key, value := range *stats.MemInfo {
+		points[i] = client.Point{
+			Name: key,
+			Tags: map[string]string{
+				"hostname": stats.Hostname,
+			},
+			Timestamp: time.Now(),
+			Fields: map[string]interface{}{
+				"value": value,
+			},
+		}
+
+		i++
+	}
+
+	for key, value := range *cpuMap {
+		points[i] = client.Point{
+			Name: key,
+			Tags: map[string]string{
+				"hostname": stats.Hostname,
+			},
+			Timestamp: time.Now(),
+			Fields: map[string]interface{}{
+				"value": value,
+			},
+		}
+
+		i++
+	}
+
+	bps := client.BatchPoints{
+		Points:          points,
+		Database:        "db1",
+		RetentionPolicy: "default",
+	}
+
+	_, err = con.Write(bps)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func reportHandler(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.Error(w, "Only POST allowed", 400)
+		return
+	}
+
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+	}
+
+	err = m.ReadJson(body)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	// Print some debug info
+	//	json, _ := m.GetJson(false)
+	//	os.Stdout.Write(json)
+	//	fmt.Println("")
+	sendToInflux(m)
+}
+
+func main() {
+	http.HandleFunc("/echo/", echoHandler)
+	http.HandleFunc("/report", reportHandler)
+	err := http.ListenAndServe(":12345", nil)
+
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
