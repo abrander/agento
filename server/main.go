@@ -40,12 +40,14 @@ func sendToInflux(stats agento.MachineStats) {
 	}
 
 	cpuMap := stats.CpuStats.GetMap()
+	diskMap := stats.DiskStats.GetMap()
 
 	nPoints := len(*stats.MemInfo)
 
-	points := make([]client.Point, nPoints+len(*cpuMap))
+	points := make([]client.Point, nPoints+len(*cpuMap)+len(*diskMap))
 
 	i := 0
+	t := time.Now()
 
 	for key, value := range *stats.MemInfo {
 		points[i] = client.Point{
@@ -53,7 +55,7 @@ func sendToInflux(stats agento.MachineStats) {
 			Tags: map[string]string{
 				"hostname": stats.Hostname,
 			},
-			Timestamp: time.Now(),
+			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
@@ -68,7 +70,22 @@ func sendToInflux(stats agento.MachineStats) {
 			Tags: map[string]string{
 				"hostname": stats.Hostname,
 			},
-			Timestamp: time.Now(),
+			Timestamp: t,
+			Fields: map[string]interface{}{
+				"value": value,
+			},
+		}
+
+		i++
+	}
+
+	for key, value := range *diskMap {
+		points[i] = client.Point{
+			Name: key,
+			Tags: map[string]string{
+				"hostname": stats.Hostname,
+			},
+			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},

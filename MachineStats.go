@@ -12,14 +12,16 @@ import (
 )
 
 type MachineStats struct {
-	FrameType    string            `json:"frame"`
-	Hostname     string            `json:"h"`
-	MemInfo      *map[string]int64 `json:"me"`
-	VmStat       *map[string]int64 `json:"vm"`
-	CpuStats     *CpuStats         `json:"cp"`
-	lastMemInfo  *map[string]int64 `json:"-"`
-	lastVmStat   *map[string]int64 `json:"-"`
-	lastCpuStats *CpuStats         `json:"-"`
+	FrameType     string            `json:"frame"`
+	Hostname      string            `json:"h"`
+	MemInfo       *map[string]int64 `json:"me"`
+	VmStat        *map[string]int64 `json:"vm"`
+	CpuStats      *CpuStats         `json:"cp"`
+	DiskStats     *DiskStats        `json:"di"`
+	lastMemInfo   *map[string]int64 `json:"-"`
+	lastVmStat    *map[string]int64 `json:"-"`
+	lastCpuStats  *CpuStats         `json:"-"`
+	lastDiskStats *DiskStats        `json:"-"`
 }
 
 func (m *MachineStats) Gather() {
@@ -33,6 +35,7 @@ func (m *MachineStats) Gather() {
 	m.VmStat = getVmStat()
 
 	m.CpuStats = GetCpuStats()
+	m.DiskStats = GetDiskStats()
 }
 
 func (m *MachineStats) GetJson(delta bool) ([]byte, error) {
@@ -49,6 +52,7 @@ func (m *MachineStats) GetJson(delta bool) ([]byte, error) {
 		machineStats.MemInfo = mapDelta(m.lastMemInfo, m.MemInfo)
 		machineStats.VmStat = mapDelta(m.lastVmStat, m.VmStat)
 		machineStats.CpuStats = m.CpuStats
+		machineStats.DiskStats = m.DiskStats
 
 		return json.Marshal(machineStats)
 	} else {
@@ -71,6 +75,7 @@ func (m *MachineStats) ReadJson(jsonBlob []byte) error {
 		m.MemInfo = newStats.MemInfo
 		m.VmStat = newStats.VmStat
 		m.CpuStats = newStats.CpuStats
+		m.DiskStats = newStats.DiskStats
 	} else if newStats.FrameType == "delta" {
 		if m.MemInfo == nil || m.VmStat == nil {
 			return errors.New("No full frames received (yet)")
@@ -79,6 +84,7 @@ func (m *MachineStats) ReadJson(jsonBlob []byte) error {
 		unDelta(m.MemInfo, newStats.MemInfo)
 		unDelta(m.VmStat, newStats.VmStat)
 		m.CpuStats = newStats.CpuStats
+		m.DiskStats = newStats.DiskStats
 	} else {
 		return errors.New("Unknown frametype received")
 	}
