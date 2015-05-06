@@ -2,8 +2,6 @@ package agento
 
 import (
 	"bufio"
-	"encoding/json"
-	"errors"
 	"math"
 	"os"
 	"path/filepath"
@@ -12,90 +10,22 @@ import (
 )
 
 type MachineStats struct {
-	FrameType     string            `json:"frame"`
-	Hostname      string            `json:"h"`
-	MemInfo       *map[string]int64 `json:"me"`
-	VmStat        *map[string]int64 `json:"vm"`
-	CpuStats      *CpuStats         `json:"cp"`
-	DiskStats     *DiskStats        `json:"di"`
-	NetStats      *NetStats         `json:"ne"`
-	lastMemInfo   *map[string]int64 `json:"-"`
-	lastVmStat    *map[string]int64 `json:"-"`
-	lastCpuStats  *CpuStats         `json:"-"`
-	lastDiskStats *DiskStats        `json:"-"`
-	lastNetStats  *NetStats         `json:"-"`
+	Hostname  string            `json:"h"`
+	MemInfo   *map[string]int64 `json:"me"`
+	VmStat    *map[string]int64 `json:"vm"`
+	CpuStats  *CpuStats         `json:"cp"`
+	DiskStats *DiskStats        `json:"di"`
+	NetStats  *NetStats         `json:"ne"`
 }
 
 func (m *MachineStats) Gather() {
-	m.FrameType = "full"
 	m.Hostname, _ = os.Hostname()
 
-	m.lastMemInfo = m.MemInfo
 	m.MemInfo = getMemInfo()
-
-	m.lastVmStat = m.VmStat
 	m.VmStat = getVmStat()
-
 	m.CpuStats = GetCpuStats()
 	m.DiskStats = GetDiskStats()
 	m.NetStats = GetNetStats()
-}
-
-func (m *MachineStats) GetJson(delta bool) ([]byte, error) {
-	if delta {
-		if m.lastMemInfo == nil || m.lastVmStat == nil {
-			return nil, errors.New("No previous data to diff")
-		}
-
-		// Create new MachineStats
-		machineStats := MachineStats{}
-		machineStats.FrameType = "delta"
-		machineStats.Hostname = m.Hostname
-
-		machineStats.MemInfo = mapDelta(m.lastMemInfo, m.MemInfo)
-		machineStats.VmStat = mapDelta(m.lastVmStat, m.VmStat)
-		machineStats.CpuStats = m.CpuStats
-		machineStats.DiskStats = m.DiskStats
-		machineStats.NetStats = m.NetStats
-
-		return json.Marshal(machineStats)
-	} else {
-		return json.Marshal(m)
-	}
-}
-
-func (m *MachineStats) ReadJson(jsonBlob []byte) error {
-	newStats := MachineStats{}
-
-	err := json.Unmarshal(jsonBlob, &newStats)
-	if err != nil {
-		return err
-	}
-
-	m.FrameType = "full"
-	m.Hostname = newStats.Hostname
-
-	if newStats.FrameType == "full" {
-		m.MemInfo = newStats.MemInfo
-		m.VmStat = newStats.VmStat
-		m.CpuStats = newStats.CpuStats
-		m.DiskStats = newStats.DiskStats
-		m.NetStats = newStats.NetStats
-	} else if newStats.FrameType == "delta" {
-		if m.MemInfo == nil || m.VmStat == nil {
-			return errors.New("No full frames received (yet)")
-		}
-
-		unDelta(m.MemInfo, newStats.MemInfo)
-		unDelta(m.VmStat, newStats.VmStat)
-		m.CpuStats = newStats.CpuStats
-		m.DiskStats = newStats.DiskStats
-		m.NetStats = newStats.NetStats
-	} else {
-		return errors.New("Unknown frametype received")
-	}
-
-	return nil
 }
 
 func getVmStat() *map[string]int64 {

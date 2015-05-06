@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"log"
@@ -136,7 +137,7 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 
-	err = m.ReadJson(body)
+	err = json.Unmarshal(body, &m)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
