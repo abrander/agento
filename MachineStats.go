@@ -18,10 +18,12 @@ type MachineStats struct {
 	VmStat        *map[string]int64 `json:"vm"`
 	CpuStats      *CpuStats         `json:"cp"`
 	DiskStats     *DiskStats        `json:"di"`
+	NetStats      *NetStats         `json:"ne"`
 	lastMemInfo   *map[string]int64 `json:"-"`
 	lastVmStat    *map[string]int64 `json:"-"`
 	lastCpuStats  *CpuStats         `json:"-"`
 	lastDiskStats *DiskStats        `json:"-"`
+	lastNetStats  *NetStats         `json:"-"`
 }
 
 func (m *MachineStats) Gather() {
@@ -36,6 +38,7 @@ func (m *MachineStats) Gather() {
 
 	m.CpuStats = GetCpuStats()
 	m.DiskStats = GetDiskStats()
+	m.NetStats = GetNetStats()
 }
 
 func (m *MachineStats) GetJson(delta bool) ([]byte, error) {
@@ -53,6 +56,7 @@ func (m *MachineStats) GetJson(delta bool) ([]byte, error) {
 		machineStats.VmStat = mapDelta(m.lastVmStat, m.VmStat)
 		machineStats.CpuStats = m.CpuStats
 		machineStats.DiskStats = m.DiskStats
+		machineStats.NetStats = m.NetStats
 
 		return json.Marshal(machineStats)
 	} else {
@@ -76,6 +80,7 @@ func (m *MachineStats) ReadJson(jsonBlob []byte) error {
 		m.VmStat = newStats.VmStat
 		m.CpuStats = newStats.CpuStats
 		m.DiskStats = newStats.DiskStats
+		m.NetStats = newStats.NetStats
 	} else if newStats.FrameType == "delta" {
 		if m.MemInfo == nil || m.VmStat == nil {
 			return errors.New("No full frames received (yet)")
@@ -85,6 +90,7 @@ func (m *MachineStats) ReadJson(jsonBlob []byte) error {
 		unDelta(m.VmStat, newStats.VmStat)
 		m.CpuStats = newStats.CpuStats
 		m.DiskStats = newStats.DiskStats
+		m.NetStats = newStats.NetStats
 	} else {
 		return errors.New("Unknown frametype received")
 	}
