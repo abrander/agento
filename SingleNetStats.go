@@ -15,6 +15,7 @@ type SingleNetStats struct {
 	RxCompressed float64
 	RxMulticast  float64
 	TxBytes      float64
+	TxPackets    float64
 	TxErrors     float64
 	TxDropped    float64
 	TxFifo       float64
@@ -63,32 +64,36 @@ func (s *SingleNetStats) ReadArray(data []string) {
 	}
 
 	if l > 10 {
-		s.TxErrors, _ = strconv.ParseFloat(data[10], 64)
+		s.TxPackets, _ = strconv.ParseFloat(data[10], 64)
 	}
 
 	if l > 11 {
-		s.TxDropped, _ = strconv.ParseFloat(data[11], 64)
+		s.TxErrors, _ = strconv.ParseFloat(data[11], 64)
 	}
 
 	if l > 12 {
-		s.TxFifo, _ = strconv.ParseFloat(data[12], 64)
+		s.TxDropped, _ = strconv.ParseFloat(data[12], 64)
 	}
 
 	if l > 13 {
-		s.TxCollisions, _ = strconv.ParseFloat(data[13], 64)
+		s.TxFifo, _ = strconv.ParseFloat(data[13], 64)
 	}
 
 	if l > 14 {
-		s.TxCarrier, _ = strconv.ParseFloat(data[14], 64)
+		s.TxCollisions, _ = strconv.ParseFloat(data[14], 64)
 	}
 
 	if l > 15 {
-		s.TxCompressed, _ = strconv.ParseFloat(data[15], 64)
+		s.TxCarrier, _ = strconv.ParseFloat(data[15], 64)
+	}
+
+	if l > 16 {
+		s.TxCompressed, _ = strconv.ParseFloat(data[16], 64)
 	}
 }
 
 func (s SingleNetStats) MarshalJSON() ([]byte, error) {
-	var a [15]float64
+	var a [16]float64
 
 	a[0] = Round(s.RxBytes, 0)
 	a[1] = Round(s.RxPackets, 0)
@@ -99,18 +104,19 @@ func (s SingleNetStats) MarshalJSON() ([]byte, error) {
 	a[6] = Round(s.RxCompressed, 0)
 	a[7] = Round(s.RxMulticast, 0)
 	a[8] = Round(s.TxBytes, 0)
-	a[9] = Round(s.TxErrors, 0)
-	a[10] = Round(s.TxDropped, 0)
-	a[11] = Round(s.TxFifo, 0)
-	a[12] = Round(s.TxCollisions, 0)
-	a[13] = Round(s.TxCarrier, 0)
-	a[14] = Round(s.TxCompressed, 0)
+	a[9] = Round(s.TxPackets, 0)
+	a[10] = Round(s.TxErrors, 0)
+	a[11] = Round(s.TxDropped, 0)
+	a[12] = Round(s.TxFifo, 0)
+	a[13] = Round(s.TxCollisions, 0)
+	a[14] = Round(s.TxCarrier, 0)
+	a[15] = Round(s.TxCompressed, 0)
 
 	return json.Marshal(a)
 }
 
 func (s *SingleNetStats) UnmarshalJSON(b []byte) error {
-	var a [15]float64
+	var a [16]float64
 
 	err := json.Unmarshal(b, &a)
 	if err != nil {
@@ -126,12 +132,13 @@ func (s *SingleNetStats) UnmarshalJSON(b []byte) error {
 	s.RxCompressed = a[6]
 	s.RxMulticast = a[7]
 	s.TxBytes = a[8]
-	s.TxErrors = a[9]
-	s.TxDropped = a[10]
-	s.TxFifo = a[11]
-	s.TxCollisions = a[12]
-	s.TxCarrier = a[13]
-	s.TxCompressed = a[14]
+	s.TxPackets = a[9]
+	s.TxErrors = a[10]
+	s.TxDropped = a[11]
+	s.TxFifo = a[12]
+	s.TxCollisions = a[13]
+	s.TxCarrier = a[14]
+	s.TxCompressed = a[15]
 
 	return err
 }
@@ -148,6 +155,7 @@ func (s *SingleNetStats) Sub(previous *SingleNetStats, factor float64) *SingleNe
 	diff.RxCompressed = (s.RxCompressed - previous.RxCompressed) / factor
 	diff.RxMulticast = (s.RxMulticast - previous.RxMulticast) / factor
 	diff.TxBytes = (s.TxBytes - previous.TxBytes) / factor
+	diff.TxPackets = (s.TxPackets - previous.TxPackets) / factor
 	diff.TxErrors = (s.TxErrors - previous.TxErrors) / factor
 	diff.TxDropped = (s.TxDropped - previous.TxDropped) / factor
 	diff.TxFifo = (s.TxFifo - previous.TxFifo) / factor
