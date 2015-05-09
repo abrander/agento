@@ -16,6 +16,7 @@ type MachineStats struct {
 	CpuStats  *CpuStats         `json:"cp"`
 	DiskStats *DiskStats        `json:"di"`
 	NetStats  *NetStats         `json:"ne"`
+	LoadStats *LoadStats        `json:"lo"`
 }
 
 func (m *MachineStats) Gather() {
@@ -26,6 +27,7 @@ func (m *MachineStats) Gather() {
 	m.CpuStats = GetCpuStats()
 	m.DiskStats = GetDiskStats()
 	m.NetStats = GetNetStats()
+	m.LoadStats = GetLoadStats()
 }
 
 func getVmStat() *map[string]int64 {
