@@ -12,7 +12,6 @@ import (
 type MachineStats struct {
 	Hostname  string            `json:"h"`
 	MemInfo   *map[string]int64 `json:"me"`
-	VmStat    *map[string]int64 `json:"vm"`
 	CpuStats  *CpuStats         `json:"cp"`
 	DiskStats *DiskStats        `json:"di"`
 	NetStats  *NetStats         `json:"ne"`
@@ -23,38 +22,10 @@ func (m *MachineStats) Gather() {
 	m.Hostname, _ = os.Hostname()
 
 	m.MemInfo = getMemInfo()
-	m.VmStat = getVmStat()
 	m.CpuStats = GetCpuStats()
 	m.DiskStats = GetDiskStats()
 	m.NetStats = GetNetStats()
 	m.LoadStats = GetLoadStats()
-}
-
-func getVmStat() *map[string]int64 {
-	m := make(map[string]int64)
-
-	path := filepath.Join("/proc/vmstat")
-	file, err := os.Open(path)
-	if err != nil {
-		return &m
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		text := scanner.Text()
-		data := strings.Split(text, " ")
-		if len(data) == 2 {
-			key := data[0]
-			value, err := strconv.ParseInt(data[1], 10, 64)
-			if err != nil {
-				continue
-			}
-			m[key] = value
-		}
-	}
-
-	return &m
 }
 
 func getMemInfo() *map[string]int64 {
