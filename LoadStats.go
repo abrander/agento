@@ -43,6 +43,9 @@ func GetLoadStats() *LoadStats {
 		if sep > 0 {
 			stat.ActiveTasks, _ = strconv.ParseInt(data[3][0:sep], 10, 64)
 			stat.Tasks, _ = strconv.ParseInt(data[3][sep+1:], 10, 64)
+
+			// We don't want yo count ourself as active. We're sneeky.
+			stat.ActiveTasks -= 1
 		}
 	}
 
