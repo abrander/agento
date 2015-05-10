@@ -40,14 +40,13 @@ func sendToInflux(stats agento.MachineStats) {
 		log.Fatal(err)
 	}
 
+	memoryMap := stats.MemoryStats.GetMap()
 	cpuMap := stats.CpuStats.GetMap()
 	diskMap := stats.DiskStats.GetMap()
 	netMap := stats.NetStats.GetMap()
 	loadMap := stats.LoadStats.GetMap()
 
-	nPoints := len(*stats.MemInfo)
-
-	points := make([]client.Point, nPoints+
+	points := make([]client.Point, len(*memoryMap)+
 		len(*cpuMap)+
 		len(*diskMap)+
 		len(*netMap)+
@@ -55,7 +54,7 @@ func sendToInflux(stats agento.MachineStats) {
 
 	i := 0
 
-	for key, value := range *stats.MemInfo {
+	for key, value := range *memoryMap {
 		points[i] = client.Point{
 			Name: key,
 			Fields: map[string]interface{}{

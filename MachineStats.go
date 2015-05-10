@@ -1,73 +1,27 @@
 package agento
 
 import (
-	"bufio"
 	"math"
 	"os"
-	"path/filepath"
-	"strconv"
-	"strings"
 )
 
 type MachineStats struct {
-	Hostname  string            `json:"h"`
-	MemInfo   *map[string]int64 `json:"me"`
-	CpuStats  *CpuStats         `json:"cp"`
-	DiskStats *DiskStats        `json:"di"`
-	NetStats  *NetStats         `json:"ne"`
-	LoadStats *LoadStats        `json:"lo"`
+	Hostname    string       `json:"h"`
+	MemoryStats *MemoryStats `json:"m"`
+	CpuStats    *CpuStats    `json:"c"`
+	DiskStats   *DiskStats   `json:"d"`
+	NetStats    *NetStats    `json:"n"`
+	LoadStats   *LoadStats   `json:"l"`
 }
 
 func (m *MachineStats) Gather() {
 	m.Hostname, _ = os.Hostname()
 
-	m.MemInfo = getMemInfo()
+	m.MemoryStats = GetMemoryStats()
 	m.CpuStats = GetCpuStats()
 	m.DiskStats = GetDiskStats()
 	m.NetStats = GetNetStats()
 	m.LoadStats = GetLoadStats()
-}
-
-func getMemInfo() *map[string]int64 {
-	m := make(map[string]int64)
-
-	path := filepath.Join("/proc/meminfo")
-	file, err := os.Open(path)
-	if err != nil {
-		return &m
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		text := scanner.Text()
-
-		n := strings.Index(text, ":")
-		if n == -1 {
-			continue
-		}
-
-		key := text[:n]
-		data := strings.Split(strings.Trim(text[(n+1):], " "), " ")
-		if len(data) == 1 {
-			value, err := strconv.ParseInt(data[0], 10, 64)
-			if err != nil {
-				continue
-			}
-			m[key] = value
-		} else if len(data) == 2 {
-			if data[1] == "kB" {
-				value, err := strconv.ParseInt(data[0], 10, 64)
-				if err != nil {
-					continue
-				}
-
-				m[key] = value * 1024
-			}
-		}
-	}
-
-	return &m
 }
 
 func mapDelta(a *map[string]int64, b *map[string]int64) *map[string]int64 {
