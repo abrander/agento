@@ -54,15 +54,10 @@ func sendToInflux(stats agento.MachineStats) {
 		len(*loadMap))
 
 	i := 0
-	t := time.Now()
 
 	for key, value := range *stats.MemInfo {
 		points[i] = client.Point{
 			Name: key,
-			Tags: map[string]string{
-				"hostname": stats.Hostname,
-			},
-			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
@@ -74,10 +69,6 @@ func sendToInflux(stats agento.MachineStats) {
 	for key, value := range *cpuMap {
 		points[i] = client.Point{
 			Name: key,
-			Tags: map[string]string{
-				"hostname": stats.Hostname,
-			},
-			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
@@ -89,10 +80,6 @@ func sendToInflux(stats agento.MachineStats) {
 	for key, value := range *diskMap {
 		points[i] = client.Point{
 			Name: key,
-			Tags: map[string]string{
-				"hostname": stats.Hostname,
-			},
-			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
@@ -104,10 +91,6 @@ func sendToInflux(stats agento.MachineStats) {
 	for key, value := range *netMap {
 		points[i] = client.Point{
 			Name: key,
-			Tags: map[string]string{
-				"hostname": stats.Hostname,
-			},
-			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
@@ -119,10 +102,6 @@ func sendToInflux(stats agento.MachineStats) {
 	for key, value := range *loadMap {
 		points[i] = client.Point{
 			Name: key,
-			Tags: map[string]string{
-				"hostname": stats.Hostname,
-			},
-			Timestamp: t,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
@@ -132,6 +111,10 @@ func sendToInflux(stats agento.MachineStats) {
 	}
 
 	bps := client.BatchPoints{
+		Tags: map[string]string{
+			"hostname": stats.Hostname,
+		},
+		Timestamp:       time.Now(),
 		Points:          points,
 		Database:        config.Server.Influxdb.Database,
 		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
