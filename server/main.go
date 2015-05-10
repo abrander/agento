@@ -16,8 +16,6 @@ import (
 
 var config = agento.Configuration{}
 
-var m agento.MachineStats
-
 func echoHandler(w http.ResponseWriter, req *http.Request) {
 	io.WriteString(w, req.RequestURI)
 }
@@ -136,6 +134,7 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), 400)
 	}
 
+	var m agento.MachineStats
 	err = json.Unmarshal(body, &m)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
