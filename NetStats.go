@@ -87,6 +87,7 @@ func (c *NetStats) GetMap() *map[string]float64 {
 		m[key+".RxCompressed"] = value.RxCompressed
 		m[key+".RxMulticast"] = value.RxMulticast
 		m[key+".TxBytes"] = value.TxBytes
+		m[key+".TxPackets"] = value.TxPackets
 		m[key+".TxErrors"] = value.TxErrors
 		m[key+".TxDropped"] = value.TxDropped
 		m[key+".TxFifo"] = value.TxFifo
