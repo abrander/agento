@@ -18,7 +18,8 @@ func main() {
 	config.LoadFromFile("/etc/agento.json")
 
 	machineStats := agento.MachineStats{}
-	for {
+	c := time.Tick(time.Second * time.Duration(config.Client.Interval))
+	for _ = range c {
 		machineStats.Gather()
 		json, err := json.Marshal(machineStats)
 
@@ -34,7 +35,6 @@ func main() {
 			fmt.Println(err)
 		}
 
-		time.Sleep(time.Second * time.Duration(config.Client.Interval))
 	}
 
 	return
