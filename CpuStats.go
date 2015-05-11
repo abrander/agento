@@ -93,14 +93,12 @@ func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
 	return &diff
 }
 
-func (c *CpuStats) GetMap() *map[string]float64 {
-	m := make(map[string]float64)
-
-	m["Interrupts"] = c.Interrupts
-	m["ContextSwitches"] = c.ContextSwitches
-	m["Forks"] = c.Forks
-	m["RunningProcesses"] = c.RunningProcesses
-	m["BlockedProcesses"] = c.BlockedProcesses
+func (c *CpuStats) GetMap(m map[string]float64) {
+	m["misc.interrupts"] = c.Interrupts
+	m["misc.contextswitches"] = c.ContextSwitches
+	m["misc.forks"] = c.Forks
+	m["misc.runningprocesses"] = c.RunningProcesses
+	m["misc.blockedprocesses"] = c.BlockedProcesses
 
 	for key, value := range c.Cpu {
 		m[key+".User"] = value.User
@@ -114,6 +112,4 @@ func (c *CpuStats) GetMap() *map[string]float64 {
 		m[key+".Guest"] = value.Guest
 		m[key+".GuestNice"] = value.GuestNice
 	}
-
-	return &m
 }

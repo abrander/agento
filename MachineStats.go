@@ -24,6 +24,18 @@ func (m *MachineStats) Gather() {
 	m.LoadStats = GetLoadStats()
 }
 
+func (s *MachineStats) GetMap() map[string]float64 {
+	m := make(map[string]float64)
+
+	s.MemoryStats.GetMap(m)
+	s.CpuStats.GetMap(m)
+	s.DiskStats.GetMap(m)
+	s.NetStats.GetMap(m)
+	s.LoadStats.GetMap(m)
+
+	return m
+}
+
 func Round(value float64, places int) float64 {
 	var round float64
 

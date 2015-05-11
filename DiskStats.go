@@ -68,15 +68,13 @@ func (c *DiskStats) Sub(previousDiskStats *DiskStats) *DiskStats {
 	return &diff
 }
 
-func (c *DiskStats) GetMap() *map[string]float64 {
-	m := make(map[string]float64)
-
+func (c *DiskStats) GetMap(m map[string]float64) {
 	if c == nil {
-		return &m
+		return
 	}
 
 	if c.Disks == nil {
-		return &m
+		return
 	}
 
 	for key, value := range c.Disks {
@@ -92,6 +90,4 @@ func (c *DiskStats) GetMap() *map[string]float64 {
 		m[key+".IoTime"] = value.IoTime
 		m[key+".IoWeightedTime"] = value.IoWeightedTime
 	}
-
-	return &m
 }

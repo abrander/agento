@@ -52,14 +52,10 @@ func GetLoadStats() *LoadStats {
 	return &stat
 }
 
-func (l *LoadStats) GetMap() *map[string]float64 {
-	m := make(map[string]float64)
-
-	m["Load1"] = l.Load1
-	m["Load5"] = l.Load5
-	m["Load15"] = l.Load15
-	m["ActiveTasks"] = float64(l.ActiveTasks)
-	m["Tasks"] = float64(l.Tasks)
-
-	return &m
+func (l *LoadStats) GetMap(m map[string]float64) {
+	m["misc.load1"] = l.Load1
+	m["misc.load5"] = l.Load5
+	m["misc.load15"] = l.Load15
+	m["misc.activetasks"] = float64(l.ActiveTasks)
+	m["misc.tasks"] = float64(l.Tasks)
 }

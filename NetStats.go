@@ -66,15 +66,13 @@ func (c *NetStats) Sub(previousNetStats *NetStats) *NetStats {
 	return &diff
 }
 
-func (c *NetStats) GetMap() *map[string]float64 {
-	m := make(map[string]float64)
-
+func (c *NetStats) GetMap(m map[string]float64) {
 	if c == nil {
-		return &m
+		return
 	}
 
 	if c.Interfaces == nil {
-		return &m
+		return
 	}
 
 	for key, value := range c.Interfaces {
@@ -95,6 +93,4 @@ func (c *NetStats) GetMap() *map[string]float64 {
 		m[key+".TxCarrier"] = value.TxCarrier
 		m[key+".TxCompressed"] = value.TxCompressed
 	}
-
-	return &m
 }
