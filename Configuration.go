@@ -42,7 +42,6 @@ type ServerConfiguration struct {
 }
 
 type Configuration struct {
-	Buh    string              `json:"buh"`
 	Client ClientConfiguration `json:"client"`
 	Server ServerConfiguration `json:"server"`
 }
