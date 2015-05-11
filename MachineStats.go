@@ -3,25 +3,30 @@ package agento
 import (
 	"math"
 	"os"
+	"time"
 )
 
 type MachineStats struct {
-	Hostname    string       `json:"h"`
-	MemoryStats *MemoryStats `json:"m"`
-	CpuStats    *CpuStats    `json:"c"`
-	DiskStats   *DiskStats   `json:"d"`
-	NetStats    *NetStats    `json:"n"`
-	LoadStats   *LoadStats   `json:"l"`
+	Hostname       string        `json:"h"`
+	MemoryStats    *MemoryStats  `json:"m"`
+	CpuStats       *CpuStats     `json:"c"`
+	DiskStats      *DiskStats    `json:"d"`
+	NetStats       *NetStats     `json:"n"`
+	LoadStats      *LoadStats    `json:"l"`
+	GatherDuration time.Duration `json:"g"`
 }
 
 func (m *MachineStats) Gather() {
-	m.Hostname, _ = os.Hostname()
+	start := time.Now()
 
+	m.Hostname, _ = os.Hostname()
 	m.MemoryStats = GetMemoryStats()
 	m.CpuStats = GetCpuStats()
 	m.DiskStats = GetDiskStats()
 	m.NetStats = GetNetStats()
 	m.LoadStats = GetLoadStats()
+
+	m.GatherDuration = time.Now().Sub(start)
 }
 
 func (s *MachineStats) GetMap() map[string]float64 {
@@ -32,6 +37,8 @@ func (s *MachineStats) GetMap() map[string]float64 {
 	s.DiskStats.GetMap(m)
 	s.NetStats.GetMap(m)
 	s.LoadStats.GetMap(m)
+
+	m["agento.gatherduration"] = Round(s.GatherDuration.Seconds()*1000.0, 1)
 
 	return m
 }
