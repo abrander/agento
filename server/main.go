@@ -33,11 +33,6 @@ func sendToInflux(stats agento.MachineStats) {
 		log.Fatal(err)
 	}
 
-	_, _, err = con.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	memoryMap := stats.MemoryStats.GetMap()
 	cpuMap := stats.CpuStats.GetMap()
 	diskMap := stats.DiskStats.GetMap()
@@ -119,7 +114,17 @@ func sendToInflux(stats agento.MachineStats) {
 
 	_, err = con.Write(bps)
 	if err != nil {
-		log.Fatal(err)
+		for i := 1; i <= 5; i++ {
+			log.Printf("Error writing to influxdb: "+err.Error()+", retrying %d/%d", i, 5)
+			time.Sleep(time.Millisecond * 500)
+			_, err = con.Write(bps)
+			if err == nil {
+				break
+			}
+			if i == 5 {
+				log.Fatal("Error writing to influxdb: " + err.Error() + ", giving up")
+			}
+		}
 	}
 }
 
