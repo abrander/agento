@@ -24,26 +24,6 @@ func (m *MachineStats) Gather() {
 	m.LoadStats = GetLoadStats()
 }
 
-func mapDelta(a *map[string]int64, b *map[string]int64) *map[string]int64 {
-	m := make(map[string]int64)
-
-	for key, value := range *a {
-		if (*b)[key] != value {
-			m[key] = (*b)[key] - value
-		}
-	}
-
-	return &m
-}
-
-func unDelta(target *map[string]int64, diff *map[string]int64) error {
-	for key, value := range *diff {
-		(*target)[key] = (*target)[key] + value
-	}
-
-	return nil
-}
-
 func Round(value float64, places int) float64 {
 	var round float64
 
