@@ -21,19 +21,10 @@ type SingleCpuStat struct {
 func (s *SingleCpuStat) ReadArray(data []string) {
 	l := len(data)
 
-	if l > 1 {
-		s.User, _ = strconv.ParseFloat(data[1], 64)
-	}
-
-	if l > 2 {
-		s.Nice, _ = strconv.ParseFloat(data[2], 64)
-	}
-
-	if l > 3 {
-		s.System, _ = strconv.ParseFloat(data[3], 64)
-	}
-
 	if l > 4 {
+		s.User, _ = strconv.ParseFloat(data[1], 64)
+		s.Nice, _ = strconv.ParseFloat(data[2], 64)
+		s.System, _ = strconv.ParseFloat(data[3], 64)
 		s.Idle, _ = strconv.ParseFloat(data[4], 64)
 	}
 
