@@ -15,7 +15,7 @@ func GetDiskUsageStats() *DiskUsageStats {
 	return &stat
 }
 
-func (c *DiskUsageStats) GetMap(m map[string]float64) {
+func (c *DiskUsageStats) GetMap(m map[string]interface{}) {
 	if c == nil {
 		return
 	}
@@ -25,10 +25,10 @@ func (c *DiskUsageStats) GetMap(m map[string]float64) {
 	}
 
 	for key, value := range c.Disks {
-		m["du."+key+".Used"] = float64(value.Used)
-		m["du."+key+".Reserved"] = float64(value.Reserved)
-		m["du."+key+".Free"] = float64(value.Free)
-		m["du."+key+".UsedNodes"] = float64(value.UsedNodes)
-		m["du."+key+".FreeNodes"] = float64(value.FreeNodes)
+		m["du."+key+".Used"] = value.Used
+		m["du."+key+".Reserved"] = value.Reserved
+		m["du."+key+".Free"] = value.Free
+		m["du."+key+".UsedNodes"] = value.UsedNodes
+		m["du."+key+".FreeNodes"] = value.FreeNodes
 	}
 }

@@ -31,8 +31,8 @@ func (m *MachineStats) Gather() {
 	m.GatherDuration = time.Now().Sub(start)
 }
 
-func (s *MachineStats) GetMap() map[string]float64 {
-	m := make(map[string]float64)
+func (s *MachineStats) GetMap() map[string]interface{} {
+	m := make(map[string]interface{})
 
 	s.MemoryStats.GetMap(m)
 	s.CpuStats.GetMap(m)

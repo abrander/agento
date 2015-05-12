@@ -17,8 +17,8 @@ type CpuStats struct {
 	Interrupts       float64                   `json:"in"`
 	ContextSwitches  float64                   `json:"ct"`
 	Forks            float64                   `json:"pr"`
-	RunningProcesses float64                   `json:"ru"` // Since 2.5.45
-	BlockedProcesses float64                   `json:"bl"` // Since 2.5.45
+	RunningProcesses int64                     `json:"ru"` // Since 2.5.45
+	BlockedProcesses int64                     `json:"bl"` // Since 2.5.45
 }
 
 func GetCpuStats() *CpuStats {
@@ -57,9 +57,9 @@ func GetCpuStats() *CpuStats {
 		case "processes":
 			stat.Forks, _ = strconv.ParseFloat(data[1], 64)
 		case "procs_running":
-			stat.RunningProcesses, _ = strconv.ParseFloat(data[1], 64)
+			stat.RunningProcesses, _ = strconv.ParseInt(data[1], 10, 64)
 		case "procs_blocked":
-			stat.BlockedProcesses, _ = strconv.ParseFloat(data[1], 64)
+			stat.BlockedProcesses, _ = strconv.ParseInt(data[1], 10, 64)
 		}
 	}
 
@@ -93,7 +93,7 @@ func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
 	return &diff
 }
 
-func (c *CpuStats) GetMap(m map[string]float64) {
+func (c *CpuStats) GetMap(m map[string]interface{}) {
 	m["misc.interrupts"] = c.Interrupts
 	m["misc.contextswitches"] = c.ContextSwitches
 	m["misc.forks"] = c.Forks

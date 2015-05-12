@@ -76,12 +76,12 @@ func GetMemoryStats() *MemoryStats {
 	return &stat
 }
 
-func (s *MemoryStats) GetMap(m map[string]float64) {
-	m["mem.used"] = float64(s.Used)
-	m["mem.free"] = float64(s.Free)
-	m["mem.shared"] = float64(s.Shared)
-	m["mem.buffers"] = float64(s.Buffers)
-	m["mem.cached"] = float64(s.Cached)
-	m["swap.used"] = float64(s.SwapUsed)
-	m["swap.free"] = float64(s.SwapFree)
+func (s *MemoryStats) GetMap(m map[string]interface{}) {
+	m["mem.used"] = s.Used
+	m["mem.free"] = s.Free
+	m["mem.shared"] = s.Shared
+	m["mem.buffers"] = s.Buffers
+	m["mem.cached"] = s.Cached
+	m["swap.used"] = s.SwapUsed
+	m["swap.free"] = s.SwapFree
 }

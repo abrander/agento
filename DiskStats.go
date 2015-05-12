@@ -68,7 +68,7 @@ func (c *DiskStats) Sub(previousDiskStats *DiskStats) *DiskStats {
 	return &diff
 }
 
-func (c *DiskStats) GetMap(m map[string]float64) {
+func (c *DiskStats) GetMap(m map[string]interface{}) {
 	if c == nil {
 		return
 	}
@@ -86,7 +86,7 @@ func (c *DiskStats) GetMap(m map[string]float64) {
 		m[key+".WritesMerged"] = value.WritesMerged
 		m[key+".WriteSectors"] = value.WriteSectors
 		m[key+".WriteTime"] = value.WriteTime
-		m[key+".IoInProgress"] = float64(value.IoInProgress)
+		m[key+".IoInProgress"] = value.IoInProgress
 		m[key+".IoTime"] = value.IoTime
 		m[key+".IoWeightedTime"] = value.IoWeightedTime
 	}

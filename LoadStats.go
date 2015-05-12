@@ -52,10 +52,10 @@ func GetLoadStats() *LoadStats {
 	return &stat
 }
 
-func (l *LoadStats) GetMap(m map[string]float64) {
+func (l *LoadStats) GetMap(m map[string]interface{}) {
 	m["misc.load1"] = l.Load1
 	m["misc.load5"] = l.Load5
 	m["misc.load15"] = l.Load15
-	m["misc.activetasks"] = float64(l.ActiveTasks)
-	m["misc.tasks"] = float64(l.Tasks)
+	m["misc.activetasks"] = l.ActiveTasks
+	m["misc.tasks"] = l.Tasks
 }

@@ -66,7 +66,7 @@ func (c *NetStats) Sub(previousNetStats *NetStats) *NetStats {
 	return &diff
 }
 
-func (c *NetStats) GetMap(m map[string]float64) {
+func (c *NetStats) GetMap(m map[string]interface{}) {
 	if c == nil {
 		return
 	}
