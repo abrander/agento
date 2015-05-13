@@ -41,7 +41,7 @@ func (s *MachineStats) GetMap() map[string]interface{} {
 	s.NetStats.GetMap(m)
 	s.LoadStats.GetMap(m)
 
-	m["agento.gatherduration"] = Round(s.GatherDuration.Seconds()*1000.0, 1)
+	m["agento.GatherDuration"] = Round(s.GatherDuration.Seconds()*1000.0, 1)
 
 	return m
 }

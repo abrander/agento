@@ -53,9 +53,9 @@ func GetLoadStats() *LoadStats {
 }
 
 func (l *LoadStats) GetMap(m map[string]interface{}) {
-	m["misc.load1"] = l.Load1
-	m["misc.load5"] = l.Load5
-	m["misc.load15"] = l.Load15
-	m["misc.activetasks"] = l.ActiveTasks
-	m["misc.tasks"] = l.Tasks
+	m["misc.Load1"] = l.Load1
+	m["misc.Load5"] = l.Load5
+	m["misc.Load15"] = l.Load15
+	m["misc.ActiveTasks"] = l.ActiveTasks
+	m["misc.Tasks"] = l.Tasks
 }

@@ -94,11 +94,11 @@ func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
 }
 
 func (c *CpuStats) GetMap(m map[string]interface{}) {
-	m["misc.interrupts"] = c.Interrupts
-	m["misc.contextswitches"] = c.ContextSwitches
-	m["misc.forks"] = c.Forks
-	m["misc.runningprocesses"] = c.RunningProcesses
-	m["misc.blockedprocesses"] = c.BlockedProcesses
+	m["misc.Interrupts"] = c.Interrupts
+	m["misc.ContextSwitches"] = c.ContextSwitches
+	m["misc.Forks"] = c.Forks
+	m["misc.RunningProcesses"] = c.RunningProcesses
+	m["misc.BlockedProcesses"] = c.BlockedProcesses
 
 	for key, value := range c.Cpu {
 		m[key+".User"] = value.User
