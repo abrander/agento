@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/influxdb/influxdb/client"
@@ -106,7 +107,7 @@ func main() {
 	config.LoadFromFile("/etc/agento.json")
 	http.HandleFunc("/echo/", echoHandler)
 	http.HandleFunc("/report", reportHandler)
-	err := http.ListenAndServe(":12345", nil)
+	err := http.ListenAndServe(":"+strconv.Itoa(int(config.Server.Port)), nil)
 
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

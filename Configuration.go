@@ -13,6 +13,7 @@ var defaultConfig = []byte(`{
 		"interval": 1
 	},
 	"server": {
+		"port": 12345,
 		"influxdb": {
 			"url": "http://localhost:8086/",
 			"username": "root",
@@ -39,6 +40,7 @@ type ClientConfiguration struct {
 
 type ServerConfiguration struct {
 	Influxdb InfluxdbConfiguration `json:"influxdb"`
+	Port     int16                 `json:"port"`
 }
 
 type Configuration struct {
