@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +14,14 @@ import (
 func main() {
 	config := agento.Configuration{}
 	config.LoadDefaults()
-	config.LoadFromFile("/etc/agento.json")
+	err := config.LoadFromFile("/etc/agento.json")
+	agento.InitLogging(&config)
+
+	if err != nil {
+		agento.LogInfo("Could not read /etc/agento.json (%s). Using defaults and logging to %s",
+			err.Error(),
+			config.Client.ServerUrl)
+	}
 
 	machineStats := agento.MachineStats{}
 	c := time.Tick(time.Second * time.Duration(config.Client.Interval))
@@ -26,13 +32,13 @@ func main() {
 		if err == nil {
 			res, err := http.Post(config.Client.ServerUrl, "image/jpeg", bytes.NewReader(json))
 			if err != nil {
-				fmt.Println(err)
+				agento.LogError(err.Error())
 				continue
 			}
 			io.Copy(ioutil.Discard, res.Body)
 			res.Body.Close()
 		} else {
-			fmt.Println(err)
+			agento.LogError(err.Error())
 		}
 
 	}

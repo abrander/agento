@@ -31,6 +31,7 @@ func sendToInflux(stats agento.MachineStats) {
 
 	con, err := client.NewClient(conf)
 	if err != nil {
+		agento.LogError("InfluxDB error: %s", err.Error())
 		log.Fatal(err)
 	}
 
@@ -64,14 +65,14 @@ func sendToInflux(stats agento.MachineStats) {
 	_, err = con.Write(bps)
 	if err != nil {
 		for i := 1; i <= 5; i++ {
-			log.Printf("Error writing to influxdb: "+err.Error()+", retrying %d/%d", i, 5)
+			agento.LogWarning("Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
 			time.Sleep(time.Millisecond * 500)
 			_, err = con.Write(bps)
 			if err == nil {
 				break
 			}
 			if i == 5 {
-				log.Fatal("Error writing to influxdb: " + err.Error() + ", giving up")
+				agento.LogError("Error writing to influxdb: " + err.Error() + ", giving up")
 			}
 		}
 	}
@@ -103,13 +104,24 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	config := agento.Configuration{}
 	config.LoadDefaults()
-	config.LoadFromFile("/etc/agento.json")
-	http.HandleFunc("/echo/", echoHandler)
-	http.HandleFunc("/report", reportHandler)
-	err := http.ListenAndServe(":"+strconv.Itoa(int(config.Server.Port)), nil)
+	err := config.LoadFromFile("/etc/agento.json")
+	agento.InitLogging(&config)
 
 	if err != nil {
+		agento.LogInfo("Could not read /etc/agento.json (%s). Using defaults",
+			err.Error())
+	}
+
+	http.HandleFunc("/echo/", echoHandler)
+	http.HandleFunc("/report", reportHandler)
+
+	addr := ":" + strconv.Itoa(int(config.Server.Port))
+	agento.LogInfo("agento server started, listening at " + addr)
+	err = http.ListenAndServe(addr, nil)
+	if err != nil {
+		agento.LogError("ListenAndServe: %s", err.Error())
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
