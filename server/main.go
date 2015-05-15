@@ -95,7 +95,6 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	config := agento.Configuration{}
 	config.LoadDefaults()
 	err := config.LoadFromFile("/etc/agento.json")
 	agento.InitLogging(&config)
