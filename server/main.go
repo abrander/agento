@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,10 +15,6 @@ import (
 )
 
 var config = agento.Configuration{}
-
-func echoHandler(w http.ResponseWriter, req *http.Request) {
-	io.WriteString(w, req.RequestURI)
-}
 
 func sendToInflux(stats agento.MachineStats) {
 	u, err := url.Parse(config.Server.Influxdb.Url)
@@ -110,7 +105,6 @@ func main() {
 			err.Error())
 	}
 
-	http.HandleFunc("/echo/", echoHandler)
 	http.HandleFunc("/report", reportHandler)
 
 	addr := config.Server.Bind + ":" + strconv.Itoa(int(config.Server.Port))
