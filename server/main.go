@@ -117,7 +117,7 @@ func main() {
 	http.HandleFunc("/echo/", echoHandler)
 	http.HandleFunc("/report", reportHandler)
 
-	addr := ":" + strconv.Itoa(int(config.Server.Port))
+	addr := config.Server.Bind + ":" + strconv.Itoa(int(config.Server.Port))
 	agento.LogInfo("agento server started, listening at " + addr)
 	err = http.ListenAndServe(addr, nil)
 	if err != nil {
