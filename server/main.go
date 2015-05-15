@@ -96,10 +96,6 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Print some debug info
-	//	json, _ := m.GetJson(false)
-	//	os.Stdout.Write(json)
-	//	fmt.Println("")
 	sendToInflux(m)
 }
 
