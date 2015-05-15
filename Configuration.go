@@ -62,6 +62,8 @@ func (c *Configuration) LoadDefaults() error {
 
 	firstDot := strings.Index(hostname, ".")
 	if firstDot <= 0 {
+		c.Client.ServerUrl = "http://agento.example.com:12345/report"
+
 		return errors.New("Could not extract domain name from '" + hostname + "'")
 	}
 
