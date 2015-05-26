@@ -51,7 +51,7 @@ func sendToInflux(stats agento.MachineStats) {
 		Tags: map[string]string{
 			"hostname": stats.Hostname,
 		},
-		Timestamp:       time.Now(),
+		Time:            time.Now(),
 		Points:          points,
 		Database:        config.Server.Influxdb.Database,
 		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
@@ -96,11 +96,11 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	config.LoadDefaults()
-	err := config.LoadFromFile("/etc/agento.json")
+	err := config.LoadFromFile("/etc/agento.conf")
 	agento.InitLogging(&config)
 
 	if err != nil {
-		agento.LogInfo("Could not read /etc/agento.json (%s). Using defaults",
+		agento.LogInfo("Could not read /etc/agento.conf (%s). Using defaults",
 			err.Error())
 	}
 

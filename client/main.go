@@ -14,11 +14,11 @@ import (
 func main() {
 	config := agento.Configuration{}
 	config.LoadDefaults()
-	err := config.LoadFromFile("/etc/agento.json")
+	err := config.LoadFromFile("/etc/agento.conf")
 	agento.InitLogging(&config)
 
 	if err != nil {
-		agento.LogInfo("Could not read /etc/agento.json (%s). Using defaults and logging to %s",
+		agento.LogInfo("Could not read /etc/agento.conf (%s). Using defaults and logging to %s",
 			err.Error(),
 			config.Client.ServerUrl)
 	}

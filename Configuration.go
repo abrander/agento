@@ -6,53 +6,52 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/BurntSushi/toml"
 )
 
-var defaultConfig = []byte(`{
-	"client": {
-		"interval": 1
-	},
-	"server": {
-		"bind": "0.0.0.0",
-		"port": 12345,
-		"influxdb": {
-			"url": "http://localhost:8086/",
-			"username": "root",
-			"password": "root",
-			"database": "agento",
-			"retentionPolicy": "default"
-		}
-	}
-}
-`)
+var defaultConfig = `
+[client]
+interval = 1
+
+[server]
+bind = "0.0.0.0"
+port = 12345
+
+[server.influxdb]
+url = "http://localhost:8086/"
+username = "root"
+password = "root"
+database = "agento"
+retentionPolicy = "default"
+`
 
 type InfluxdbConfiguration struct {
-	Url             string `json:"url"`
-	Username        string `json:"username"`
-	Password        string `json:"password"`
-	Database        string `json:"database"`
-	RetentionPolicy string `json:"retentionPolicy"`
+	Url             string `toml:"url"`
+	Username        string `toml:"username"`
+	Password        string `toml:"password"`
+	Database        string `toml:"database"`
+	RetentionPolicy string `toml:"retentionPolicy"`
 }
 
 type ClientConfiguration struct {
-	Interval  int    `json:"interval"`
-	ServerUrl string `json:"serverUrl"`
+	Interval  int    `toml:"interval"`
+	ServerUrl string `toml:"serverUrl"`
 }
 
 type ServerConfiguration struct {
-	Influxdb InfluxdbConfiguration `json:"influxdb"`
-	Bind     string                `json:"bind"`
-	Port     int16                 `json:"port"`
+	Influxdb InfluxdbConfiguration `toml:"influxdb"`
+	Bind     string                `toml:"bind"`
+	Port     int16                 `toml:"port"`
 }
 
 type Configuration struct {
-	Client ClientConfiguration `json:"client"`
-	Server ServerConfiguration `json:"server"`
+	Client ClientConfiguration `toml:"client"`
+	Server ServerConfiguration `toml:"server"`
 }
 
 func (c *Configuration) LoadDefaults() error {
-	err := json.Unmarshal(defaultConfig, c)
-	if err != nil {
+	if _, err := toml.Decode(defaultConfig, &c); err != nil {
 		return err
 	}
 
