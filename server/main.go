@@ -51,7 +51,7 @@ func sendToInflux(stats agento.MachineStats) {
 		Tags: map[string]string{
 			"hostname": stats.Hostname,
 		},
-		Timestamp:       time.Now(),
+		Time:            time.Now(),
 		Points:          points,
 		Database:        config.Server.Influxdb.Database,
 		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
