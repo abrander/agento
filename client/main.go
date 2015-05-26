@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"agento"
@@ -13,15 +14,16 @@ import (
 
 func main() {
 	config := agento.Configuration{}
-	config.LoadDefaults()
 	err := config.LoadFromFile("/etc/agento.conf")
 	agento.InitLogging(&config)
 
 	if err != nil {
-		agento.LogInfo("Could not read /etc/agento.conf (%s). Using defaults and logging to %s",
-			err.Error(),
-			config.Client.ServerUrl)
+		agento.LogError("Configuration error: %s",
+			err.Error())
+		os.Exit(1)
 	}
+
+	agento.LogInfo("agento client started, reporting to %s", config.Client.ServerUrl)
 
 	machineStats := agento.MachineStats{}
 

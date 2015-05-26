@@ -1,9 +1,7 @@
 package agento
 
 import (
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -36,7 +34,7 @@ type InfluxdbConfiguration struct {
 
 type ClientConfiguration struct {
 	Interval  int    `toml:"interval"`
-	ServerUrl string `toml:"serverUrl"`
+	ServerUrl string `toml:"server-url"`
 }
 
 type ServerConfiguration struct {
@@ -50,11 +48,22 @@ type Configuration struct {
 	Server ServerConfiguration `toml:"server"`
 }
 
-func (c *Configuration) LoadDefaults() error {
+func fileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
+
+func (c *Configuration) LoadFromFile(path string) error {
+	// Start by loading default values - should never err
 	if _, err := toml.Decode(defaultConfig, &c); err != nil {
 		return err
 	}
 
+	// We default to agento.domain, try to guess it
 	hostname, err := os.Hostname()
 
 	if err != nil {
@@ -62,26 +71,19 @@ func (c *Configuration) LoadDefaults() error {
 	}
 
 	firstDot := strings.Index(hostname, ".")
-	if firstDot <= 0 {
-		c.Client.ServerUrl = "http://agento.example.com:12345/report"
-
-		return errors.New("Could not extract domain name from '" + hostname + "'")
+	if firstDot > 0 {
+		c.Client.ServerUrl = "http://agento" + hostname[firstDot:] + ":12345/report"
 	}
 
-	c.Client.ServerUrl = "http://agento" + hostname[firstDot:] + ":12345/report"
-
-	return nil
-}
-
-func (c *Configuration) LoadFromFile(path string) error {
-	content, err := ioutil.ReadFile(path)
-	if err != nil {
-		return err
+	// Read values from config file if it exists
+	if fileExists(path) {
+		if _, err := toml.DecodeFile(path, &c); err != nil {
+			return err
+		}
 	}
 
-	err = json.Unmarshal(content, c)
-	if err != nil {
-		return err
+	if c.Client.ServerUrl == "" {
+		return errors.New("Could not determine server URL")
 	}
 
 	return nil

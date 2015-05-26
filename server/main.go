@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
@@ -95,13 +96,13 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	config.LoadDefaults()
 	err := config.LoadFromFile("/etc/agento.conf")
 	agento.InitLogging(&config)
 
 	if err != nil {
-		agento.LogInfo("Could not read /etc/agento.conf (%s). Using defaults",
+		agento.LogError("Configuration error: %s",
 			err.Error())
+		os.Exit(1)
 	}
 
 	http.HandleFunc("/report", reportHandler)
@@ -113,4 +114,6 @@ func main() {
 		agento.LogError("ListenAndServe: %s", err.Error())
 		log.Fatal("ListenAndServe: ", err)
 	}
+
+	agento.LogInfo("listening at %s", addr)
 }
