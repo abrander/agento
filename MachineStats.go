@@ -18,6 +18,7 @@ type MachineStats struct {
 	NetStats         *NetStats       `json:"n"`
 	LoadStats        *LoadStats      `json:"l"`
 	SnmpStats        *SnmpStats      `json:"s"`
+	CpuSpeed         *CpuSpeed       `json:"f"`
 	AvailableEntropy int64           `json:"e"`
 	GatherDuration   time.Duration   `json:"g"`
 }
@@ -33,6 +34,7 @@ func (m *MachineStats) Gather() {
 	m.NetStats = GetNetStats()
 	m.LoadStats = GetLoadStats()
 	m.SnmpStats = GetSnmpStats()
+	m.CpuSpeed = GetCpuSpeed()
 	m.AvailableEntropy, _ = getAvailableEntropy()
 
 	m.GatherDuration = time.Now().Sub(start)
@@ -48,6 +50,7 @@ func (s *MachineStats) GetMap() map[string]interface{} {
 	s.NetStats.GetMap(m)
 	s.LoadStats.GetMap(m)
 	s.SnmpStats.GetMap(m)
+	s.CpuSpeed.GetMap(m)
 	m["misc.AvailableEntropy"] = s.AvailableEntropy
 
 	m["agento.GatherDuration"] = Round(s.GatherDuration.Seconds()*1000.0, 1)
