@@ -94,3 +94,22 @@ func (c *NetStats) GetMap(m map[string]interface{}) {
 		m[key+".TxCompressed"] = value.TxCompressed
 	}
 }
+
+func (c *NetStats) GetDoc(m map[string]string) {
+	m["net.<interface>.RxBytes"] = "Bytes received (b/s)"
+	m["net.<interface>.RxPackets"] = "Packets received (packets/s"
+	m["net.<interface>.RxErrors"] = "Receiver errors detected (errors/s)"
+	m["net.<interface>.RxDropped"] = "Dropped packets (packets/s)"
+	m["net.<interface>.RxFifo"] = "FIFO buffer overruns (overruns/s)"
+	m["net.<interface>.RxFrame"] = "Framing errors (errors/s)"
+	m["net.<interface>.RxCompressed"] = "Compressed frames received (frames/s)"
+	m["net.<interface>.RxMulticast"] = "Multicast frames received (frames/s)"
+	m["net.<interface>.TxBytes"] = "Bytes transmitted (b/s)"
+	m["net.<interface>.TxPackets"] = "Packets transmitted (packets/s)"
+	m["net.<interface>.TxErrors"] = "Transmission errors (errors/s)"
+	m["net.<interface>.TxDropped"] = "Packets dropped (packets/s)"
+	m["net.<interface>.TxFifo"] = "FIFO buffer overruns (overruns/s)"
+	m["net.<interface>.TxCollisions"] = "Network collisions detected (collisions/s)"
+	m["net.<interface>.TxCarrier"] = "Carrier losses (losses/s)"
+	m["net.<interface>.TxCompressed"] = "Compressed frames transmitted (frames/s)"
+}

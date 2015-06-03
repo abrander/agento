@@ -165,3 +165,11 @@ func (c *SnmpStats) GetMap(m map[string]interface{}) {
 
 	// FIXME: Return something ;)
 }
+
+func (c *SnmpStats) GetDoc(m map[string]string) {
+	if c == nil {
+		return
+	}
+
+	// FIXME: Return something ;)
+}

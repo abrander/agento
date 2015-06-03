@@ -120,3 +120,22 @@ func (c *CpuStats) GetMap(m map[string]interface{}) {
 		m[key+".GuestNice"] = value.GuestNice
 	}
 }
+
+func (c *CpuStats) GetDoc(m map[string]string) {
+	m["misc.Interrupts"] = "Number of interrupts per second(/s)"
+	m["misc.ContextSwitches"] = "Number of context switches per second (/s)"
+	m["misc.Forks"] = "Number of forks per socond (/s)"
+	m["misc.RunningProcesses"] = "Currently running processes (n)"
+	m["misc.BlockedProcesses"] = "Number of processes currently blocked (n)"
+
+	m["cpu<.n>.User"] = "Time spend in user mode (ticks/s)"
+	m["cpu<.n>.Nice"] = "Time spend in user mode with low priority (ticks/s)"
+	m["cpu<.n>.System"] = "Time spend in kernel mode (ticks/s)"
+	m["cpu<.n>.Idle"] = "Time spend idle (ticks/s)"
+	m["cpu<.n>.IoWait"] = "Time spend waiting for IO (ticks/s)"
+	m["cpu<.n>.Irq"] = "Time spend processing interrupts (ticks/s)"
+	m["cpu<.n>.SoftIrq"] = "Time spend processing soft interrupts (ticks/s)"
+	m["cpu<.n>.Steal"] = "Time spend waiting for the *physical* CPU on a guest (ticks/s)"
+	m["cpu<.n>.Guest"] = "Time spend on running guests (ticks/s)"
+	m["cpu<.n>.GuestNice"] = "Time spend on running nice guests (ticks/s)"
+}

@@ -59,3 +59,11 @@ func (l *LoadStats) GetMap(m map[string]interface{}) {
 	m["misc.ActiveTasks"] = l.ActiveTasks
 	m["misc.Tasks"] = l.Tasks
 }
+
+func (l *LoadStats) GetDoc(m map[string]string) {
+	m["misc.Load1"] = "System load in the last minute (n)"
+	m["misc.Load5"] = "System load in the last 5 minutes (n)"
+	m["misc.Load15"] = "System load in the last 15 minutes (n)"
+	m["misc.ActiveTasks"] = "Tasks running (n)"
+	m["misc.Tasks"] = "Number of tasks"
+}

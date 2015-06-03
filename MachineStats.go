@@ -58,6 +58,24 @@ func (s *MachineStats) GetMap() map[string]interface{} {
 	return m
 }
 
+func (s *MachineStats) GetDoc() map[string]string {
+	m := make(map[string]string)
+
+	s.MemoryStats.GetDoc(m)
+	s.CpuStats.GetDoc(m)
+	s.DiskStats.GetDoc(m)
+	s.DiskUsageStats.GetDoc(m)
+	s.NetStats.GetDoc(m)
+	s.LoadStats.GetDoc(m)
+	s.SnmpStats.GetDoc(m)
+	s.CpuSpeed.GetDoc(m)
+	m["misc.AvailableEntropy"] = "Available entropy in the kernel pool (b)"
+
+	m["agento.GatherDuration"] = "Time used to gather metrics for Agento (ms)"
+
+	return m
+}
+
 func getAvailableEntropy() (int64, error) {
 	contents, err := ioutil.ReadFile("/proc/sys/kernel/random/entropy_avail")
 

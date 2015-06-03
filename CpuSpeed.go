@@ -48,3 +48,8 @@ func (c *CpuSpeed) GetMap(m map[string]interface{}) {
 		m["cpu."+strconv.Itoa(i)+".Frequency"] = frequency
 	}
 }
+
+func (c *CpuSpeed) GetDoc(m map[string]string) {
+
+	m["cpu.<n>.Frequency"] = "The currect CPU frequency (kHz)"
+}

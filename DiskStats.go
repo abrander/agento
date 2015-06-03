@@ -91,3 +91,17 @@ func (c *DiskStats) GetMap(m map[string]interface{}) {
 		m["io."+key+".IoWeightedTime"] = value.IoWeightedTime
 	}
 }
+
+func (c *DiskStats) GetDoc(m map[string]string) {
+	m["io.<device>.ReadsCompleted"] = "Reads from device (reads/s)"
+	m["io.<device>.ReadsMerged"] = "Reads merged (merges/s)"
+	m["io.<device>.ReadSectors"] = "Sectors read (sectors/s)"
+	m["io.<device>.ReadTime"] = "Milliseconds spend reading (ms/s)"
+	m["io.<device>.WritesCompleted"] = "Writes to device (writes/s)"
+	m["io.<device>.WritesMerged"] = "Writes merged (merges/s)"
+	m["io.<device>.WriteSectors"] = "Sectors written (sectors/s"
+	m["io.<device>.WriteTime"] = "Time spend writing (ms/s)"
+	m["io.<device>.IoInProgress"] = "The current queue size of IO operations (n)"
+	m["io.<device>.IoTime"] = "Time spend on IO (ms/s)"
+	m["io.<device>.IoWeightedTime"] = "Time spend on IO times the IO queue Please see https://www.kernel.org/doc/Documentation/iostats.txt (ms/s)"
+}

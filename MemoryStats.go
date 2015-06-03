@@ -85,3 +85,13 @@ func (s *MemoryStats) GetMap(m map[string]interface{}) {
 	m["swap.Used"] = s.SwapUsed
 	m["swap.Free"] = s.SwapFree
 }
+
+func (s *MemoryStats) GetDoc(m map[string]string) {
+	m["mem.Used"] = "Memory used (b)"
+	m["mem.Free"] = "Free memory (b)"
+	m["mem.Shared"] = "Memory shared among multiple processes (b)"
+	m["mem.Buffers"] = "Memory used for buffers (b)"
+	m["mem.Cached"] = "Memory used for cache (b)"
+	m["swap.Used"] = "Used swap (b)"
+	m["swap.Free"] = "Free swap (b)"
+}
