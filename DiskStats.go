@@ -78,16 +78,16 @@ func (c *DiskStats) GetMap(m map[string]interface{}) {
 	}
 
 	for key, value := range c.Disks {
-		m[key+".ReadsCompleted"] = value.ReadsCompleted
-		m[key+".ReadsMerged"] = value.ReadsMerged
-		m[key+".ReadSectors"] = value.ReadSectors
-		m[key+".ReadTime"] = value.ReadTime
-		m[key+".WritesCompleted"] = value.WritesCompleted
-		m[key+".WritesMerged"] = value.WritesMerged
-		m[key+".WriteSectors"] = value.WriteSectors
-		m[key+".WriteTime"] = value.WriteTime
-		m[key+".IoInProgress"] = value.IoInProgress
-		m[key+".IoTime"] = value.IoTime
-		m[key+".IoWeightedTime"] = value.IoWeightedTime
+		m["io."+key+".ReadsCompleted"] = value.ReadsCompleted
+		m["io."+key+".ReadsMerged"] = value.ReadsMerged
+		m["io."+key+".ReadSectors"] = value.ReadSectors
+		m["io."+key+".ReadTime"] = value.ReadTime
+		m["io."+key+".WritesCompleted"] = value.WritesCompleted
+		m["io."+key+".WritesMerged"] = value.WritesMerged
+		m["io."+key+".WriteSectors"] = value.WriteSectors
+		m["io."+key+".WriteTime"] = value.WriteTime
+		m["io."+key+".IoInProgress"] = value.IoInProgress
+		m["io."+key+".IoTime"] = value.IoTime
+		m["io."+key+".IoWeightedTime"] = value.IoWeightedTime
 	}
 }

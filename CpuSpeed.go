@@ -45,6 +45,6 @@ func (c *CpuSpeed) UnmarshalJSON(b []byte) error {
 func (c *CpuSpeed) GetMap(m map[string]interface{}) {
 
 	for i, frequency := range c.Frequency {
-		m["cpu"+strconv.Itoa(i)+".Frequency"] = frequency
+		m["cpu."+strconv.Itoa(i)+".Frequency"] = frequency
 	}
 }

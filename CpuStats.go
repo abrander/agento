@@ -46,7 +46,14 @@ func GetCpuStats() *CpuStats {
 		if strings.HasPrefix(data[0], "cpu") {
 			s := SingleCpuStat{}
 			s.ReadArray(data)
-			stat.Cpu[data[0]] = &s
+
+			key := "cpu." + data[0][3:]
+
+			if data[0] == "cpu" {
+				key = data[0]
+			}
+
+			stat.Cpu[key] = &s
 		}
 
 		switch data[0] {

@@ -40,7 +40,7 @@ func GetNetStats() *NetStats {
 		if strings.HasSuffix(data[0], ":") {
 			s := SingleNetStats{}
 			s.ReadArray(data)
-			stat.Interfaces[strings.TrimSuffix(data[0], ":")] = &s
+			stat.Interfaces["net."+strings.TrimSuffix(data[0], ":")] = &s
 		}
 	}
 
