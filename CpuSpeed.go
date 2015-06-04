@@ -51,5 +51,5 @@ func (c *CpuSpeed) GetMap(m map[string]interface{}) {
 
 func (c *CpuSpeed) GetDoc(m map[string]string) {
 
-	m["cpu.<n>.Frequency"] = "The currect CPU frequency (kHz)"
+	m["cpu.<n>.Frequency"] = "The current CPU frequency (kHz)"
 }
