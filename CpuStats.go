@@ -122,9 +122,9 @@ func (c *CpuStats) GetMap(m map[string]interface{}) {
 }
 
 func (c *CpuStats) GetDoc(m map[string]string) {
-	m["misc.Interrupts"] = "Number of interrupts per second(/s)"
+	m["misc.Interrupts"] = "Number of interrupts per second (/s)"
 	m["misc.ContextSwitches"] = "Number of context switches per second (/s)"
-	m["misc.Forks"] = "Number of forks per socond (/s)"
+	m["misc.Forks"] = "Number of forks per second (/s)"
 	m["misc.RunningProcesses"] = "Currently running processes (n)"
 	m["misc.BlockedProcesses"] = "Number of processes currently blocked (n)"
 

@@ -35,7 +35,7 @@ func (c *DiskUsageStats) GetMap(m map[string]interface{}) {
 
 func (c *DiskUsageStats) GetDoc(m map[string]string) {
 	m["du.<mountpoint>.Used"] = "Used space (b)"
-	m["du.<mountpoint>.Reserved"] = "Space reserver for uid 0 (b)"
+	m["du.<mountpoint>.Reserved"] = "Space reserved for uid 0 (b)"
 	m["du.<mountpoint>.Free"] = "Free space (b)"
 	m["du.<mountpoint>.UsedNodes"] = "Used inodes (n)"
 	m["du.<mountpoint>.FreeNodes"] = "Free inodes (n)"

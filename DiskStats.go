@@ -103,5 +103,5 @@ func (c *DiskStats) GetDoc(m map[string]string) {
 	m["io.<device>.WriteTime"] = "Time spend writing (ms/s)"
 	m["io.<device>.IoInProgress"] = "The current queue size of IO operations (n)"
 	m["io.<device>.IoTime"] = "Time spend on IO (ms/s)"
-	m["io.<device>.IoWeightedTime"] = "Time spend on IO times the IO queue Please see https://www.kernel.org/doc/Documentation/iostats.txt (ms/s)"
+	m["io.<device>.IoWeightedTime"] = "Time spend on IO times the IO queue. Please see https://www.kernel.org/doc/Documentation/iostats.txt (ms/s)"
 }
