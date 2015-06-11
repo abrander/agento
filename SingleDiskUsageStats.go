@@ -5,11 +5,11 @@ import (
 )
 
 type SingleDiskUsageStats struct {
-	Used      uint64 `json:"u"`
-	Reserved  uint64 `json:"r"`
-	Free      uint64 `json:"f"`
-	UsedNodes uint64 `json:"un"`
-	FreeNodes uint64 `json:"fn"`
+	Used      int64 `json:"u"`
+	Reserved  int64 `json:"r"`
+	Free      int64 `json:"f"`
+	UsedNodes int64 `json:"un"`
+	FreeNodes int64 `json:"fn"`
 }
 
 func ReadSingleDiskUsageStats(path string) *SingleDiskUsageStats {
@@ -21,13 +21,13 @@ func ReadSingleDiskUsageStats(path string) *SingleDiskUsageStats {
 		return nil
 	}
 
-	bSize := uint64(stat.Bsize)
-	stats.Used = bSize * (stat.Blocks - stat.Bfree)
-	stats.Reserved = bSize * (stat.Bfree - stat.Bavail)
-	stats.Free = bSize * stat.Bavail
+	bSize := int64(stat.Bsize)
+	stats.Used = bSize * int64(stat.Blocks - stat.Bfree)
+	stats.Reserved = bSize * int64(stat.Bfree - stat.Bavail)
+	stats.Free = bSize * int64(stat.Bavail)
 
-	stats.UsedNodes = stat.Files - stat.Ffree
-	stats.FreeNodes = stat.Ffree
+	stats.UsedNodes = int64(stat.Files - stat.Ffree)
+	stats.FreeNodes = int64(stat.Ffree)
 
 	return &stats
 }
