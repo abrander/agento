@@ -39,6 +39,9 @@ func sendToInflux(stats agento.MachineStats) {
 
 	for key, value := range m {
 		points[i] = client.Point{
+			Tags: map[string]string{
+				"hostname": stats.Hostname,
+			},
 			Measurement: key,
 			Fields: map[string]interface{}{
 				"value": value,
@@ -49,9 +52,6 @@ func sendToInflux(stats agento.MachineStats) {
 	}
 
 	bps := client.BatchPoints{
-		Tags: map[string]string{
-			"hostname": stats.Hostname,
-		},
 		Time:            time.Now(),
 		Points:          points,
 		Database:        config.Server.Influxdb.Database,
