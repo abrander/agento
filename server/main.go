@@ -39,7 +39,7 @@ func sendToInflux(stats agento.MachineStats) {
 
 	for key, value := range m {
 		points[i] = client.Point{
-			Name: key,
+			Measurement: key,
 			Fields: map[string]interface{}{
 				"value": value,
 			},
