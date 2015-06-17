@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 type CpuSpeed struct {
@@ -42,13 +44,14 @@ func (c *CpuSpeed) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &c.Frequency)
 }
 
-func (c *CpuSpeed) GetMap(m map[string]interface{}) {
+func (c *CpuSpeed) GetPoints() []client.Point {
+	points := make([]client.Point, len(c.Frequency)*10)
 
-	if c != nil {
-		for i, frequency := range c.Frequency {
-			m["cpu."+strconv.Itoa(i)+".Frequency"] = frequency
-		}
+	for i, frequency := range c.Frequency {
+		points[i] = PointWithTag("cpu.Frequency", frequency, "core", strconv.Itoa(i))
 	}
+
+	return points
 }
 
 func (c *CpuSpeed) GetDoc(m map[string]string) {

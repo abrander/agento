@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 type MemoryStats struct {
@@ -76,14 +78,18 @@ func GetMemoryStats() *MemoryStats {
 	return &stat
 }
 
-func (s *MemoryStats) GetMap(m map[string]interface{}) {
-	m["mem.Used"] = s.Used
-	m["mem.Free"] = s.Free
-	m["mem.Shared"] = s.Shared
-	m["mem.Buffers"] = s.Buffers
-	m["mem.Cached"] = s.Cached
-	m["swap.Used"] = s.SwapUsed
-	m["swap.Free"] = s.SwapFree
+func (s *MemoryStats) GetPoints() []client.Point {
+	points := make([]client.Point, 7)
+
+	points[0] = SimplePoint("mem.Used", s.Used)
+	points[1] = SimplePoint("mem.Free", s.Free)
+	points[2] = SimplePoint("mem.Shared", s.Shared)
+	points[3] = SimplePoint("mem.Buffers", s.Buffers)
+	points[4] = SimplePoint("mem.Cached", s.Cached)
+	points[5] = SimplePoint("swap.Used", s.SwapUsed)
+	points[6] = SimplePoint("swap.Free", s.SwapFree)
+
+	return points
 }
 
 func (s *MemoryStats) GetDoc(m map[string]string) {

@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 var previous *CpuStats
@@ -47,10 +49,10 @@ func GetCpuStats() *CpuStats {
 			s := SingleCpuStat{}
 			s.ReadArray(data)
 
-			key := "cpu." + data[0][3:]
+			key := data[0][3:]
 
 			if data[0] == "cpu" {
-				key = data[0]
+				key = "all"
 			}
 
 			stat.Cpu[key] = &s
@@ -100,25 +102,32 @@ func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
 	return &diff
 }
 
-func (c *CpuStats) GetMap(m map[string]interface{}) {
-	m["misc.Interrupts"] = c.Interrupts
-	m["misc.ContextSwitches"] = c.ContextSwitches
-	m["misc.Forks"] = c.Forks
-	m["misc.RunningProcesses"] = c.RunningProcesses
-	m["misc.BlockedProcesses"] = c.BlockedProcesses
+func (c *CpuStats) GetPoints() []client.Point {
+	points := make([]client.Point, 5+len(c.Cpu)*10)
 
+	points[0] = SimplePoint("misc.Interrupts", c.Interrupts)
+	points[1] = SimplePoint("misc.ContextSwitches", c.ContextSwitches)
+	points[2] = SimplePoint("misc.Forks", c.Forks)
+	points[3] = SimplePoint("misc.RunningProcesses", c.RunningProcesses)
+	points[4] = SimplePoint("misc.BlockedProcesses", c.BlockedProcesses)
+
+	i := 5
 	for key, value := range c.Cpu {
-		m[key+".User"] = value.User
-		m[key+".Nice"] = value.Nice
-		m[key+".System"] = value.System
-		m[key+".Idle"] = value.Idle
-		m[key+".IoWait"] = value.IoWait
-		m[key+".Irq"] = value.Irq
-		m[key+".SoftIrq"] = value.SoftIrq
-		m[key+".Steal"] = value.Steal
-		m[key+".Guest"] = value.Guest
-		m[key+".GuestNice"] = value.GuestNice
+		points[i+0] = PointWithTag("cpu.User", value.User, "core", key)
+		points[i+1] = PointWithTag("cpu.Nice", value.Nice, "core", key)
+		points[i+2] = PointWithTag("cpu.System", value.System, "core", key)
+		points[i+3] = PointWithTag("cpu.Idle", value.Idle, "core", key)
+		points[i+4] = PointWithTag("cpu.IoWait", value.IoWait, "core", key)
+		points[i+5] = PointWithTag("cpu.Irq", value.Irq, "core", key)
+		points[i+6] = PointWithTag("cpu.SoftIrq", value.SoftIrq, "core", key)
+		points[i+7] = PointWithTag("cpu.Steal", value.Steal, "core", key)
+		points[i+8] = PointWithTag("cpu.Guest", value.Guest, "core", key)
+		points[i+9] = PointWithTag("cpu.GuestNice", value.GuestNice, "core", key)
+
+		i = i + 10
 	}
+
+	return points
 }
 
 func (c *CpuStats) GetDoc(m map[string]string) {
@@ -128,14 +137,14 @@ func (c *CpuStats) GetDoc(m map[string]string) {
 	m["misc.RunningProcesses"] = "Currently running processes (n)"
 	m["misc.BlockedProcesses"] = "Number of processes currently blocked (n)"
 
-	m["cpu.<n>.User"] = "Time spend in user mode (ticks/s)"
-	m["cpu.<n>.Nice"] = "Time spend in user mode with low priority (ticks/s)"
-	m["cpu.<n>.System"] = "Time spend in kernel mode (ticks/s)"
-	m["cpu.<n>.Idle"] = "Time spend idle (ticks/s)"
-	m["cpu.<n>.IoWait"] = "Time spend waiting for IO (ticks/s)"
-	m["cpu.<n>.Irq"] = "Time spend processing interrupts (ticks/s)"
-	m["cpu.<n>.SoftIrq"] = "Time spend processing soft interrupts (ticks/s)"
-	m["cpu.<n>.Steal"] = "Time spend waiting for the *physical* CPU on a guest (ticks/s)"
-	m["cpu.<n>.Guest"] = "Time spend on running guests (ticks/s)"
-	m["cpu.<n>.GuestNice"] = "Time spend on running nice guests (ticks/s)"
+	m["cpu.User"] = "Time spend in user mode (ticks/s)"
+	m["cpu.Nice"] = "Time spend in user mode with low priority (ticks/s)"
+	m["cpu.System"] = "Time spend in kernel mode (ticks/s)"
+	m["cpu.Idle"] = "Time spend idle (ticks/s)"
+	m["cpu.IoWait"] = "Time spend waiting for IO (ticks/s)"
+	m["cpu.Irq"] = "Time spend processing interrupts (ticks/s)"
+	m["cpu.SoftIrq"] = "Time spend processing soft interrupts (ticks/s)"
+	m["cpu.Steal"] = "Time spend waiting for the *physical* CPU on a guest (ticks/s)"
+	m["cpu.Guest"] = "Time spend on running guests (ticks/s)"
+	m["cpu.GuestNice"] = "Time spend on running nice guests (ticks/s)"
 }

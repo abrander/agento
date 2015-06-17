@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 type LoadStats struct {
@@ -52,12 +54,16 @@ func GetLoadStats() *LoadStats {
 	return &stat
 }
 
-func (l *LoadStats) GetMap(m map[string]interface{}) {
-	m["misc.Load1"] = l.Load1
-	m["misc.Load5"] = l.Load5
-	m["misc.Load15"] = l.Load15
-	m["misc.ActiveTasks"] = l.ActiveTasks
-	m["misc.Tasks"] = l.Tasks
+func (l *LoadStats) GetPoints() []client.Point {
+	points := make([]client.Point, 5)
+
+	points[0] = SimplePoint("misc.Load1", l.Load1)
+	points[1] = SimplePoint("misc.Load5", l.Load5)
+	points[2] = SimplePoint("misc.Load15", l.Load15)
+	points[3] = SimplePoint("misc.ActiveTasks", l.ActiveTasks)
+	points[4] = SimplePoint("misc.Tasks", l.Tasks)
+
+	return points
 }
 
 func (l *LoadStats) GetDoc(m map[string]string) {

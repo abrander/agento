@@ -1,6 +1,8 @@
 package agento
 
-import ()
+import (
+	"github.com/influxdb/influxdb/client"
+)
 
 type DiskUsageStats struct {
 	Disks map[string]*SingleDiskUsageStats `json:"disks"`
@@ -15,28 +17,27 @@ func GetDiskUsageStats() *DiskUsageStats {
 	return &stat
 }
 
-func (c *DiskUsageStats) GetMap(m map[string]interface{}) {
-	if c == nil {
-		return
+func (d *DiskUsageStats) GetPoints() []client.Point {
+	points := make([]client.Point, len(d.Disks)*5)
+
+	i := 0
+	for key, value := range d.Disks {
+		points[i+0] = PointWithTag("du.Used", value.Used, "mountpoint", key)
+		points[i+1] = PointWithTag("du.Reserved", value.Reserved, "mountpoint", key)
+		points[i+2] = PointWithTag("du.Free", value.Free, "mountpoint", key)
+		points[i+3] = PointWithTag("du.UsedNodes", value.UsedNodes, "mountpoint", key)
+		points[i+4] = PointWithTag("du.FreeNodes", value.FreeNodes, "mountpoint", key)
+
+		i = i + 5
 	}
 
-	if c.Disks == nil {
-		return
-	}
-
-	for key, value := range c.Disks {
-		m["du."+key+".Used"] = value.Used
-		m["du."+key+".Reserved"] = value.Reserved
-		m["du."+key+".Free"] = value.Free
-		m["du."+key+".UsedNodes"] = value.UsedNodes
-		m["du."+key+".FreeNodes"] = value.FreeNodes
-	}
+	return points
 }
 
 func (c *DiskUsageStats) GetDoc(m map[string]string) {
-	m["du.<mountpoint>.Used"] = "Used space (b)"
-	m["du.<mountpoint>.Reserved"] = "Space reserved for uid 0 (b)"
-	m["du.<mountpoint>.Free"] = "Free space (b)"
-	m["du.<mountpoint>.UsedNodes"] = "Used inodes (n)"
-	m["du.<mountpoint>.FreeNodes"] = "Free inodes (n)"
+	m["du.Used"] = "Used space (b)"
+	m["du.Reserved"] = "Space reserved for uid 0 (b)"
+	m["du.Free"] = "Free space (b)"
+	m["du.UsedNodes"] = "Used inodes (n)"
+	m["du.FreeNodes"] = "Free inodes (n)"
 }

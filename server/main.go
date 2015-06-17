@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,24 +32,15 @@ func sendToInflux(stats agento.MachineStats) {
 		log.Fatal(err)
 	}
 
-	m := stats.GetMap()
+	points := stats.GetPoints()
 
-	points := make([]client.Point, len(m))
-
-	i := 0
-
-	for key, value := range m {
-		points[i] = client.Point{
-			Tags: map[string]string{
-				"hostname": stats.Hostname,
-			},
-			Measurement: key,
-			Fields: map[string]interface{}{
-				"value": value,
-			},
+	// Add hostname tag to all points
+	for i := range points {
+		if points[i].Tags != nil {
+			points[i].Tags["hostname"] = stats.Hostname
+		} else {
+			points[i].Tags = map[string]string{"hostname": stats.Hostname}
 		}
-
-		i++
 	}
 
 	bps := client.BatchPoints{

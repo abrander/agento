@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 type MachineStats struct {
@@ -40,22 +42,43 @@ func (m *MachineStats) Gather() {
 	m.GatherDuration = time.Now().Sub(start)
 }
 
-func (s *MachineStats) GetMap() map[string]interface{} {
-	m := make(map[string]interface{})
+func SimplePoint(key string, value interface{}) client.Point {
+	return client.Point{
+		Measurement: key,
+		Fields: map[string]interface{}{
+			"value": value,
+		},
+	}
+}
 
-	s.MemoryStats.GetMap(m)
-	s.CpuStats.GetMap(m)
-	s.DiskStats.GetMap(m)
-	s.DiskUsageStats.GetMap(m)
-	s.NetStats.GetMap(m)
-	s.LoadStats.GetMap(m)
-	s.SnmpStats.GetMap(m)
-	s.CpuSpeed.GetMap(m)
-	m["misc.AvailableEntropy"] = s.AvailableEntropy
+func PointWithTag(key string, value interface{}, tagKey string, tagValue string) client.Point {
+	return client.Point{
+		Tags: map[string]string{
+			tagKey: tagValue,
+		},
+		Measurement: key,
+		Fields: map[string]interface{}{
+			"value": value,
+		},
+	}
+}
 
-	m["agento.GatherDuration"] = Round(s.GatherDuration.Seconds()*1000.0, 1)
+func (s *MachineStats) GetPoints() []client.Point {
+	points := make([]client.Point, 2, 300)
 
-	return m
+	points[0] = SimplePoint("misc.AvailableEntropy", s.AvailableEntropy)
+	points[1] = SimplePoint("agento.GatherDuration", Round(s.GatherDuration.Seconds()*1000.0, 1))
+
+	points = append(points, s.MemoryStats.GetPoints()...)
+	points = append(points, s.CpuStats.GetPoints()...)
+	points = append(points, s.DiskStats.GetPoints()...)
+	points = append(points, s.DiskUsageStats.GetPoints()...)
+	points = append(points, s.NetStats.GetPoints()...)
+	points = append(points, s.LoadStats.GetPoints()...)
+	points = append(points, s.SnmpStats.GetPoints()...)
+	points = append(points, s.CpuSpeed.GetPoints()...)
+
+	return points
 }
 
 func (s *MachineStats) GetDoc() map[string]string {

@@ -7,6 +7,8 @@ import (
 	//	"strconv"
 	"strings"
 	"time"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 var previousNetStats *NetStats
@@ -40,7 +42,7 @@ func GetNetStats() *NetStats {
 		if strings.HasSuffix(data[0], ":") {
 			s := SingleNetStats{}
 			s.ReadArray(data)
-			stat.Interfaces["net."+strings.TrimSuffix(data[0], ":")] = &s
+			stat.Interfaces[strings.TrimSuffix(data[0], ":")] = &s
 		}
 	}
 
@@ -66,50 +68,49 @@ func (c *NetStats) Sub(previousNetStats *NetStats) *NetStats {
 	return &diff
 }
 
-func (c *NetStats) GetMap(m map[string]interface{}) {
-	if c == nil {
-		return
+func (n *NetStats) GetPoints() []client.Point {
+	points := make([]client.Point, len(n.Interfaces)*16)
+
+	i := 0
+	for key, value := range n.Interfaces {
+		points[i+0] = PointWithTag("net.RxBytes", value.RxBytes, "interface", key)
+		points[i+1] = PointWithTag("net.RxPackets", value.RxPackets, "interface", key)
+		points[i+2] = PointWithTag("net.RxErrors", value.RxErrors, "interface", key)
+		points[i+3] = PointWithTag("net.RxDropped", value.RxDropped, "interface", key)
+		points[i+4] = PointWithTag("net.RxFifo", value.RxFifo, "interface", key)
+		points[i+5] = PointWithTag("net.RxFrame", value.RxFrame, "interface", key)
+		points[i+5] = PointWithTag("net.RxCompressed", value.RxCompressed, "interface", key)
+		points[i+6] = PointWithTag("net.RxMulticast", value.RxMulticast, "interface", key)
+		points[i+7] = PointWithTag("net.TxBytes", value.TxBytes, "interface", key)
+		points[i+8] = PointWithTag("net.TxPackets", value.TxPackets, "interface", key)
+		points[i+10] = PointWithTag("net.TxErrors", value.TxErrors, "interface", key)
+		points[i+11] = PointWithTag("net.TxDropped", value.TxDropped, "interface", key)
+		points[i+12] = PointWithTag("net.TxFifo", value.TxFifo, "interface", key)
+		points[i+13] = PointWithTag("net.TxCollisions", value.TxCollisions, "interface", key)
+		points[i+14] = PointWithTag("net.TxCarrier", value.TxCarrier, "interface", key)
+		points[i+15] = PointWithTag("net.TxCompressed", value.TxCompressed, "interface", key)
+
+		i = i + 16
 	}
 
-	if c.Interfaces == nil {
-		return
-	}
-
-	for key, value := range c.Interfaces {
-		m[key+".RxBytes"] = value.RxBytes
-		m[key+".RxPackets"] = value.RxPackets
-		m[key+".RxErrors"] = value.RxErrors
-		m[key+".RxDropped"] = value.RxDropped
-		m[key+".RxFifo"] = value.RxFifo
-		m[key+".RxFrame"] = value.RxFrame
-		m[key+".RxCompressed"] = value.RxCompressed
-		m[key+".RxMulticast"] = value.RxMulticast
-		m[key+".TxBytes"] = value.TxBytes
-		m[key+".TxPackets"] = value.TxPackets
-		m[key+".TxErrors"] = value.TxErrors
-		m[key+".TxDropped"] = value.TxDropped
-		m[key+".TxFifo"] = value.TxFifo
-		m[key+".TxCollisions"] = value.TxCollisions
-		m[key+".TxCarrier"] = value.TxCarrier
-		m[key+".TxCompressed"] = value.TxCompressed
-	}
+	return points
 }
 
 func (c *NetStats) GetDoc(m map[string]string) {
-	m["net.<interface>.RxBytes"] = "Bytes received (b/s)"
-	m["net.<interface>.RxPackets"] = "Packets received (packets/s"
-	m["net.<interface>.RxErrors"] = "Receiver errors detected (errors/s)"
-	m["net.<interface>.RxDropped"] = "Dropped packets (packets/s)"
-	m["net.<interface>.RxFifo"] = "FIFO buffer overruns (overruns/s)"
-	m["net.<interface>.RxFrame"] = "Framing errors (errors/s)"
-	m["net.<interface>.RxCompressed"] = "Compressed frames received (frames/s)"
-	m["net.<interface>.RxMulticast"] = "Multicast frames received (frames/s)"
-	m["net.<interface>.TxBytes"] = "Bytes transmitted (b/s)"
-	m["net.<interface>.TxPackets"] = "Packets transmitted (packets/s)"
-	m["net.<interface>.TxErrors"] = "Transmission errors (errors/s)"
-	m["net.<interface>.TxDropped"] = "Packets dropped (packets/s)"
-	m["net.<interface>.TxFifo"] = "FIFO buffer overruns (overruns/s)"
-	m["net.<interface>.TxCollisions"] = "Network collisions detected (collisions/s)"
-	m["net.<interface>.TxCarrier"] = "Carrier losses (losses/s)"
-	m["net.<interface>.TxCompressed"] = "Compressed frames transmitted (frames/s)"
+	m["net.RxBytes"] = "Bytes received (b/s)"
+	m["net.RxPackets"] = "Packets received (packets/s"
+	m["net.RxErrors"] = "Receiver errors detected (errors/s)"
+	m["net.RxDropped"] = "Dropped packets (packets/s)"
+	m["net.RxFifo"] = "FIFO buffer overruns (overruns/s)"
+	m["net.RxFrame"] = "Framing errors (errors/s)"
+	m["net.RxCompressed"] = "Compressed frames received (frames/s)"
+	m["net.RxMulticast"] = "Multicast frames received (frames/s)"
+	m["net.TxBytes"] = "Bytes transmitted (b/s)"
+	m["net.TxPackets"] = "Packets transmitted (packets/s)"
+	m["net.TxErrors"] = "Transmission errors (errors/s)"
+	m["net.TxDropped"] = "Packets dropped (packets/s)"
+	m["net.TxFifo"] = "FIFO buffer overruns (overruns/s)"
+	m["net.TxCollisions"] = "Network collisions detected (collisions/s)"
+	m["net.TxCarrier"] = "Carrier losses (losses/s)"
+	m["net.TxCompressed"] = "Compressed frames transmitted (frames/s)"
 }

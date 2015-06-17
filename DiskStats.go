@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 var previousDiskStats *DiskStats
@@ -68,40 +70,39 @@ func (c *DiskStats) Sub(previousDiskStats *DiskStats) *DiskStats {
 	return &diff
 }
 
-func (c *DiskStats) GetMap(m map[string]interface{}) {
-	if c == nil {
-		return
+func (d *DiskStats) GetPoints() []client.Point {
+	points := make([]client.Point, len(d.Disks)*11)
+
+	i := 0
+	for key, value := range d.Disks {
+		points[i+0] = PointWithTag("io.ReadsCompleted", value.ReadsCompleted, "device", key)
+		points[i+1] = PointWithTag("io.ReadsMerged", value.ReadsMerged, "device", key)
+		points[i+2] = PointWithTag("io.ReadSectors", value.ReadSectors, "device", key)
+		points[i+3] = PointWithTag("io.ReadTime", value.ReadTime, "device", key)
+		points[i+4] = PointWithTag("io.WritesCompleted", value.WritesCompleted, "device", key)
+		points[i+5] = PointWithTag("io.WritesMerged", value.WritesMerged, "device", key)
+		points[i+6] = PointWithTag("io.WriteSectors", value.WriteSectors, "device", key)
+		points[i+7] = PointWithTag("io.WriteTime", value.WriteTime, "device", key)
+		points[i+8] = PointWithTag("io.IoInProgress", value.IoInProgress, "device", key)
+		points[i+9] = PointWithTag("io.IoTime", value.IoTime, "device", key)
+		points[i+10] = PointWithTag("io.IoWeightedTime", value.IoWeightedTime, "device", key)
+
+		i = i + 11
 	}
 
-	if c.Disks == nil {
-		return
-	}
-
-	for key, value := range c.Disks {
-		m["io."+key+".ReadsCompleted"] = value.ReadsCompleted
-		m["io."+key+".ReadsMerged"] = value.ReadsMerged
-		m["io."+key+".ReadSectors"] = value.ReadSectors
-		m["io."+key+".ReadTime"] = value.ReadTime
-		m["io."+key+".WritesCompleted"] = value.WritesCompleted
-		m["io."+key+".WritesMerged"] = value.WritesMerged
-		m["io."+key+".WriteSectors"] = value.WriteSectors
-		m["io."+key+".WriteTime"] = value.WriteTime
-		m["io."+key+".IoInProgress"] = value.IoInProgress
-		m["io."+key+".IoTime"] = value.IoTime
-		m["io."+key+".IoWeightedTime"] = value.IoWeightedTime
-	}
+	return points
 }
 
 func (c *DiskStats) GetDoc(m map[string]string) {
-	m["io.<device>.ReadsCompleted"] = "Reads from device (reads/s)"
-	m["io.<device>.ReadsMerged"] = "Reads merged (merges/s)"
-	m["io.<device>.ReadSectors"] = "Sectors read (sectors/s)"
-	m["io.<device>.ReadTime"] = "Milliseconds spend reading (ms/s)"
-	m["io.<device>.WritesCompleted"] = "Writes to device (writes/s)"
-	m["io.<device>.WritesMerged"] = "Writes merged (merges/s)"
-	m["io.<device>.WriteSectors"] = "Sectors written (sectors/s"
-	m["io.<device>.WriteTime"] = "Time spend writing (ms/s)"
-	m["io.<device>.IoInProgress"] = "The current queue size of IO operations (n)"
-	m["io.<device>.IoTime"] = "Time spend on IO (ms/s)"
-	m["io.<device>.IoWeightedTime"] = "Time spend on IO times the IO queue. Please see https://www.kernel.org/doc/Documentation/iostats.txt (ms/s)"
+	m["io.ReadsCompleted"] = "Reads from device (reads/s)"
+	m["io.ReadsMerged"] = "Reads merged (merges/s)"
+	m["io.ReadSectors"] = "Sectors read (sectors/s)"
+	m["io.ReadTime"] = "Milliseconds spend reading (ms/s)"
+	m["io.WritesCompleted"] = "Writes to device (writes/s)"
+	m["io.WritesMerged"] = "Writes merged (merges/s)"
+	m["io.WriteSectors"] = "Sectors written (sectors/s"
+	m["io.WriteTime"] = "Time spend writing (ms/s)"
+	m["io.IoInProgress"] = "The current queue size of IO operations (n)"
+	m["io.IoTime"] = "Time spend on IO (ms/s)"
+	m["io.IoWeightedTime"] = "Time spend on IO times the IO queue. Please see https://www.kernel.org/doc/Documentation/iostats.txt (ms/s)"
 }

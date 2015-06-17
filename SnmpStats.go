@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/influxdb/influxdb/client"
 )
 
 var previousSnmpStats *SnmpStats
@@ -158,12 +160,12 @@ func (c *SnmpStats) Sub(previousSnmpStats *SnmpStats) *SnmpStats {
 	return c
 }
 
-func (c *SnmpStats) GetMap(m map[string]interface{}) {
-	if c == nil {
-		return
-	}
+func (s *SnmpStats) GetPoints() []client.Point {
+	points := make([]client.Point, 0)
 
 	// FIXME: Return something ;)
+
+	return points
 }
 
 func (c *SnmpStats) GetDoc(m map[string]string) {
