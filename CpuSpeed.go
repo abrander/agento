@@ -45,7 +45,7 @@ func (c *CpuSpeed) UnmarshalJSON(b []byte) error {
 }
 
 func (c *CpuSpeed) GetPoints() []client.Point {
-	points := make([]client.Point, len(c.Frequency)*10)
+	points := make([]client.Point, len(c.Frequency))
 
 	for i, frequency := range c.Frequency {
 		points[i] = PointWithTag("cpu.Frequency", frequency, "core", strconv.Itoa(i))
