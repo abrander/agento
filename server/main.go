@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -71,13 +70,10 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	body, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		http.Error(w, err.Error(), 400)
-	}
-
 	var m agento.MachineStats
-	err = json.Unmarshal(body, &m)
+	d := json.NewDecoder(req.Body)
+	d.UseNumber()
+	err := d.Decode(&m)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
