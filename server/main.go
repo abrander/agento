@@ -82,6 +82,34 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 	sendToInflux(m)
 }
 
+func healthHandler(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "GET" {
+		http.Error(w, "Only GET allowed", 400)
+		return
+	}
+
+	u, err := url.Parse(config.Server.Influxdb.Url)
+	conf := client.Config{
+		URL:      *u,
+		Username: config.Server.Influxdb.Username,
+		Password: config.Server.Influxdb.Password,
+	}
+
+	con, err := client.NewClient(conf)
+	if err != nil {
+		http.Error(w, "Can't connect to InfluxDB", http.StatusInternalServerError)
+		return
+	}
+
+	_, _, err = con.Ping()
+	if err != nil {
+		http.Error(w, "Can't ping InfluxDB", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Write([]byte("ok"))
+}
+
 func main() {
 	err := config.LoadFromFile("/etc/agento.conf")
 	agento.InitLogging(&config)
@@ -93,6 +121,7 @@ func main() {
 	}
 
 	http.HandleFunc("/report", reportHandler)
+	http.HandleFunc("/health", healthHandler)
 
 	addr := config.Server.Bind + ":" + strconv.Itoa(int(config.Server.Port))
 	agento.LogInfo("agento server started, listening at " + addr)
