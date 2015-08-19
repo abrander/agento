@@ -41,7 +41,7 @@ func main() {
 		json, err := json.Marshal(machineStats)
 
 		if err == nil {
-			res, err := http.Post(config.Client.ServerUrl, "image/jpeg", bytes.NewReader(json))
+			res, err := http.Post(config.Client.ServerUrl, "application/json", bytes.NewReader(json))
 			if err != nil {
 				agento.LogError(err.Error())
 				continue
