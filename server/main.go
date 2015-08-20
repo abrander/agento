@@ -16,12 +16,14 @@ import (
 
 var config = agento.Configuration{}
 
-func sendToInflux(stats agento.MachineStats) {
-	u, err := url.Parse(config.Server.Influxdb.Url)
+func getInfluxClient() *client.Client {
+	u, _ := url.Parse(config.Server.Influxdb.Url)
+
 	conf := client.Config{
-		URL:      *u,
-		Username: config.Server.Influxdb.Username,
-		Password: config.Server.Influxdb.Password,
+		URL:       *u,
+		Username:  config.Server.Influxdb.Username,
+		Password:  config.Server.Influxdb.Password,
+		UserAgent: "agento-server",
 	}
 
 	con, err := client.NewClient(conf)
@@ -30,6 +32,11 @@ func sendToInflux(stats agento.MachineStats) {
 		log.Fatal(err)
 	}
 
+	return con
+}
+
+func sendToInflux(stats agento.MachineStats) {
+	con := getInfluxClient()
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
@@ -48,7 +55,7 @@ func sendToInflux(stats agento.MachineStats) {
 		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
 	}
 
-	_, err = con.Write(bps)
+	_, err := con.Write(bps)
 	if err != nil {
 		for i := 1; i <= 5; i++ {
 			agento.LogWarning("Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
@@ -88,20 +95,9 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	u, err := url.Parse(config.Server.Influxdb.Url)
-	conf := client.Config{
-		URL:      *u,
-		Username: config.Server.Influxdb.Username,
-		Password: config.Server.Influxdb.Password,
-	}
+	con := getInfluxClient()
 
-	con, err := client.NewClient(conf)
-	if err != nil {
-		http.Error(w, "Can't connect to InfluxDB", http.StatusInternalServerError)
-		return
-	}
-
-	_, _, err = con.Ping()
+	_, _, err := con.Ping()
 	if err != nil {
 		http.Error(w, "Can't ping InfluxDB", http.StatusServiceUnavailable)
 		return
