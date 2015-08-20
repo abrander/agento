@@ -22,6 +22,7 @@ username = "root"
 password = "root"
 database = "agento"
 retentionPolicy = "default"
+retries = 0
 `
 
 type InfluxdbConfiguration struct {
@@ -30,6 +31,7 @@ type InfluxdbConfiguration struct {
 	Password        string `toml:"password"`
 	Database        string `toml:"database"`
 	RetentionPolicy string `toml:"retentionPolicy"`
+	Retries         int    `toml:"retries"`
 }
 
 type ClientConfiguration struct {

@@ -54,17 +54,18 @@ func sendToInflux(stats agento.MachineStats) {
 		Database:        config.Server.Influxdb.Database,
 		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
 	}
+	retries := config.Server.Influxdb.Retries
 
 	_, err := con.Write(bps)
 	if err != nil {
-		for i := 1; i <= 5; i++ {
+		for i := 1; i <= retries; i++ {
 			agento.LogWarning("Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
 			time.Sleep(time.Millisecond * 500)
 			_, err = con.Write(bps)
 			if err == nil {
 				break
 			}
-			if i == 5 {
+			if i == retries {
 				agento.LogError("Error writing to influxdb: " + err.Error() + ", giving up")
 			}
 		}
