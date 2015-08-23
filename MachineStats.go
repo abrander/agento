@@ -21,6 +21,7 @@ type MachineStats struct {
 	LoadStats        *LoadStats      `json:"l"`
 	SnmpStats        *SnmpStats      `json:"s"`
 	CpuSpeed         *CpuSpeed       `json:"f"`
+	SocketStats      *SocketStats    `json:"S"`
 	AvailableEntropy int64           `json:"e"`
 	GatherDuration   time.Duration   `json:"g"`
 }
@@ -37,6 +38,7 @@ func (m *MachineStats) Gather() {
 	m.LoadStats = GetLoadStats()
 	m.SnmpStats = GetSnmpStats()
 	m.CpuSpeed = GetCpuSpeed()
+	m.SocketStats = GetSocketStats()
 	m.AvailableEntropy, _ = getAvailableEntropy()
 
 	m.GatherDuration = time.Now().Sub(start)
@@ -77,6 +79,7 @@ func (s *MachineStats) GetPoints() []client.Point {
 	points = append(points, s.LoadStats.GetPoints()...)
 	points = append(points, s.SnmpStats.GetPoints()...)
 	points = append(points, s.CpuSpeed.GetPoints()...)
+	points = append(points, s.SocketStats.GetPoints()...)
 
 	return points
 }
@@ -92,6 +95,7 @@ func (s *MachineStats) GetDoc() map[string]string {
 	s.LoadStats.GetDoc(m)
 	s.SnmpStats.GetDoc(m)
 	s.CpuSpeed.GetDoc(m)
+	s.SocketStats.GetDoc(m)
 	m["misc.AvailableEntropy"] = "Available entropy in the kernel pool (b)"
 
 	m["agento.GatherDuration"] = "Time used to gather metrics for Agento (ms)"
