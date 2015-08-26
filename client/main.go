@@ -28,12 +28,12 @@ func main() {
 
 	machineStats := agento.MachineStats{}
 
+	// Randomize our start time to avoid a big cluster reporting at the exact same time
+	time.Sleep(time.Second * time.Duration(rand.Intn(config.Client.Interval)))
+
 	// We need to gather one unreported set of metrics. It's needed for
 	// calculating deltas on first real report
 	machineStats.Gather()
-
-	// Randomize our start time to avoid a big cluster reporting at the exact same time
-	time.Sleep(time.Second * time.Duration(rand.Intn(config.Client.Interval)))
 
 	c := time.Tick(time.Second * time.Duration(config.Client.Interval))
 	for _ = range c {
