@@ -41,7 +41,18 @@ func main() {
 		json, err := json.Marshal(machineStats)
 
 		if err == nil {
-			res, err := http.Post(config.Client.ServerUrl, "application/json", bytes.NewReader(json))
+			client := &http.Client{}
+			req, err := http.NewRequest("POST", config.Client.ServerUrl, bytes.NewReader(json))
+			if err != nil {
+				agento.LogError(err.Error())
+				continue
+			}
+
+			if config.Client.Secret != "" {
+				req.Header.Add("X-Agento-Secret", config.Client.Secret)
+			}
+
+			res, err := client.Do(req)
 			if err != nil {
 				agento.LogError(err.Error())
 				continue

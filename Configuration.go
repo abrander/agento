@@ -11,6 +11,7 @@ import (
 var defaultConfig = `
 [client]
 interval = 1
+secret = ""
 
 [server.http]
 enabled = true
@@ -44,6 +45,7 @@ type InfluxdbConfiguration struct {
 
 type ClientConfiguration struct {
 	Interval  int    `toml:"interval"`
+	Secret    string `toml:"secret"`
 	ServerUrl string `toml:"server-url"`
 }
 
