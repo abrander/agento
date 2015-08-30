@@ -12,9 +12,17 @@ var defaultConfig = `
 [client]
 interval = 1
 
-[server]
+[server.http]
+enabled = true
 bind = "0.0.0.0"
 port = 12345
+
+[server.https]
+enabled = false
+bind = "0.0.0.0"
+port = 443
+key = "/etc/agento/ssl.key"
+cert = "/etc/agento/ssl.cert"
 
 [server.influxdb]
 url = "http://localhost:8086/"
@@ -39,10 +47,24 @@ type ClientConfiguration struct {
 	ServerUrl string `toml:"server-url"`
 }
 
+type HttpConfiguration struct {
+	Enabled bool   `toml:"enabled"`
+	Bind    string `toml:"bind"`
+	Port    int16  `toml:"port"`
+}
+
+type HttpsConfiguration struct {
+	Enabled  bool   `toml:"enabled"`
+	Bind     string `toml:"bind"`
+	Port     int16  `toml:"port"`
+	KeyPath  string `toml:"key"`
+	CertPath string `toml:"cert"`
+}
+
 type ServerConfiguration struct {
 	Influxdb InfluxdbConfiguration `toml:"influxdb"`
-	Bind     string                `toml:"bind"`
-	Port     int16                 `toml:"port"`
+	Http     HttpConfiguration     `toml:"http"`
+	Https    HttpsConfiguration    `toml:"https"`
 }
 
 type Configuration struct {

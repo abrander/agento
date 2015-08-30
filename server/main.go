@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/influxdb/influxdb/client"
@@ -120,13 +121,41 @@ func main() {
 	http.HandleFunc("/report", reportHandler)
 	http.HandleFunc("/health", healthHandler)
 
-	addr := config.Server.Bind + ":" + strconv.Itoa(int(config.Server.Port))
-	agento.LogInfo("agento server started, listening at " + addr)
-	err = http.ListenAndServe(addr, nil)
-	if err != nil {
-		agento.LogError("ListenAndServe: %s", err.Error())
-		log.Fatal("ListenAndServe: ", err)
+	wg := &sync.WaitGroup{}
+
+	if config.Server.Http.Enabled {
+		wg.Add(1)
+
+		go func() {
+			// Listen for http connections if needed
+			addr := config.Server.Http.Bind + ":" + strconv.Itoa(int(config.Server.Http.Port))
+			agento.LogInfo("Listening for http at " + addr)
+			err := http.ListenAndServe(addr, nil)
+			if err != nil {
+				agento.LogError("ListenAndServe(%s): %s", addr, err.Error())
+				log.Fatal("ListenAndServe: ", err)
+			}
+
+			wg.Done()
+		}()
 	}
 
-	agento.LogInfo("listening at %s", addr)
+	if config.Server.Https.Enabled {
+		wg.Add(1)
+
+		go func() {
+			// Listen for https connections if needed
+			addr := config.Server.Https.Bind + ":" + strconv.Itoa(int(config.Server.Https.Port))
+			agento.LogInfo("Listening for https at " + addr)
+			err := http.ListenAndServeTLS(addr, config.Server.Https.CertPath, config.Server.Https.KeyPath, nil)
+			if err != nil {
+				agento.LogError("ListenAndServeTLS(%s): %s", addr, err.Error())
+				log.Fatal("ListenAndServe: ", err)
+			}
+
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
 }
