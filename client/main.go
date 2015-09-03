@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"agento"
+	"github.com/abrander/agento"
 )
 
 func main() {

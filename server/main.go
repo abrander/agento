@@ -12,7 +12,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"agento"
+	"github.com/abrander/agento"
 )
 
 var config = agento.Configuration{}
