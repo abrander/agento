@@ -1,8 +1,10 @@
-package agento
+package netstat
 
 import (
 	"encoding/json"
 	"strconv"
+
+	"github.com/abrander/agento"
 )
 
 type SingleNetStats struct {
@@ -95,22 +97,22 @@ func (s *SingleNetStats) ReadArray(data []string) {
 func (s SingleNetStats) MarshalJSON() ([]byte, error) {
 	var a [16]float64
 
-	a[0] = Round(s.RxBytes, 0)
-	a[1] = Round(s.RxPackets, 0)
-	a[2] = Round(s.RxErrors, 0)
-	a[3] = Round(s.RxDropped, 0)
-	a[4] = Round(s.RxFifo, 0)
-	a[5] = Round(s.RxFrame, 0)
-	a[6] = Round(s.RxCompressed, 0)
-	a[7] = Round(s.RxMulticast, 0)
-	a[8] = Round(s.TxBytes, 0)
-	a[9] = Round(s.TxPackets, 0)
-	a[10] = Round(s.TxErrors, 0)
-	a[11] = Round(s.TxDropped, 0)
-	a[12] = Round(s.TxFifo, 0)
-	a[13] = Round(s.TxCollisions, 0)
-	a[14] = Round(s.TxCarrier, 0)
-	a[15] = Round(s.TxCompressed, 0)
+	a[0] = agento.Round(s.RxBytes, 0)
+	a[1] = agento.Round(s.RxPackets, 0)
+	a[2] = agento.Round(s.RxErrors, 0)
+	a[3] = agento.Round(s.RxDropped, 0)
+	a[4] = agento.Round(s.RxFifo, 0)
+	a[5] = agento.Round(s.RxFrame, 0)
+	a[6] = agento.Round(s.RxCompressed, 0)
+	a[7] = agento.Round(s.RxMulticast, 0)
+	a[8] = agento.Round(s.TxBytes, 0)
+	a[9] = agento.Round(s.TxPackets, 0)
+	a[10] = agento.Round(s.TxErrors, 0)
+	a[11] = agento.Round(s.TxDropped, 0)
+	a[12] = agento.Round(s.TxFifo, 0)
+	a[13] = agento.Round(s.TxCollisions, 0)
+	a[14] = agento.Round(s.TxCarrier, 0)
+	a[15] = agento.Round(s.TxCompressed, 0)
 
 	return json.Marshal(a)
 }

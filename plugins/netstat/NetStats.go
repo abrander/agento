@@ -1,4 +1,4 @@
-package agento
+package netstat
 
 import (
 	"bufio"
@@ -9,23 +9,33 @@ import (
 	"time"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
 
-var previousNetStats *NetStats
-
-type NetStats struct {
-	sampletime time.Time                  `json:"-"`
-	Interfaces map[string]*SingleNetStats `json:"ifs"`
+func init() {
+	plugins.Register("n", NewNetStats)
 }
 
-func GetNetStats() *NetStats {
+type NetStats struct {
+	sampletime       time.Time `json:"-"`
+	previousNetStats *NetStats
+	Interfaces       map[string]*SingleNetStats `json:"ifs"`
+}
+
+func NewNetStats() plugins.Plugin {
+	return new(NetStats)
+}
+
+func (n *NetStats) Gather() error {
 	stat := NetStats{}
 	stat.Interfaces = make(map[string]*SingleNetStats)
 
 	path := filepath.Join("/proc/net/dev")
 	file, err := os.Open(path)
 	if err != nil {
-		return &stat
+		return err
 	}
 	defer file.Close()
 
@@ -46,10 +56,11 @@ func GetNetStats() *NetStats {
 		}
 	}
 
-	ret := stat.Sub(previousNetStats)
-	previousNetStats = &stat
+	ret := stat.Sub(n.previousNetStats)
+	*n = *ret
+	n.previousNetStats = &stat
 
-	return ret
+	return nil
 }
 
 func (c *NetStats) Sub(previousNetStats *NetStats) *NetStats {
@@ -73,22 +84,22 @@ func (n *NetStats) GetPoints() []client.Point {
 
 	i := 0
 	for key, value := range n.Interfaces {
-		points[i+0] = PointWithTag("net.RxBytes", value.RxBytes, "interface", key)
-		points[i+1] = PointWithTag("net.RxPackets", value.RxPackets, "interface", key)
-		points[i+2] = PointWithTag("net.RxErrors", value.RxErrors, "interface", key)
-		points[i+3] = PointWithTag("net.RxDropped", value.RxDropped, "interface", key)
-		points[i+4] = PointWithTag("net.RxFifo", value.RxFifo, "interface", key)
-		points[i+5] = PointWithTag("net.RxFrame", value.RxFrame, "interface", key)
-		points[i+6] = PointWithTag("net.RxCompressed", value.RxCompressed, "interface", key)
-		points[i+7] = PointWithTag("net.RxMulticast", value.RxMulticast, "interface", key)
-		points[i+8] = PointWithTag("net.TxBytes", value.TxBytes, "interface", key)
-		points[i+9] = PointWithTag("net.TxPackets", value.TxPackets, "interface", key)
-		points[i+10] = PointWithTag("net.TxErrors", value.TxErrors, "interface", key)
-		points[i+11] = PointWithTag("net.TxDropped", value.TxDropped, "interface", key)
-		points[i+12] = PointWithTag("net.TxFifo", value.TxFifo, "interface", key)
-		points[i+13] = PointWithTag("net.TxCollisions", value.TxCollisions, "interface", key)
-		points[i+14] = PointWithTag("net.TxCarrier", value.TxCarrier, "interface", key)
-		points[i+15] = PointWithTag("net.TxCompressed", value.TxCompressed, "interface", key)
+		points[i+0] = agento.PointWithTag("net.RxBytes", value.RxBytes, "interface", key)
+		points[i+1] = agento.PointWithTag("net.RxPackets", value.RxPackets, "interface", key)
+		points[i+2] = agento.PointWithTag("net.RxErrors", value.RxErrors, "interface", key)
+		points[i+3] = agento.PointWithTag("net.RxDropped", value.RxDropped, "interface", key)
+		points[i+4] = agento.PointWithTag("net.RxFifo", value.RxFifo, "interface", key)
+		points[i+5] = agento.PointWithTag("net.RxFrame", value.RxFrame, "interface", key)
+		points[i+6] = agento.PointWithTag("net.RxCompressed", value.RxCompressed, "interface", key)
+		points[i+7] = agento.PointWithTag("net.RxMulticast", value.RxMulticast, "interface", key)
+		points[i+8] = agento.PointWithTag("net.TxBytes", value.TxBytes, "interface", key)
+		points[i+9] = agento.PointWithTag("net.TxPackets", value.TxPackets, "interface", key)
+		points[i+10] = agento.PointWithTag("net.TxErrors", value.TxErrors, "interface", key)
+		points[i+11] = agento.PointWithTag("net.TxDropped", value.TxDropped, "interface", key)
+		points[i+12] = agento.PointWithTag("net.TxFifo", value.TxFifo, "interface", key)
+		points[i+13] = agento.PointWithTag("net.TxCollisions", value.TxCollisions, "interface", key)
+		points[i+14] = agento.PointWithTag("net.TxCarrier", value.TxCarrier, "interface", key)
+		points[i+15] = agento.PointWithTag("net.TxCompressed", value.TxCompressed, "interface", key)
 
 		i = i + 16
 	}
