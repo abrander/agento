@@ -1,10 +1,7 @@
 package agento
 
 import (
-	"io/ioutil"
 	"math"
-	"strconv"
-	"strings"
 
 	"github.com/influxdb/influxdb/client"
 )
