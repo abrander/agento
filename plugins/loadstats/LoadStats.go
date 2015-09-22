@@ -8,7 +8,18 @@ import (
 	"strings"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
+
+func init() {
+	plugins.Register("l", NewLoadStats)
+}
+
+func NewLoadStats() plugins.Plugin {
+	return new(LoadStats)
+}
 
 type LoadStats struct {
 	Load1       float64 `json:"l1"`
@@ -18,13 +29,12 @@ type LoadStats struct {
 	Tasks       int64   `json:"t"`
 }
 
-func GetLoadStats() *LoadStats {
-	stat := LoadStats{}
+func (stat *LoadStats) Gather() error {
 
 	path := filepath.Join("/proc/loadavg")
 	file, err := os.Open(path)
 	if err != nil {
-		return &stat
+		return err
 	}
 	defer file.Close()
 
@@ -51,17 +61,17 @@ func GetLoadStats() *LoadStats {
 		}
 	}
 
-	return &stat
+	return nil
 }
 
 func (l *LoadStats) GetPoints() []client.Point {
 	points := make([]client.Point, 5)
 
-	points[0] = SimplePoint("misc.Load1", l.Load1)
-	points[1] = SimplePoint("misc.Load5", l.Load5)
-	points[2] = SimplePoint("misc.Load15", l.Load15)
-	points[3] = SimplePoint("misc.ActiveTasks", l.ActiveTasks)
-	points[4] = SimplePoint("misc.Tasks", l.Tasks)
+	points[0] = agento.SimplePoint("misc.Load1", l.Load1)
+	points[1] = agento.SimplePoint("misc.Load5", l.Load5)
+	points[2] = agento.SimplePoint("misc.Load15", l.Load15)
+	points[3] = agento.SimplePoint("misc.ActiveTasks", l.ActiveTasks)
+	points[4] = agento.SimplePoint("misc.Tasks", l.Tasks)
 
 	return points
 }

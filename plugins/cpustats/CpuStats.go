@@ -1,4 +1,4 @@
-package agento
+package cpustats
 
 import (
 	"bufio"
@@ -9,12 +9,18 @@ import (
 	"time"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
 
-var previous *CpuStats
+func init() {
+	plugins.Register("c", NewCpuStats)
+}
 
 type CpuStats struct {
-	sampletime       time.Time                 `json:"-"`
+	sampletime       time.Time `json:"-"`
+	previousCpuStats *CpuStats
 	Cpu              map[string]*SingleCpuStat `json:"cpu"`
 	Interrupts       float64                   `json:"in"`
 	ContextSwitches  float64                   `json:"ct"`
@@ -23,14 +29,18 @@ type CpuStats struct {
 	BlockedProcesses int64                     `json:"bl"` // Since 2.5.45
 }
 
-func GetCpuStats() *CpuStats {
+func NewCpuStats() plugins.Plugin {
+	return new(CpuStats)
+}
+
+func (c *CpuStats) Gather() error {
 	stat := CpuStats{}
 	stat.Cpu = make(map[string]*SingleCpuStat)
 
 	path := filepath.Join("/proc/stat")
 	file, err := os.Open(path)
 	if err != nil {
-		return &stat
+		return err
 	}
 	defer file.Close()
 
@@ -72,10 +82,11 @@ func GetCpuStats() *CpuStats {
 		}
 	}
 
-	ret := stat.Sub(previous)
-	previous = &stat
+	ret := stat.Sub(c.previousCpuStats)
+	*c = *ret
+	c.previousCpuStats = &stat
 
-	return ret
+	return nil
 }
 
 func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
@@ -91,9 +102,9 @@ func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
 		diff.Cpu[key] = value.Sub(previous.Cpu[key], duration)
 	}
 
-	diff.Interrupts = Round((c.Interrupts-previous.Interrupts)/duration, 1)
-	diff.ContextSwitches = Round((c.ContextSwitches-previous.ContextSwitches)/duration, 1)
-	diff.Forks = Round((c.Forks-previous.Forks)/duration, 1)
+	diff.Interrupts = agento.Round((c.Interrupts-previous.Interrupts)/duration, 1)
+	diff.ContextSwitches = agento.Round((c.ContextSwitches-previous.ContextSwitches)/duration, 1)
+	diff.Forks = agento.Round((c.Forks-previous.Forks)/duration, 1)
 
 	// These are not accumulated
 	diff.RunningProcesses = c.RunningProcesses
@@ -105,24 +116,24 @@ func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
 func (c *CpuStats) GetPoints() []client.Point {
 	points := make([]client.Point, 5+len(c.Cpu)*10)
 
-	points[0] = SimplePoint("misc.Interrupts", c.Interrupts)
-	points[1] = SimplePoint("misc.ContextSwitches", c.ContextSwitches)
-	points[2] = SimplePoint("misc.Forks", c.Forks)
-	points[3] = SimplePoint("misc.RunningProcesses", c.RunningProcesses)
-	points[4] = SimplePoint("misc.BlockedProcesses", c.BlockedProcesses)
+	points[0] = agento.SimplePoint("misc.Interrupts", c.Interrupts)
+	points[1] = agento.SimplePoint("misc.ContextSwitches", c.ContextSwitches)
+	points[2] = agento.SimplePoint("misc.Forks", c.Forks)
+	points[3] = agento.SimplePoint("misc.RunningProcesses", c.RunningProcesses)
+	points[4] = agento.SimplePoint("misc.BlockedProcesses", c.BlockedProcesses)
 
 	i := 5
 	for key, value := range c.Cpu {
-		points[i+0] = PointWithTag("cpu.User", value.User, "core", key)
-		points[i+1] = PointWithTag("cpu.Nice", value.Nice, "core", key)
-		points[i+2] = PointWithTag("cpu.System", value.System, "core", key)
-		points[i+3] = PointWithTag("cpu.Idle", value.Idle, "core", key)
-		points[i+4] = PointWithTag("cpu.IoWait", value.IoWait, "core", key)
-		points[i+5] = PointWithTag("cpu.Irq", value.Irq, "core", key)
-		points[i+6] = PointWithTag("cpu.SoftIrq", value.SoftIrq, "core", key)
-		points[i+7] = PointWithTag("cpu.Steal", value.Steal, "core", key)
-		points[i+8] = PointWithTag("cpu.Guest", value.Guest, "core", key)
-		points[i+9] = PointWithTag("cpu.GuestNice", value.GuestNice, "core", key)
+		points[i+0] = agento.PointWithTag("cpu.User", value.User, "core", key)
+		points[i+1] = agento.PointWithTag("cpu.Nice", value.Nice, "core", key)
+		points[i+2] = agento.PointWithTag("cpu.System", value.System, "core", key)
+		points[i+3] = agento.PointWithTag("cpu.Idle", value.Idle, "core", key)
+		points[i+4] = agento.PointWithTag("cpu.IoWait", value.IoWait, "core", key)
+		points[i+5] = agento.PointWithTag("cpu.Irq", value.Irq, "core", key)
+		points[i+6] = agento.PointWithTag("cpu.SoftIrq", value.SoftIrq, "core", key)
+		points[i+7] = agento.PointWithTag("cpu.Steal", value.Steal, "core", key)
+		points[i+8] = agento.PointWithTag("cpu.Guest", value.Guest, "core", key)
+		points[i+9] = agento.PointWithTag("cpu.GuestNice", value.GuestNice, "core", key)
 
 		i = i + 10
 	}

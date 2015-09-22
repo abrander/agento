@@ -1,4 +1,4 @@
-package agento
+package diskstats
 
 import (
 	"bufio"
@@ -9,23 +9,33 @@ import (
 	"time"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
 
-var previousDiskStats *DiskStats
-
-type DiskStats struct {
-	sampletime time.Time                   `json:"-"`
-	Disks      map[string]*SingleDiskStats `json:"disks"`
+func init() {
+	plugins.Register("d", NewDiskStats)
 }
 
-func GetDiskStats() *DiskStats {
+func NewDiskStats() plugins.Plugin {
+	return new(DiskStats)
+}
+
+type DiskStats struct {
+	sampletime        time.Time `json:"-"`
+	previousDiskStats *DiskStats
+	Disks             map[string]*SingleDiskStats `json:"disks"`
+}
+
+func (d *DiskStats) Gather() error {
 	stat := DiskStats{}
 	stat.Disks = make(map[string]*SingleDiskStats)
 
 	path := filepath.Join("/proc/diskstats")
 	file, err := os.Open(path)
 	if err != nil {
-		return &stat
+		return err
 	}
 	defer file.Close()
 
@@ -48,10 +58,10 @@ func GetDiskStats() *DiskStats {
 		}
 	}
 
-	ret := stat.Sub(previousDiskStats)
-	previousDiskStats = &stat
+	*d = *stat.Sub(d.previousDiskStats)
+	d.previousDiskStats = &stat
 
-	return ret
+	return nil
 }
 
 func (c *DiskStats) Sub(previousDiskStats *DiskStats) *DiskStats {
@@ -75,17 +85,17 @@ func (d *DiskStats) GetPoints() []client.Point {
 
 	i := 0
 	for key, value := range d.Disks {
-		points[i+0] = PointWithTag("io.ReadsCompleted", value.ReadsCompleted, "device", key)
-		points[i+1] = PointWithTag("io.ReadsMerged", value.ReadsMerged, "device", key)
-		points[i+2] = PointWithTag("io.ReadSectors", value.ReadSectors, "device", key)
-		points[i+3] = PointWithTag("io.ReadTime", value.ReadTime, "device", key)
-		points[i+4] = PointWithTag("io.WritesCompleted", value.WritesCompleted, "device", key)
-		points[i+5] = PointWithTag("io.WritesMerged", value.WritesMerged, "device", key)
-		points[i+6] = PointWithTag("io.WriteSectors", value.WriteSectors, "device", key)
-		points[i+7] = PointWithTag("io.WriteTime", value.WriteTime, "device", key)
-		points[i+8] = PointWithTag("io.IoInProgress", value.IoInProgress, "device", key)
-		points[i+9] = PointWithTag("io.IoTime", value.IoTime, "device", key)
-		points[i+10] = PointWithTag("io.IoWeightedTime", value.IoWeightedTime, "device", key)
+		points[i+0] = agento.PointWithTag("io.ReadsCompleted", value.ReadsCompleted, "device", key)
+		points[i+1] = agento.PointWithTag("io.ReadsMerged", value.ReadsMerged, "device", key)
+		points[i+2] = agento.PointWithTag("io.ReadSectors", value.ReadSectors, "device", key)
+		points[i+3] = agento.PointWithTag("io.ReadTime", value.ReadTime, "device", key)
+		points[i+4] = agento.PointWithTag("io.WritesCompleted", value.WritesCompleted, "device", key)
+		points[i+5] = agento.PointWithTag("io.WritesMerged", value.WritesMerged, "device", key)
+		points[i+6] = agento.PointWithTag("io.WriteSectors", value.WriteSectors, "device", key)
+		points[i+7] = agento.PointWithTag("io.WriteTime", value.WriteTime, "device", key)
+		points[i+8] = agento.PointWithTag("io.IoInProgress", value.IoInProgress, "device", key)
+		points[i+9] = agento.PointWithTag("io.IoTime", value.IoTime, "device", key)
+		points[i+10] = agento.PointWithTag("io.IoWeightedTime", value.IoWeightedTime, "device", key)
 
 		i = i + 11
 	}

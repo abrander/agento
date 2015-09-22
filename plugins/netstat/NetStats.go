@@ -56,8 +56,7 @@ func (n *NetStats) Gather() error {
 		}
 	}
 
-	ret := stat.Sub(n.previousNetStats)
-	*n = *ret
+	*n = *stat.Sub(n.previousNetStats)
 	n.previousNetStats = &stat
 
 	return nil

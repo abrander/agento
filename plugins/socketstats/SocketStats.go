@@ -1,11 +1,22 @@
-package agento
+package socketstats
 
 import (
 	"io/ioutil"
 	"strings"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
+
+func init() {
+	plugins.Register("S", NewSocketStats)
+}
+
+func NewSocketStats() plugins.Plugin {
+	return new(SocketStats)
+}
 
 // https://www.kernel.org/doc/Documentation/networking/proc_net_tcp.txt
 
@@ -35,9 +46,7 @@ func readFile(path string) []string {
 	return lines[1:]
 }
 
-func GetSocketStats() *SocketStats {
-	stats := SocketStats{}
-
+func (stats *SocketStats) Gather() error {
 	tcpLines := readFile("/proc/net/tcp")
 	tcp6Lines := readFile("/proc/net/tcp6")
 	udpLines := readFile("/proc/net/udp")
@@ -84,24 +93,24 @@ func GetSocketStats() *SocketStats {
 		}
 	}
 
-	return &stats
+	return nil
 }
 
 func (s *SocketStats) GetPoints() []client.Point {
 	points := make([]client.Point, 12)
 
-	points[0] = SimplePoint("sockets.Established", s.Established)
-	points[1] = SimplePoint("sockets.SynSent", s.SynSent)
-	points[2] = SimplePoint("sockets.SynReceived", s.SynReceived)
-	points[3] = SimplePoint("sockets.FinWait1", s.FinWait1)
-	points[4] = SimplePoint("sockets.FinWait2", s.FinWait2)
-	points[5] = SimplePoint("sockets.TimeWait", s.TimeWait)
-	points[6] = SimplePoint("sockets.Close", s.Close)
-	points[7] = SimplePoint("sockets.CloseWait", s.CloseWait)
-	points[8] = SimplePoint("sockets.LastAck", s.LastAck)
-	points[9] = SimplePoint("sockets.Listen", s.Listen)
-	points[10] = SimplePoint("sockets.Closing", s.Closing)
-	points[11] = SimplePoint("sockets.RootUser", s.RootUser)
+	points[0] = agento.SimplePoint("sockets.Established", s.Established)
+	points[1] = agento.SimplePoint("sockets.SynSent", s.SynSent)
+	points[2] = agento.SimplePoint("sockets.SynReceived", s.SynReceived)
+	points[3] = agento.SimplePoint("sockets.FinWait1", s.FinWait1)
+	points[4] = agento.SimplePoint("sockets.FinWait2", s.FinWait2)
+	points[5] = agento.SimplePoint("sockets.TimeWait", s.TimeWait)
+	points[6] = agento.SimplePoint("sockets.Close", s.Close)
+	points[7] = agento.SimplePoint("sockets.CloseWait", s.CloseWait)
+	points[8] = agento.SimplePoint("sockets.LastAck", s.LastAck)
+	points[9] = agento.SimplePoint("sockets.Listen", s.Listen)
+	points[10] = agento.SimplePoint("sockets.Closing", s.Closing)
+	points[11] = agento.SimplePoint("sockets.RootUser", s.RootUser)
 
 	return points
 }

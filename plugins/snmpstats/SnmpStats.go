@@ -10,12 +10,21 @@ import (
 	"time"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento/plugins"
 )
 
-var previousSnmpStats *SnmpStats
+func init() {
+	plugins.Register("s", NewSnmpStats)
+}
+
+func NewSnmpStats() plugins.Plugin {
+	return new(SnmpStats)
+}
 
 type SnmpStats struct {
-	sampletime time.Time `json:"-"`
+	sampletime        time.Time `json:"-"`
+	previousSnmpStats *SnmpStats
 
 	IpForwarding      float64 `json:"-" row:"1" col:"1"`
 	IpDefaultTTL      float64 `json:"-" row:"1" col:"2"`
@@ -103,13 +112,13 @@ type SnmpStats struct {
 	UdpLiteInCsumErrors float64 `json:"-" row:"11" col:"7"`
 }
 
-func GetSnmpStats() *SnmpStats {
+func (snmp *SnmpStats) Gather() error {
 	stat := SnmpStats{}
 
 	path := filepath.Join("/proc/net/snmp")
 	file, err := os.Open(path)
 	if err != nil {
-		return &stat
+		return err
 	}
 	defer file.Close()
 
@@ -148,10 +157,10 @@ func GetSnmpStats() *SnmpStats {
 		}
 	}
 
-	ret := stat.Sub(previousSnmpStats)
-	previousSnmpStats = &stat
+	*snmp = *stat.Sub(snmp.previousSnmpStats)
+	snmp.previousSnmpStats = &stat
 
-	return ret
+	return nil
 }
 
 func (c *SnmpStats) Sub(previousSnmpStats *SnmpStats) *SnmpStats {

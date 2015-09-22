@@ -1,4 +1,4 @@
-package agento
+package memorystats
 
 import (
 	"bufio"
@@ -8,7 +8,18 @@ import (
 	"strings"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
+
+func init() {
+	plugins.Register("m", NewMemoryStats)
+}
+
+func NewMemoryStats() plugins.Plugin {
+	return new(MemoryStats)
+}
 
 type MemoryStats struct {
 	Used     int64 `json:"u"`
@@ -62,8 +73,7 @@ func getMemInfo() *map[string]int64 {
 	return &m
 }
 
-func GetMemoryStats() *MemoryStats {
-	stat := MemoryStats{}
+func (stat *MemoryStats) Gather() error {
 	meminfo := getMemInfo()
 
 	stat.Used = (*meminfo)["MemTotal"] - (*meminfo)["MemFree"] - (*meminfo)["Buffers"] - (*meminfo)["Cached"]
@@ -75,19 +85,19 @@ func GetMemoryStats() *MemoryStats {
 	stat.SwapUsed = (*meminfo)["SwapTotal"] - (*meminfo)["SwapFree"]
 	stat.SwapFree = (*meminfo)["SwapFree"]
 
-	return &stat
+	return nil
 }
 
 func (s *MemoryStats) GetPoints() []client.Point {
 	points := make([]client.Point, 7)
 
-	points[0] = SimplePoint("mem.Used", s.Used)
-	points[1] = SimplePoint("mem.Free", s.Free)
-	points[2] = SimplePoint("mem.Shared", s.Shared)
-	points[3] = SimplePoint("mem.Buffers", s.Buffers)
-	points[4] = SimplePoint("mem.Cached", s.Cached)
-	points[5] = SimplePoint("swap.Used", s.SwapUsed)
-	points[6] = SimplePoint("swap.Free", s.SwapFree)
+	points[0] = agento.SimplePoint("mem.Used", s.Used)
+	points[1] = agento.SimplePoint("mem.Free", s.Free)
+	points[2] = agento.SimplePoint("mem.Shared", s.Shared)
+	points[3] = agento.SimplePoint("mem.Buffers", s.Buffers)
+	points[4] = agento.SimplePoint("mem.Cached", s.Cached)
+	points[5] = agento.SimplePoint("swap.Used", s.SwapUsed)
+	points[6] = agento.SimplePoint("swap.Free", s.SwapFree)
 
 	return points
 }

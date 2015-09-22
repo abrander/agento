@@ -1,8 +1,10 @@
-package agento
+package diskstats
 
 import (
 	"encoding/json"
 	"strconv"
+
+	"github.com/abrander/agento"
 )
 
 type SingleDiskStats struct {
@@ -70,17 +72,17 @@ func (s *SingleDiskStats) ReadArray(data []string) {
 func (s SingleDiskStats) MarshalJSON() ([]byte, error) {
 	var a [11]float64
 
-	a[0] = Round(s.ReadsCompleted, 1)
-	a[1] = Round(s.ReadsMerged, 1)
-	a[2] = Round(s.ReadSectors, 1)
-	a[3] = Round(s.ReadTime, 1)
-	a[4] = Round(s.WritesCompleted, 1)
-	a[5] = Round(s.WritesMerged, 1)
-	a[6] = Round(s.WriteSectors, 1)
-	a[7] = Round(s.WriteTime, 1)
-	a[8] = Round(float64(s.IoInProgress), 0)
-	a[9] = Round(s.IoTime, 1)
-	a[10] = Round(s.IoWeightedTime, 1)
+	a[0] = agento.Round(s.ReadsCompleted, 1)
+	a[1] = agento.Round(s.ReadsMerged, 1)
+	a[2] = agento.Round(s.ReadSectors, 1)
+	a[3] = agento.Round(s.ReadTime, 1)
+	a[4] = agento.Round(s.WritesCompleted, 1)
+	a[5] = agento.Round(s.WritesMerged, 1)
+	a[6] = agento.Round(s.WriteSectors, 1)
+	a[7] = agento.Round(s.WriteTime, 1)
+	a[8] = agento.Round(float64(s.IoInProgress), 0)
+	a[9] = agento.Round(s.IoTime, 1)
+	a[10] = agento.Round(s.IoWeightedTime, 1)
 
 	return json.Marshal(a)
 }

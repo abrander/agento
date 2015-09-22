@@ -22,8 +22,8 @@ func ReadSingleDiskUsageStats(path string) *SingleDiskUsageStats {
 	}
 
 	bSize := int64(stat.Bsize)
-	stats.Used = bSize * int64(stat.Blocks - stat.Bfree)
-	stats.Reserved = bSize * int64(stat.Bfree - stat.Bavail)
+	stats.Used = bSize * int64(stat.Blocks-stat.Bfree)
+	stats.Reserved = bSize * int64(stat.Bfree-stat.Bavail)
 	stats.Free = bSize * int64(stat.Bavail)
 
 	stats.UsedNodes = int64(stat.Files - stat.Ffree)
