@@ -11,6 +11,18 @@ import (
 	"time"
 
 	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
+	_ "github.com/abrander/agento/plugins/cpuspeed"
+	_ "github.com/abrander/agento/plugins/cpustats"
+	_ "github.com/abrander/agento/plugins/diskstats"
+	_ "github.com/abrander/agento/plugins/diskusage"
+	_ "github.com/abrander/agento/plugins/entropy"
+	_ "github.com/abrander/agento/plugins/hostname"
+	_ "github.com/abrander/agento/plugins/loadstats"
+	_ "github.com/abrander/agento/plugins/memorystats"
+	_ "github.com/abrander/agento/plugins/netstat"
+	_ "github.com/abrander/agento/plugins/snmpstats"
+	_ "github.com/abrander/agento/plugins/socketstats"
 )
 
 func main() {
@@ -26,19 +38,17 @@ func main() {
 
 	agento.LogInfo("agento client started, reporting to %s", config.Client.ServerUrl)
 
-	machineStats := agento.MachineStats{}
-
 	// Randomize our start time to avoid a big cluster reporting at the exact same time
 	time.Sleep(time.Second * time.Duration(rand.Intn(config.Client.Interval)))
 
 	// We need to gather one unreported set of metrics. It's needed for
 	// calculating deltas on first real report
-	machineStats.Gather()
+	plugins.GatherAll()
 
 	c := time.Tick(time.Second * time.Duration(config.Client.Interval))
 	for _ = range c {
-		machineStats.Gather()
-		json, err := json.Marshal(machineStats)
+		results := plugins.GatherAll()
+		json, err := json.Marshal(results)
 
 		if err == nil {
 			client := &http.Client{}
