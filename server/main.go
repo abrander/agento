@@ -13,6 +13,18 @@ import (
 	"github.com/influxdb/influxdb/client"
 
 	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
+	_ "github.com/abrander/agento/plugins/cpuspeed"
+	_ "github.com/abrander/agento/plugins/cpustats"
+	_ "github.com/abrander/agento/plugins/diskstats"
+	_ "github.com/abrander/agento/plugins/diskusage"
+	_ "github.com/abrander/agento/plugins/entropy"
+	"github.com/abrander/agento/plugins/hostname"
+	_ "github.com/abrander/agento/plugins/loadstats"
+	_ "github.com/abrander/agento/plugins/memorystats"
+	_ "github.com/abrander/agento/plugins/netstat"
+	_ "github.com/abrander/agento/plugins/snmpstats"
+	_ "github.com/abrander/agento/plugins/socketstats"
 )
 
 var config = agento.Configuration{}
@@ -36,16 +48,17 @@ func getInfluxClient() *client.Client {
 	return con
 }
 
-func sendToInflux(stats agento.MachineStats) {
+func sendToInflux(stats plugins.Results) {
 	con := getInfluxClient()
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
+	hostname := string(*stats["h"].(*hostname.Hostname))
 	for i := range points {
 		if points[i].Tags != nil {
-			points[i].Tags["hostname"] = stats.Hostname
+			points[i].Tags["hostname"] = hostname
 		} else {
-			points[i].Tags = map[string]string{"hostname": stats.Hostname}
+			points[i].Tags = map[string]string{"hostname": hostname}
 		}
 	}
 
@@ -79,16 +92,17 @@ func reportHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var m agento.MachineStats
+	var results = plugins.Results{}
+
 	d := json.NewDecoder(req.Body)
 	d.UseNumber()
-	err := d.Decode(&m)
+	err := d.Decode(&results)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
 
-	sendToInflux(m)
+	sendToInflux(results)
 }
 
 func healthHandler(w http.ResponseWriter, req *http.Request) {
