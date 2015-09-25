@@ -40,3 +40,11 @@ func (h Entropy) GetPoints() []client.Point {
 	//FIXME: Add entropy
 	return make([]client.Point, 0)
 }
+
+func (h Entropy) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("misc.AvailableEntropy", "Available entropy in the kernel pool", "b")
+
+	return doc
+}

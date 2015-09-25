@@ -106,21 +106,25 @@ func (n *NetStats) GetPoints() []client.Point {
 	return points
 }
 
-func (c *NetStats) GetDoc(m map[string]string) {
-	m["net.RxBytes"] = "Bytes received (b/s)"
-	m["net.RxPackets"] = "Packets received (packets/s"
-	m["net.RxErrors"] = "Receiver errors detected (errors/s)"
-	m["net.RxDropped"] = "Dropped packets (packets/s)"
-	m["net.RxFifo"] = "FIFO buffer overruns (overruns/s)"
-	m["net.RxFrame"] = "Framing errors (errors/s)"
-	m["net.RxCompressed"] = "Compressed frames received (frames/s)"
-	m["net.RxMulticast"] = "Multicast frames received (frames/s)"
-	m["net.TxBytes"] = "Bytes transmitted (b/s)"
-	m["net.TxPackets"] = "Packets transmitted (packets/s)"
-	m["net.TxErrors"] = "Transmission errors (errors/s)"
-	m["net.TxDropped"] = "Packets dropped (packets/s)"
-	m["net.TxFifo"] = "FIFO buffer overruns (overruns/s)"
-	m["net.TxCollisions"] = "Network collisions detected (collisions/s)"
-	m["net.TxCarrier"] = "Carrier losses (losses/s)"
-	m["net.TxCompressed"] = "Compressed frames transmitted (frames/s)"
+func (c *NetStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("net.RxBytes", "Bytes received", "b/s")
+	doc.AddMeasurement("net.RxPackets", "Packets received", "packets/s")
+	doc.AddMeasurement("net.RxErrors", "Receiver errors detected", "errors/s")
+	doc.AddMeasurement("net.RxDropped", "Dropped packets", "packets/s")
+	doc.AddMeasurement("net.RxFifo", "FIFO buffer overruns", "overruns/s")
+	doc.AddMeasurement("net.RxFrame", "Framing errors", "errors/s")
+	doc.AddMeasurement("net.RxCompressed", "Compressed frames received", "frames/s")
+	doc.AddMeasurement("net.RxMulticast", "Multicast frames received", "frames/s")
+	doc.AddMeasurement("net.TxBytes", "Bytes transmitted", "b/s")
+	doc.AddMeasurement("net.TxPackets", "Packets transmitted", "packets/s")
+	doc.AddMeasurement("net.TxErrors", "Transmission errors", "errors/s")
+	doc.AddMeasurement("net.TxDropped", "Packets dropped", "packets/s")
+	doc.AddMeasurement("net.TxFifo", "FIFO buffer overruns", "overruns/s")
+	doc.AddMeasurement("net.TxCollisions", "Network collisions detected", "collisions/s")
+	doc.AddMeasurement("net.TxCarrier", "Carrier losses", "losses/s")
+	doc.AddMeasurement("net.TxCompressed", "Compressed frames transmitted", "frames/s")
+
+	return doc
 }

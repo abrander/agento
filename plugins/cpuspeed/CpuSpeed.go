@@ -64,7 +64,10 @@ func (c *CpuSpeed) GetPoints() []client.Point {
 	return points
 }
 
-func (c *CpuSpeed) GetDoc(m map[string]string) {
+func (c *CpuSpeed) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
 
-	m["cpu.<n>.Frequency"] = "The current CPU frequency (kHz)"
+	doc.AddMeasurement("cpu.Frequency", "The current CPU frequency", "kHz")
+
+	return doc
 }

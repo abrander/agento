@@ -103,16 +103,20 @@ func (d *DiskStats) GetPoints() []client.Point {
 	return points
 }
 
-func (c *DiskStats) GetDoc(m map[string]string) {
-	m["io.ReadsCompleted"] = "Reads from device (reads/s)"
-	m["io.ReadsMerged"] = "Reads merged (merges/s)"
-	m["io.ReadSectors"] = "Sectors read (sectors/s)"
-	m["io.ReadTime"] = "Milliseconds spend reading (ms/s)"
-	m["io.WritesCompleted"] = "Writes to device (writes/s)"
-	m["io.WritesMerged"] = "Writes merged (merges/s)"
-	m["io.WriteSectors"] = "Sectors written (sectors/s"
-	m["io.WriteTime"] = "Time spend writing (ms/s)"
-	m["io.IoInProgress"] = "The current queue size of IO operations (n)"
-	m["io.IoTime"] = "Time spend on IO (ms/s)"
-	m["io.IoWeightedTime"] = "Time spend on IO times the IO queue. Please see https://www.kernel.org/doc/Documentation/iostats.txt (ms/s)"
+func (c *DiskStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("io.ReadsCompleted", "Reads from device", "reads/s")
+	doc.AddMeasurement("io.ReadsMerged", "Reads merged", "merges/s")
+	doc.AddMeasurement("io.ReadSectors", "Sectors read", "sectors/s")
+	doc.AddMeasurement("io.ReadTime", "Milliseconds spend reading", "ms/s")
+	doc.AddMeasurement("io.WritesCompleted", "Writes to device", "writes/s")
+	doc.AddMeasurement("io.WritesMerged", "Writes merged", "merges/s")
+	doc.AddMeasurement("io.WriteSectors", "Sectors written", "sectors/")
+	doc.AddMeasurement("io.WriteTime", "Time spend writing", "ms/s")
+	doc.AddMeasurement("io.IoInProgress", "The current queue size of IO operation", "(n")
+	doc.AddMeasurement("io.IoTime", "Time spend on IO", "ms/s")
+	doc.AddMeasurement("io.IoWeightedTime", "Time spend on IO times the IO queue. Please see https://www.kernel.org/doc/Documentation/iostats.txt", "ms/s")
+
+	return doc
 }

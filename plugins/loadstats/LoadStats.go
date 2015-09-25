@@ -76,10 +76,14 @@ func (l *LoadStats) GetPoints() []client.Point {
 	return points
 }
 
-func (l *LoadStats) GetDoc(m map[string]string) {
-	m["misc.Load1"] = "System load in the last minute (n)"
-	m["misc.Load5"] = "System load in the last 5 minutes (n)"
-	m["misc.Load15"] = "System load in the last 15 minutes (n)"
-	m["misc.ActiveTasks"] = "Tasks running (n)"
-	m["misc.Tasks"] = "Number of tasks"
+func (l *LoadStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("misc.Load1", "System load in the last minute", "")
+	doc.AddMeasurement("misc.Load5", "System load in the last 5 minutes", "")
+	doc.AddMeasurement("misc.Load15", "System load in the last 15 minutes", "")
+	doc.AddMeasurement("misc.ActiveTasks", "Tasks running", "n")
+	doc.AddMeasurement("misc.Tasks", "Number of tasks", "n")
+
+	return doc
 }

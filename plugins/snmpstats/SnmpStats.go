@@ -177,10 +177,10 @@ func (s *SnmpStats) GetPoints() []client.Point {
 	return points
 }
 
-func (c *SnmpStats) GetDoc(m map[string]string) {
-	if c == nil {
-		return
-	}
+func (c *SnmpStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
 
 	// FIXME: Return something ;)
+
+	return doc
 }

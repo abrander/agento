@@ -45,10 +45,14 @@ func (d *DiskUsageStats) GetPoints() []client.Point {
 	return points
 }
 
-func (c *DiskUsageStats) GetDoc(m map[string]string) {
-	m["du.Used"] = "Used space (b)"
-	m["du.Reserved"] = "Space reserved for uid 0 (b)"
-	m["du.Free"] = "Free space (b)"
-	m["du.UsedNodes"] = "Used inodes (n)"
-	m["du.FreeNodes"] = "Free inodes (n)"
+func (c *DiskUsageStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("du.Used", "Used space", "b")
+	doc.AddMeasurement("du.Reserved", "Space reserved for uid 0", "b")
+	doc.AddMeasurement("du.Free", "Free space", "b")
+	doc.AddMeasurement("du.UsedNodes", "Used inodes", "n")
+	doc.AddMeasurement("du.FreeNodes", "Free inodes", "n")
+
+	return doc
 }

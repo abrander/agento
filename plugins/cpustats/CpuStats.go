@@ -141,21 +141,25 @@ func (c *CpuStats) GetPoints() []client.Point {
 	return points
 }
 
-func (c *CpuStats) GetDoc(m map[string]string) {
-	m["misc.Interrupts"] = "Number of interrupts per second (/s)"
-	m["misc.ContextSwitches"] = "Number of context switches per second (/s)"
-	m["misc.Forks"] = "Number of forks per second (/s)"
-	m["misc.RunningProcesses"] = "Currently running processes (n)"
-	m["misc.BlockedProcesses"] = "Number of processes currently blocked (n)"
+func (c *CpuStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
 
-	m["cpu.User"] = "Time spend in user mode (ticks/s)"
-	m["cpu.Nice"] = "Time spend in user mode with low priority (ticks/s)"
-	m["cpu.System"] = "Time spend in kernel mode (ticks/s)"
-	m["cpu.Idle"] = "Time spend idle (ticks/s)"
-	m["cpu.IoWait"] = "Time spend waiting for IO (ticks/s)"
-	m["cpu.Irq"] = "Time spend processing interrupts (ticks/s)"
-	m["cpu.SoftIrq"] = "Time spend processing soft interrupts (ticks/s)"
-	m["cpu.Steal"] = "Time spend waiting for the *physical* CPU on a guest (ticks/s)"
-	m["cpu.Guest"] = "Time spend on running guests (ticks/s)"
-	m["cpu.GuestNice"] = "Time spend on running nice guests (ticks/s)"
+	doc.AddMeasurement("misc.Interrupts", "Number of interrupts per second", "/s")
+	doc.AddMeasurement("misc.ContextSwitches", "Number of context switches per second", "/s")
+	doc.AddMeasurement("misc.Forks", "Number of forks per second", "/s")
+	doc.AddMeasurement("misc.RunningProcesses", "Currently running processe", "(n")
+	doc.AddMeasurement("misc.BlockedProcesses", "Number of processes currently blocke", "(n")
+
+	doc.AddMeasurement("cpu.User", "Time spend in user mode", "ticks/s")
+	doc.AddMeasurement("cpu.Nice", "Time spend in user mode with low priority", "ticks/s")
+	doc.AddMeasurement("cpu.System", "Time spend in kernel mode", "ticks/s")
+	doc.AddMeasurement("cpu.Idle", "Time spend idle", "ticks/s")
+	doc.AddMeasurement("cpu.IoWait", "Time spend waiting for IO", "ticks/s")
+	doc.AddMeasurement("cpu.Irq", "Time spend processing interrupts", "ticks/s")
+	doc.AddMeasurement("cpu.SoftIrq", "Time spend processing soft interrupts", "ticks/s")
+	doc.AddMeasurement("cpu.Steal", "Time spend waiting for the *physical* CPU on a guest", "ticks/s")
+	doc.AddMeasurement("cpu.Guest", "Time spend on running guests", "ticks/s")
+	doc.AddMeasurement("cpu.GuestNice", "Time spend on running nice guests", "ticks/s")
+
+	return doc
 }

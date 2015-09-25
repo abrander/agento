@@ -115,17 +115,21 @@ func (s *SocketStats) GetPoints() []client.Point {
 	return points
 }
 
-func (s *SocketStats) GetDoc(m map[string]string) {
-	m["sockets.Established"] = "Number of sockets in state ESTABLISHED (n)"
-	m["sockets.SynSent"] = "Number of sockets in state SYN_SENT1 (n)"
-	m["sockets.SynReceived"] = "Number of sockets in state SYN_SENT2 (n)"
-	m["sockets.FinWait1"] = "Number of sockets in state FIN_WAIT1 (n)"
-	m["sockets.FinWait2"] = "Number of sockets in state FIN_WAIT2 (n)"
-	m["sockets.TimeWait"] = "Number of sockets in state TIME_WAIT (n)"
-	m["sockets.Close"] = "Number of sockets in state CLOSE (n)"
-	m["sockets.CloseWait"] = "Number of sockets in state CLOSE_WAIT (n)"
-	m["sockets.LastAck"] = "Number of sockets in state LAST_ACK (n)"
-	m["sockets.Listen"] = "Number of sockets in state LISTEN (n)"
-	m["sockets.Closing"] = "Number of sockets in state CLOSING (n)"
-	m["sockets.RootUser"] = "Number of sockets owned by root (n)"
+func (s *SocketStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("sockets.Established", "Number of sockets in state ESTABLISHED", "n")
+	doc.AddMeasurement("sockets.SynSent", "Number of sockets in state SYN_SENT1", "n")
+	doc.AddMeasurement("sockets.SynReceived", "Number of sockets in state SYN_SENT2", "n")
+	doc.AddMeasurement("sockets.FinWait1", "Number of sockets in state FIN_WAIT1", "n")
+	doc.AddMeasurement("sockets.FinWait2", "Number of sockets in state FIN_WAIT2", "n")
+	doc.AddMeasurement("sockets.TimeWait", "Number of sockets in state TIME_WAIT", "n")
+	doc.AddMeasurement("sockets.Close", "Number of sockets in state CLOSE", "n")
+	doc.AddMeasurement("sockets.CloseWait", "Number of sockets in state CLOSE_WAIT", "n")
+	doc.AddMeasurement("sockets.LastAck", "Number of sockets in state LAST_ACK", "n")
+	doc.AddMeasurement("sockets.Listen", "Number of sockets in state LISTEN", "n")
+	doc.AddMeasurement("sockets.Closing", "Number of sockets in state CLOSING", "n")
+	doc.AddMeasurement("sockets.RootUser", "Number of sockets owned by root", "n")
+
+	return doc
 }

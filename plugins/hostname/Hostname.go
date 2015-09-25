@@ -28,3 +28,11 @@ func (h *Hostname) Gather() error {
 func (h Hostname) GetPoints() []client.Point {
 	return make([]client.Point, 0)
 }
+
+func (h Hostname) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddTag("hostname", "The hostname as returned by the hostname command")
+
+	return doc
+}

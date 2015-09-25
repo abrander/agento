@@ -12,6 +12,12 @@ import (
 type Plugin interface {
 	Gather() error
 	GetPoints() []client.Point
+	GetDoc() *Doc
+}
+
+type Doc struct {
+	Tags         map[string]string
+	Measurements map[string]string
 }
 
 type PluginConstructor func() Plugin
@@ -42,6 +48,33 @@ func GatherAll() Results {
 	results["g"] = time.Now().Sub(start)
 
 	return results
+}
+
+func GetDoc() map[string]*Doc {
+	docs := make(map[string]*Doc)
+
+	for shortName, p := range plugins {
+		docs[shortName] = p.GetDoc()
+	}
+
+	return docs
+}
+
+func NewDoc() *Doc {
+	var doc Doc
+
+	doc.Measurements = make(map[string]string)
+	doc.Tags = make(map[string]string)
+
+	return &doc
+}
+
+func (d *Doc) AddMeasurement(key string, description string, unit string) {
+	d.Measurements[key] = description + " (" + unit + ")"
+}
+
+func (d *Doc) AddTag(key string, description string) {
+	d.Tags[key] = description
 }
 
 type GatherDuration time.Duration

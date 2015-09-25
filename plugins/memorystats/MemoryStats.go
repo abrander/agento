@@ -102,12 +102,16 @@ func (s *MemoryStats) GetPoints() []client.Point {
 	return points
 }
 
-func (s *MemoryStats) GetDoc(m map[string]string) {
-	m["mem.Used"] = "Memory used (b)"
-	m["mem.Free"] = "Free memory (b)"
-	m["mem.Shared"] = "Memory shared among multiple processes (b)"
-	m["mem.Buffers"] = "Memory used for buffers (b)"
-	m["mem.Cached"] = "Memory used for cache (b)"
-	m["swap.Used"] = "Used swap (b)"
-	m["swap.Free"] = "Free swap (b)"
+func (s *MemoryStats) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc()
+
+	doc.AddMeasurement("mem.Used", "Memory used", "b")
+	doc.AddMeasurement("mem.Free", "Free memory", "b")
+	doc.AddMeasurement("mem.Shared", "Memory shared among multiple processes", "b")
+	doc.AddMeasurement("mem.Buffers", "Memory used for buffers", "b")
+	doc.AddMeasurement("mem.Cached", "Memory used for cache", "b")
+	doc.AddMeasurement("swap.Used", "Used swap", "b")
+	doc.AddMeasurement("swap.Free", "Free swap", "b")
+
+	return doc
 }
