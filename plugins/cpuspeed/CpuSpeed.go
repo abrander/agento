@@ -67,6 +67,8 @@ func (c *CpuSpeed) GetPoints() []client.Point {
 func (c *CpuSpeed) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc()
 
+	doc.AddTag("code", "The cpu core")
+
 	doc.AddMeasurement("cpu.Frequency", "The current CPU frequency", "kHz")
 
 	return doc

@@ -144,6 +144,8 @@ func (c *CpuStats) GetPoints() []client.Point {
 func (c *CpuStats) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc()
 
+	doc.AddTag("core", "The cpu core")
+
 	doc.AddMeasurement("misc.Interrupts", "Number of interrupts per second", "/s")
 	doc.AddMeasurement("misc.ContextSwitches", "Number of context switches per second", "/s")
 	doc.AddMeasurement("misc.Forks", "Number of forks per second", "/s")

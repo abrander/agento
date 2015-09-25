@@ -109,6 +109,8 @@ func (n *NetStats) GetPoints() []client.Point {
 func (c *NetStats) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc()
 
+	doc.AddTag("interface", "The network interface")
+
 	doc.AddMeasurement("net.RxBytes", "Bytes received", "b/s")
 	doc.AddMeasurement("net.RxPackets", "Packets received", "packets/s")
 	doc.AddMeasurement("net.RxErrors", "Receiver errors detected", "errors/s")

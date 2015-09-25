@@ -106,6 +106,8 @@ func (d *DiskStats) GetPoints() []client.Point {
 func (c *DiskStats) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc()
 
+	doc.AddTag("device", "The block device")
+
 	doc.AddMeasurement("io.ReadsCompleted", "Reads from device", "reads/s")
 	doc.AddMeasurement("io.ReadsMerged", "Reads merged", "merges/s")
 	doc.AddMeasurement("io.ReadSectors", "Sectors read", "sectors/s")

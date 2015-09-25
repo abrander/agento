@@ -48,6 +48,8 @@ func (d *DiskUsageStats) GetPoints() []client.Point {
 func (c *DiskUsageStats) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc()
 
+	doc.AddTag("mountpoint", "The mount point of the volume")
+
 	doc.AddMeasurement("du.Used", "Used space", "b")
 	doc.AddMeasurement("du.Reserved", "Space reserved for uid 0", "b")
 	doc.AddMeasurement("du.Free", "Free space", "b")
