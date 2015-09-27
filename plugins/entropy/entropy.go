@@ -7,6 +7,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -37,8 +38,11 @@ func (e *Entropy) Gather() error {
 }
 
 func (h Entropy) GetPoints() []client.Point {
-	//FIXME: Add entropy
-	return make([]client.Point, 0)
+	points := make([]client.Point, 1)
+
+	points[0] = agento.SimplePoint("misc.AvailableEntropy", int(h))
+
+	return points
 }
 
 func (h Entropy) GetDoc() *plugins.Doc {
