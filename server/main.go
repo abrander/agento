@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -160,9 +161,13 @@ func main() {
 
 		go func() {
 			// Listen for https connections if needed
+			tlsConfig := &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			}
 			addr := config.Server.Https.Bind + ":" + strconv.Itoa(int(config.Server.Https.Port))
 			agento.LogInfo("Listening for https at " + addr)
-			err := http.ListenAndServeTLS(addr, config.Server.Https.CertPath, config.Server.Https.KeyPath, nil)
+			server := &http.Server{Addr: addr, Handler: nil, TLSConfig: tlsConfig}
+			err = server.ListenAndServeTLS(config.Server.Https.CertPath, config.Server.Https.KeyPath)
 			if err != nil {
 				agento.LogError("ListenAndServeTLS(%s): %s", addr, err.Error())
 				log.Fatal("ListenAndServe: ", err)
