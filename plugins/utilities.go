@@ -1,4 +1,4 @@
-package agento
+package plugins
 
 import (
 	"math"

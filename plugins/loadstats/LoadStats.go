@@ -9,7 +9,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -67,11 +66,11 @@ func (stat *LoadStats) Gather() error {
 func (l *LoadStats) GetPoints() []client.Point {
 	points := make([]client.Point, 5)
 
-	points[0] = agento.SimplePoint("misc.Load1", l.Load1)
-	points[1] = agento.SimplePoint("misc.Load5", l.Load5)
-	points[2] = agento.SimplePoint("misc.Load15", l.Load15)
-	points[3] = agento.SimplePoint("misc.ActiveTasks", l.ActiveTasks)
-	points[4] = agento.SimplePoint("misc.Tasks", l.Tasks)
+	points[0] = plugins.SimplePoint("misc.Load1", l.Load1)
+	points[1] = plugins.SimplePoint("misc.Load5", l.Load5)
+	points[2] = plugins.SimplePoint("misc.Load15", l.Load15)
+	points[3] = plugins.SimplePoint("misc.ActiveTasks", l.ActiveTasks)
+	points[4] = plugins.SimplePoint("misc.Tasks", l.Tasks)
 
 	return points
 }

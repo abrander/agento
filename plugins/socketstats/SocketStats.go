@@ -6,7 +6,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -99,18 +98,18 @@ func (stats *SocketStats) Gather() error {
 func (s *SocketStats) GetPoints() []client.Point {
 	points := make([]client.Point, 12)
 
-	points[0] = agento.SimplePoint("sockets.Established", s.Established)
-	points[1] = agento.SimplePoint("sockets.SynSent", s.SynSent)
-	points[2] = agento.SimplePoint("sockets.SynReceived", s.SynReceived)
-	points[3] = agento.SimplePoint("sockets.FinWait1", s.FinWait1)
-	points[4] = agento.SimplePoint("sockets.FinWait2", s.FinWait2)
-	points[5] = agento.SimplePoint("sockets.TimeWait", s.TimeWait)
-	points[6] = agento.SimplePoint("sockets.Close", s.Close)
-	points[7] = agento.SimplePoint("sockets.CloseWait", s.CloseWait)
-	points[8] = agento.SimplePoint("sockets.LastAck", s.LastAck)
-	points[9] = agento.SimplePoint("sockets.Listen", s.Listen)
-	points[10] = agento.SimplePoint("sockets.Closing", s.Closing)
-	points[11] = agento.SimplePoint("sockets.RootUser", s.RootUser)
+	points[0] = plugins.SimplePoint("sockets.Established", s.Established)
+	points[1] = plugins.SimplePoint("sockets.SynSent", s.SynSent)
+	points[2] = plugins.SimplePoint("sockets.SynReceived", s.SynReceived)
+	points[3] = plugins.SimplePoint("sockets.FinWait1", s.FinWait1)
+	points[4] = plugins.SimplePoint("sockets.FinWait2", s.FinWait2)
+	points[5] = plugins.SimplePoint("sockets.TimeWait", s.TimeWait)
+	points[6] = plugins.SimplePoint("sockets.Close", s.Close)
+	points[7] = plugins.SimplePoint("sockets.CloseWait", s.CloseWait)
+	points[8] = plugins.SimplePoint("sockets.LastAck", s.LastAck)
+	points[9] = plugins.SimplePoint("sockets.Listen", s.Listen)
+	points[10] = plugins.SimplePoint("sockets.Closing", s.Closing)
+	points[11] = plugins.SimplePoint("sockets.RootUser", s.RootUser)
 
 	return points
 }

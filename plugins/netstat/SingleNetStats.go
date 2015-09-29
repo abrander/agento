@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
 
 type SingleNetStats struct {
@@ -97,22 +97,22 @@ func (s *SingleNetStats) ReadArray(data []string) {
 func (s SingleNetStats) MarshalJSON() ([]byte, error) {
 	var a [16]float64
 
-	a[0] = agento.Round(s.RxBytes, 0)
-	a[1] = agento.Round(s.RxPackets, 0)
-	a[2] = agento.Round(s.RxErrors, 0)
-	a[3] = agento.Round(s.RxDropped, 0)
-	a[4] = agento.Round(s.RxFifo, 0)
-	a[5] = agento.Round(s.RxFrame, 0)
-	a[6] = agento.Round(s.RxCompressed, 0)
-	a[7] = agento.Round(s.RxMulticast, 0)
-	a[8] = agento.Round(s.TxBytes, 0)
-	a[9] = agento.Round(s.TxPackets, 0)
-	a[10] = agento.Round(s.TxErrors, 0)
-	a[11] = agento.Round(s.TxDropped, 0)
-	a[12] = agento.Round(s.TxFifo, 0)
-	a[13] = agento.Round(s.TxCollisions, 0)
-	a[14] = agento.Round(s.TxCarrier, 0)
-	a[15] = agento.Round(s.TxCompressed, 0)
+	a[0] = plugins.Round(s.RxBytes, 0)
+	a[1] = plugins.Round(s.RxPackets, 0)
+	a[2] = plugins.Round(s.RxErrors, 0)
+	a[3] = plugins.Round(s.RxDropped, 0)
+	a[4] = plugins.Round(s.RxFifo, 0)
+	a[5] = plugins.Round(s.RxFrame, 0)
+	a[6] = plugins.Round(s.RxCompressed, 0)
+	a[7] = plugins.Round(s.RxMulticast, 0)
+	a[8] = plugins.Round(s.TxBytes, 0)
+	a[9] = plugins.Round(s.TxPackets, 0)
+	a[10] = plugins.Round(s.TxErrors, 0)
+	a[11] = plugins.Round(s.TxDropped, 0)
+	a[12] = plugins.Round(s.TxFifo, 0)
+	a[13] = plugins.Round(s.TxCollisions, 0)
+	a[14] = plugins.Round(s.TxCarrier, 0)
+	a[15] = plugins.Round(s.TxCompressed, 0)
 
 	return json.Marshal(a)
 }

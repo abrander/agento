@@ -10,7 +10,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -85,17 +84,17 @@ func (d *DiskStats) GetPoints() []client.Point {
 
 	i := 0
 	for key, value := range d.Disks {
-		points[i+0] = agento.PointWithTag("io.ReadsCompleted", value.ReadsCompleted, "device", key)
-		points[i+1] = agento.PointWithTag("io.ReadsMerged", value.ReadsMerged, "device", key)
-		points[i+2] = agento.PointWithTag("io.ReadSectors", value.ReadSectors, "device", key)
-		points[i+3] = agento.PointWithTag("io.ReadTime", value.ReadTime, "device", key)
-		points[i+4] = agento.PointWithTag("io.WritesCompleted", value.WritesCompleted, "device", key)
-		points[i+5] = agento.PointWithTag("io.WritesMerged", value.WritesMerged, "device", key)
-		points[i+6] = agento.PointWithTag("io.WriteSectors", value.WriteSectors, "device", key)
-		points[i+7] = agento.PointWithTag("io.WriteTime", value.WriteTime, "device", key)
-		points[i+8] = agento.PointWithTag("io.IoInProgress", value.IoInProgress, "device", key)
-		points[i+9] = agento.PointWithTag("io.IoTime", value.IoTime, "device", key)
-		points[i+10] = agento.PointWithTag("io.IoWeightedTime", value.IoWeightedTime, "device", key)
+		points[i+0] = plugins.PointWithTag("io.ReadsCompleted", value.ReadsCompleted, "device", key)
+		points[i+1] = plugins.PointWithTag("io.ReadsMerged", value.ReadsMerged, "device", key)
+		points[i+2] = plugins.PointWithTag("io.ReadSectors", value.ReadSectors, "device", key)
+		points[i+3] = plugins.PointWithTag("io.ReadTime", value.ReadTime, "device", key)
+		points[i+4] = plugins.PointWithTag("io.WritesCompleted", value.WritesCompleted, "device", key)
+		points[i+5] = plugins.PointWithTag("io.WritesMerged", value.WritesMerged, "device", key)
+		points[i+6] = plugins.PointWithTag("io.WriteSectors", value.WriteSectors, "device", key)
+		points[i+7] = plugins.PointWithTag("io.WriteTime", value.WriteTime, "device", key)
+		points[i+8] = plugins.PointWithTag("io.IoInProgress", value.IoInProgress, "device", key)
+		points[i+9] = plugins.PointWithTag("io.IoTime", value.IoTime, "device", key)
+		points[i+10] = plugins.PointWithTag("io.IoWeightedTime", value.IoWeightedTime, "device", key)
 
 		i = i + 11
 	}

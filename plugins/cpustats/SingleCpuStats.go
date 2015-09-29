@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/abrander/agento"
+	"github.com/abrander/agento/plugins"
 )
 
 type SingleCpuStat struct {
@@ -58,16 +58,16 @@ func (s *SingleCpuStat) ReadArray(data []string) {
 func (s SingleCpuStat) MarshalJSON() ([]byte, error) {
 	var a [10]float64
 
-	a[0] = agento.Round(s.User, 1)
-	a[1] = agento.Round(s.Nice, 1)
-	a[2] = agento.Round(s.System, 1)
-	a[3] = agento.Round(s.Idle, 1)
-	a[4] = agento.Round(s.IoWait, 1)
-	a[5] = agento.Round(s.Irq, 1)
-	a[6] = agento.Round(s.SoftIrq, 1)
-	a[7] = agento.Round(s.Steal, 1)
-	a[8] = agento.Round(s.Guest, 1)
-	a[9] = agento.Round(s.GuestNice, 1)
+	a[0] = plugins.Round(s.User, 1)
+	a[1] = plugins.Round(s.Nice, 1)
+	a[2] = plugins.Round(s.System, 1)
+	a[3] = plugins.Round(s.Idle, 1)
+	a[4] = plugins.Round(s.IoWait, 1)
+	a[5] = plugins.Round(s.Irq, 1)
+	a[6] = plugins.Round(s.SoftIrq, 1)
+	a[7] = plugins.Round(s.Steal, 1)
+	a[8] = plugins.Round(s.Guest, 1)
+	a[9] = plugins.Round(s.GuestNice, 1)
 
 	return json.Marshal(a)
 }

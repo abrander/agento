@@ -10,7 +10,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -83,22 +82,22 @@ func (n *NetStats) GetPoints() []client.Point {
 
 	i := 0
 	for key, value := range n.Interfaces {
-		points[i+0] = agento.PointWithTag("net.RxBytes", value.RxBytes, "interface", key)
-		points[i+1] = agento.PointWithTag("net.RxPackets", value.RxPackets, "interface", key)
-		points[i+2] = agento.PointWithTag("net.RxErrors", value.RxErrors, "interface", key)
-		points[i+3] = agento.PointWithTag("net.RxDropped", value.RxDropped, "interface", key)
-		points[i+4] = agento.PointWithTag("net.RxFifo", value.RxFifo, "interface", key)
-		points[i+5] = agento.PointWithTag("net.RxFrame", value.RxFrame, "interface", key)
-		points[i+6] = agento.PointWithTag("net.RxCompressed", value.RxCompressed, "interface", key)
-		points[i+7] = agento.PointWithTag("net.RxMulticast", value.RxMulticast, "interface", key)
-		points[i+8] = agento.PointWithTag("net.TxBytes", value.TxBytes, "interface", key)
-		points[i+9] = agento.PointWithTag("net.TxPackets", value.TxPackets, "interface", key)
-		points[i+10] = agento.PointWithTag("net.TxErrors", value.TxErrors, "interface", key)
-		points[i+11] = agento.PointWithTag("net.TxDropped", value.TxDropped, "interface", key)
-		points[i+12] = agento.PointWithTag("net.TxFifo", value.TxFifo, "interface", key)
-		points[i+13] = agento.PointWithTag("net.TxCollisions", value.TxCollisions, "interface", key)
-		points[i+14] = agento.PointWithTag("net.TxCarrier", value.TxCarrier, "interface", key)
-		points[i+15] = agento.PointWithTag("net.TxCompressed", value.TxCompressed, "interface", key)
+		points[i+0] = plugins.PointWithTag("net.RxBytes", value.RxBytes, "interface", key)
+		points[i+1] = plugins.PointWithTag("net.RxPackets", value.RxPackets, "interface", key)
+		points[i+2] = plugins.PointWithTag("net.RxErrors", value.RxErrors, "interface", key)
+		points[i+3] = plugins.PointWithTag("net.RxDropped", value.RxDropped, "interface", key)
+		points[i+4] = plugins.PointWithTag("net.RxFifo", value.RxFifo, "interface", key)
+		points[i+5] = plugins.PointWithTag("net.RxFrame", value.RxFrame, "interface", key)
+		points[i+6] = plugins.PointWithTag("net.RxCompressed", value.RxCompressed, "interface", key)
+		points[i+7] = plugins.PointWithTag("net.RxMulticast", value.RxMulticast, "interface", key)
+		points[i+8] = plugins.PointWithTag("net.TxBytes", value.TxBytes, "interface", key)
+		points[i+9] = plugins.PointWithTag("net.TxPackets", value.TxPackets, "interface", key)
+		points[i+10] = plugins.PointWithTag("net.TxErrors", value.TxErrors, "interface", key)
+		points[i+11] = plugins.PointWithTag("net.TxDropped", value.TxDropped, "interface", key)
+		points[i+12] = plugins.PointWithTag("net.TxFifo", value.TxFifo, "interface", key)
+		points[i+13] = plugins.PointWithTag("net.TxCollisions", value.TxCollisions, "interface", key)
+		points[i+14] = plugins.PointWithTag("net.TxCarrier", value.TxCarrier, "interface", key)
+		points[i+15] = plugins.PointWithTag("net.TxCompressed", value.TxCompressed, "interface", key)
 
 		i = i + 16
 	}

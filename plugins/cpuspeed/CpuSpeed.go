@@ -9,7 +9,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -58,7 +57,7 @@ func (c *CpuSpeed) GetPoints() []client.Point {
 	points := make([]client.Point, len(c.Frequency))
 
 	for i, frequency := range c.Frequency {
-		points[i] = agento.PointWithTag("cpu.Frequency", frequency, "core", strconv.Itoa(i))
+		points[i] = plugins.PointWithTag("cpu.Frequency", frequency, "core", strconv.Itoa(i))
 	}
 
 	return points

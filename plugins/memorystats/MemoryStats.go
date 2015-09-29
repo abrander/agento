@@ -9,7 +9,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -91,13 +90,13 @@ func (stat *MemoryStats) Gather() error {
 func (s *MemoryStats) GetPoints() []client.Point {
 	points := make([]client.Point, 7)
 
-	points[0] = agento.SimplePoint("mem.Used", s.Used)
-	points[1] = agento.SimplePoint("mem.Free", s.Free)
-	points[2] = agento.SimplePoint("mem.Shared", s.Shared)
-	points[3] = agento.SimplePoint("mem.Buffers", s.Buffers)
-	points[4] = agento.SimplePoint("mem.Cached", s.Cached)
-	points[5] = agento.SimplePoint("swap.Used", s.SwapUsed)
-	points[6] = agento.SimplePoint("swap.Free", s.SwapFree)
+	points[0] = plugins.SimplePoint("mem.Used", s.Used)
+	points[1] = plugins.SimplePoint("mem.Free", s.Free)
+	points[2] = plugins.SimplePoint("mem.Shared", s.Shared)
+	points[3] = plugins.SimplePoint("mem.Buffers", s.Buffers)
+	points[4] = plugins.SimplePoint("mem.Cached", s.Cached)
+	points[5] = plugins.SimplePoint("swap.Used", s.SwapUsed)
+	points[6] = plugins.SimplePoint("swap.Free", s.SwapFree)
 
 	return points
 }

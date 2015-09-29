@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"github.com/influxdb/influxdb/client"
-
-	"github.com/abrander/agento"
 )
 
 type Plugin interface {
@@ -86,7 +84,7 @@ func (g *GatherDuration) Gather() error {
 func (g *GatherDuration) GetPoints() []client.Point {
 	points := make([]client.Point, 1)
 
-	points[0] = agento.SimplePoint("agento.GatherDuration", agento.Round(time.Duration(*g).Seconds()*1000.0, 1))
+	points[0] = SimplePoint("agento.GatherDuration", Round(time.Duration(*g).Seconds()*1000.0, 1))
 
 	return points
 }

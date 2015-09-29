@@ -3,7 +3,6 @@ package agento
 import (
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -33,11 +32,11 @@ func (d *DiskUsageStats) GetPoints() []client.Point {
 
 	i := 0
 	for key, value := range d.Disks {
-		points[i+0] = agento.PointWithTag("du.Used", value.Used, "mountpoint", key)
-		points[i+1] = agento.PointWithTag("du.Reserved", value.Reserved, "mountpoint", key)
-		points[i+2] = agento.PointWithTag("du.Free", value.Free, "mountpoint", key)
-		points[i+3] = agento.PointWithTag("du.UsedNodes", value.UsedNodes, "mountpoint", key)
-		points[i+4] = agento.PointWithTag("du.FreeNodes", value.FreeNodes, "mountpoint", key)
+		points[i+0] = plugins.PointWithTag("du.Used", value.Used, "mountpoint", key)
+		points[i+1] = plugins.PointWithTag("du.Reserved", value.Reserved, "mountpoint", key)
+		points[i+2] = plugins.PointWithTag("du.Free", value.Free, "mountpoint", key)
+		points[i+3] = plugins.PointWithTag("du.UsedNodes", value.UsedNodes, "mountpoint", key)
+		points[i+4] = plugins.PointWithTag("du.FreeNodes", value.FreeNodes, "mountpoint", key)
 
 		i = i + 5
 	}
