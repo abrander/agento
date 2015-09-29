@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"io"
+	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,7 +17,6 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
-	"github.com/abrander/agento"
 	"github.com/abrander/agento/plugins"
 	_ "github.com/abrander/agento/plugins/cpuspeed"
 	_ "github.com/abrander/agento/plugins/cpustats"
@@ -28,7 +31,7 @@ import (
 	_ "github.com/abrander/agento/plugins/socketstats"
 )
 
-var config = agento.Configuration{}
+var config = Configuration{}
 
 func getInfluxClient() *client.Client {
 	u, _ := url.Parse(config.Server.Influxdb.Url)
@@ -42,7 +45,7 @@ func getInfluxClient() *client.Client {
 
 	con, err := client.NewClient(conf)
 	if err != nil {
-		agento.LogError("InfluxDB error: %s", err.Error())
+		LogError("InfluxDB error: %s", err.Error())
 		log.Fatal(err)
 	}
 
@@ -75,7 +78,7 @@ func sendToInflux(stats plugins.Results) {
 	if err != nil {
 		var i int
 		for i = 1; i <= retries; i++ {
-			agento.LogWarning("Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
+			LogWarning("Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
 			time.Sleep(time.Millisecond * 500)
 			_, err = con.Write(bps)
 			if err == nil {
@@ -83,7 +86,7 @@ func sendToInflux(stats plugins.Results) {
 			}
 		}
 		if i >= retries {
-			agento.LogError("Error writing to influxdb: " + err.Error() + ", giving up")
+			LogError("Error writing to influxdb: " + err.Error() + ", giving up")
 		}
 	}
 }
@@ -126,11 +129,10 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	err := config.LoadFromFile("/etc/agento.conf")
-	agento.InitLogging(&config)
+	InitLogging(&config)
 
 	if err != nil {
-		agento.LogError("Configuration error: %s",
-			err.Error())
+		LogError("Configuration error: %s", err.Error())
 		os.Exit(1)
 	}
 
@@ -145,10 +147,10 @@ func main() {
 		go func() {
 			// Listen for http connections if needed
 			addr := config.Server.Http.Bind + ":" + strconv.Itoa(int(config.Server.Http.Port))
-			agento.LogInfo("Listening for http at " + addr)
+			LogInfo("Listening for http at " + addr)
 			err := http.ListenAndServe(addr, nil)
 			if err != nil {
-				agento.LogError("ListenAndServe(%s): %s", addr, err.Error())
+				LogError("ListenAndServe(%s): %s", addr, err.Error())
 				log.Fatal("ListenAndServe: ", err)
 			}
 
@@ -165,16 +167,59 @@ func main() {
 				MinVersion: tls.VersionTLS12,
 			}
 			addr := config.Server.Https.Bind + ":" + strconv.Itoa(int(config.Server.Https.Port))
-			agento.LogInfo("Listening for https at " + addr)
+			LogInfo("Listening for https at " + addr)
 			server := &http.Server{Addr: addr, Handler: nil, TLSConfig: tlsConfig}
 			err = server.ListenAndServeTLS(config.Server.Https.CertPath, config.Server.Https.KeyPath)
 			if err != nil {
-				agento.LogError("ListenAndServeTLS(%s): %s", addr, err.Error())
+				LogError("ListenAndServeTLS(%s): %s", addr, err.Error())
 				log.Fatal("ListenAndServe: ", err)
 			}
 
 			wg.Done()
 		}()
+	}
+
+	if config.Client.Enabled {
+		wg.Add(1)
+
+		LogInfo("agento client started, reporting to %s", config.Client.ServerUrl)
+
+		// Randomize our start time to avoid a big cluster reporting at the exact same time
+		time.Sleep(time.Second * time.Duration(rand.Intn(config.Client.Interval)))
+
+		// We need to gather one unreported set of metrics. It's needed for
+		// calculating deltas on first real report
+		plugins.GatherAll()
+
+		c := time.Tick(time.Second * time.Duration(config.Client.Interval))
+		for _ = range c {
+			results := plugins.GatherAll()
+			json, err := json.Marshal(results)
+
+			if err == nil {
+				client := &http.Client{}
+				req, err := http.NewRequest("POST", config.Client.ServerUrl, bytes.NewReader(json))
+				if err != nil {
+					LogError(err.Error())
+					continue
+				}
+
+				if config.Client.Secret != "" {
+					req.Header.Add("X-Agento-Secret", config.Client.Secret)
+				}
+
+				res, err := client.Do(req)
+				if err != nil {
+					LogError(err.Error())
+					continue
+				}
+				io.Copy(ioutil.Discard, res.Body)
+				res.Body.Close()
+			} else {
+				LogError(err.Error())
+			}
+
+		}
 	}
 
 	wg.Wait()

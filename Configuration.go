@@ -1,4 +1,4 @@
-package agento
+package main
 
 import (
 	"errors"
@@ -10,6 +10,7 @@ import (
 
 var defaultConfig = `
 [client]
+enabled = true
 interval = 1
 secret = ""
 
@@ -44,6 +45,7 @@ type InfluxdbConfiguration struct {
 }
 
 type ClientConfiguration struct {
+	Enabled   bool   `toml:"enabled"`
 	Interval  int    `toml:"interval"`
 	Secret    string `toml:"secret"`
 	ServerUrl string `toml:"server-url"`
