@@ -1,4 +1,4 @@
-package agento
+package diskusage
 
 import (
 	"github.com/influxdb/influxdb/client"

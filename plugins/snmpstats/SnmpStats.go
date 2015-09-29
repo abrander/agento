@@ -1,4 +1,4 @@
-package agento
+package snmpstats
 
 import (
 	"bufio"

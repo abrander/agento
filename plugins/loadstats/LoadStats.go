@@ -1,4 +1,4 @@
-package agento
+package loadstats
 
 import (
 	"bufio"
