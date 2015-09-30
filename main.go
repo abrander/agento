@@ -27,6 +27,7 @@ import (
 	_ "github.com/abrander/agento/plugins/loadstats"
 	_ "github.com/abrander/agento/plugins/memorystats"
 	_ "github.com/abrander/agento/plugins/netstat"
+	_ "github.com/abrander/agento/plugins/openfiles"
 	_ "github.com/abrander/agento/plugins/snmpstats"
 	_ "github.com/abrander/agento/plugins/socketstats"
 )
