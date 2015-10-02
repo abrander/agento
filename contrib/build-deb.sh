@@ -15,7 +15,7 @@ go get ./...
 
 mkdir -p deb/DEBIAN
 cat <<EOF > deb/DEBIAN/control
-Package: agento-client
+Package: agento
 Version: ${VERSION}
 Homepage: https://agento.org/
 Section: non-free
@@ -23,11 +23,11 @@ Priority: optional
 Architecture: amd64
 Maintainer: Anders Brander <anders@brander.dk>
 Description: Agento metric collecting agent and server
- This package contains agento-client
+ This package contains agento, an metrics collecting agent and server
 EOF
 
 mkdir -p deb/etc/init
-cat <<EOF > deb/etc/init/agento-client.conf
+cat <<EOF > deb/etc/init/agento.conf
 start on runlevel [2345]
 
 respawn
@@ -36,49 +36,13 @@ setuid nobody
 setgid nogroup
 
 script
-    exec /usr/sbin/agento-client
+    exec /usr/sbin/agento
 end script
 EOF
 
-(cd client ; go build .)
+go build .
 mkdir -p deb/usr/sbin/
-cp -a client/client deb/usr/sbin/agento-client
-
-dpkg-deb --build deb $(pwd)
-rm -rf deb
-
-# Package server
-
-mkdir -p deb/DEBIAN
-cat <<EOF > deb/DEBIAN/control
-Package: agento-server
-Version: ${VERSION}
-Homepage: https://agento.org/
-Section: non-free
-Priority: optional
-Architecture: amd64
-Maintainer: Anders Brander <anders@brander.dk>
-Description: Agento metric collecting agent and server
- This package contains agento-server
-EOF
-
-mkdir -p deb/etc/init
-cat <<EOF > deb/etc/init/agento-server.conf
-start on runlevel [2345]
-
-respawn
-
-setuid nobody
-setgid nogroup
-
-script
-    exec /usr/sbin/agento-server
-end script
-EOF
-
-(cd server ; go build .)
-mkdir -p deb/usr/sbin/
-cp -a server/server deb/usr/sbin/agento-server
+cp -a agento deb/usr/sbin/agento
 
 dpkg-deb --build deb $(pwd)
 rm -rf deb
