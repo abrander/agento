@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -187,6 +188,57 @@ func main() {
 			}
 
 			wg.Done()
+		}()
+	}
+
+	if config.Server.Udp.Enabled {
+
+		samples := make(chan *Sample)
+
+		// UDP reader loop
+		wg.Add(1)
+		go func() {
+			addr := config.Server.Udp.Bind + ":" + strconv.Itoa(int(config.Server.Udp.Port))
+
+			laddr, err := net.ResolveUDPAddr("udp", addr)
+			if err != nil {
+				LogError("ResolveUDPAddr(%s): %s", addr, err.Error())
+				log.Fatal("ResolveUDPAddr: ", err)
+			}
+
+			conn, err := net.ListenUDP("udp", laddr)
+			if err != nil {
+				LogError("ListenUDP(%s): %s", addr, err.Error())
+				log.Fatal("ListenUDP: ", err)
+			}
+
+			defer conn.Close()
+
+			buf := make([]byte, 65535)
+			var sample Sample
+
+			for {
+				n, _, err := conn.ReadFromUDP(buf)
+
+				if err == nil && json.Unmarshal(buf[:n], &sample) == nil {
+					samples <- &sample
+				}
+			}
+		}()
+
+		c := time.Tick(time.Second * time.Duration(config.Server.Udp.Interval))
+
+		// Main loop
+		wg.Add(1)
+		go func() {
+			for {
+				select {
+				case sample := <-samples:
+					AddUdpSample(sample)
+				case <-c:
+					ReportToInfluxdb()
+				}
+			}
 		}()
 	}
 

@@ -26,6 +26,12 @@ port = 443
 key = "/etc/agento/ssl.key"
 cert = "/etc/agento/ssl.cert"
 
+[server.udp]
+enabled = false
+bind = "0.0.0.0"
+port = 12345
+interval = 60
+
 [server.influxdb]
 url = "http://localhost:8086/"
 username = "root"
@@ -65,10 +71,18 @@ type HttpsConfiguration struct {
 	CertPath string `toml:"cert"`
 }
 
+type UdpConfiguration struct {
+	Enabled  bool   `toml:"enabled"`
+	Bind     string `toml:"bind"`
+	Port     int16  `toml:"port"`
+	Interval int    `toml:"interval"`
+}
+
 type ServerConfiguration struct {
 	Influxdb InfluxdbConfiguration `toml:"influxdb"`
 	Http     HttpConfiguration     `toml:"http"`
 	Https    HttpsConfiguration    `toml:"https"`
+	Udp      UdpConfiguration      `toml:"udp"`
 }
 
 type Configuration struct {
