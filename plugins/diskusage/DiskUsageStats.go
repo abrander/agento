@@ -1,6 +1,9 @@
 package diskusage
 
 import (
+	"io/ioutil"
+	"strings"
+
 	"github.com/influxdb/influxdb/client"
 
 	"github.com/abrander/agento/plugins"
@@ -18,11 +21,39 @@ type DiskUsageStats struct {
 	Disks map[string]*SingleDiskUsageStats `json:"disks"`
 }
 
+func GetMountPoints() []string {
+	var mountPoints []string
+
+	data, err := ioutil.ReadFile("/etc/mtab")
+	if err != nil {
+		return mountPoints
+	}
+
+	lines := strings.Split(string(data), "\n")
+
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) != 6 {
+			continue
+		}
+
+		dev := fields[0]
+		if strings.HasPrefix(dev, "/") {
+			mountPoints = append(mountPoints, fields[1])
+		}
+	}
+
+	return mountPoints
+}
+
 func (du *DiskUsageStats) Gather() error {
 	du.Disks = make(map[string]*SingleDiskUsageStats)
 
-	// FIXME: Add dynamic disks
-	du.Disks["/"] = ReadSingleDiskUsageStats("/")
+	mountPoints := GetMountPoints()
+
+	for _, path := range mountPoints {
+		du.Disks[path] = ReadSingleDiskUsageStats(path)
+	}
 
 	return nil
 }
