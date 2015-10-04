@@ -31,24 +31,3 @@ func ReadSingleDiskUsageStats(path string) *SingleDiskUsageStats {
 
 	return &stats
 }
-
-/*
-
-
-
-
-
-Type    int64	61267
-Bsize   int64	4096
-Blocks  uint64	37910569
-Bfree   uint64	33643847
-Bavail  uint64	31712327
-Files   uint64	9641984
-Ffree   uint64	9128527
-
-Fsid    Fsid
-Namelen int64
-Frsize  int64
-Flags   int64
-Spare   [4]int64
-*/
