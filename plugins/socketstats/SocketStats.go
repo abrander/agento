@@ -46,6 +46,20 @@ func readFile(path string) []string {
 }
 
 func (stats *SocketStats) Gather() error {
+	// Reset before accumulating
+	stats.Established = 0
+	stats.SynSent = 0
+	stats.SynReceived = 0
+	stats.FinWait1 = 0
+	stats.FinWait2 = 0
+	stats.TimeWait = 0
+	stats.Close = 0
+	stats.CloseWait = 0
+	stats.LastAck = 0
+	stats.Listen = 0
+	stats.Closing = 0
+	stats.RootUser = 0
+
 	tcpLines := readFile("/proc/net/tcp")
 	tcp6Lines := readFile("/proc/net/tcp6")
 	udpLines := readFile("/proc/net/udp")
