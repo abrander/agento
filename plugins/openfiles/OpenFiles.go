@@ -44,7 +44,7 @@ func (stat *OpenFiles) Gather() error {
 }
 
 func (o *OpenFiles) GetPoints() []client.Point {
-	points := make([]client.Point, 5)
+	points := make([]client.Point, 2)
 
 	points[0] = plugins.SimplePoint("misc.OpenFilesUsed", o.Open)
 	points[1] = plugins.SimplePoint("misc.OpenFilesFree", o.Max-o.Open)
