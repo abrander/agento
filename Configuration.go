@@ -15,7 +15,7 @@ interval = 1
 secret = ""
 
 [server.http]
-enabled = true
+enabled = false
 bind = "0.0.0.0"
 port = 12345
 
