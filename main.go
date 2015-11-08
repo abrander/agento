@@ -24,7 +24,7 @@ import (
 	_ "github.com/abrander/agento/plugins/diskstats"
 	_ "github.com/abrander/agento/plugins/diskusage"
 	_ "github.com/abrander/agento/plugins/entropy"
-	"github.com/abrander/agento/plugins/hostname"
+	_ "github.com/abrander/agento/plugins/hostname"
 	_ "github.com/abrander/agento/plugins/loadstats"
 	_ "github.com/abrander/agento/plugins/memorystats"
 	_ "github.com/abrander/agento/plugins/netstat"
@@ -59,7 +59,7 @@ func sendToInflux(stats plugins.Results) {
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
-	hostname := string(*stats["h"].(*hostname.Hostname))
+	hostname := string(*stats["h"].(*string))
 	for i := range points {
 		if points[i].Tags != nil {
 			points[i].Tags["hostname"] = hostname
