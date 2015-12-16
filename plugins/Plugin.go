@@ -43,7 +43,7 @@ func GatherAll() Results {
 		results[name] = p
 	}
 
-	results["g"] = time.Now().Sub(start)
+	results["g"] = GatherDuration(time.Now().Sub(start))
 
 	return results
 }
