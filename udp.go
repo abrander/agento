@@ -84,6 +84,7 @@ func ReportToInfluxdb() {
 		points := make([]client.Point, 1)
 		points[0] = client.Point{
 			Measurement: value.Identifier,
+			Tags:        value.Tags,
 			Fields: map[string]interface{}{
 				"min":  float64(value.Histogram.Min()) / 1000000.0,
 				"max":  float64(value.Histogram.Max()) / 1000000.0,
