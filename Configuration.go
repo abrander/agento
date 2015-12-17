@@ -124,6 +124,11 @@ func (c *Configuration) LoadFromFile(path string) error {
 		}
 	}
 
+	envServer := os.Getenv("AGENTO_SERVER_URL")
+	if envServer != "" {
+		c.Client.ServerUrl = envServer
+	}
+
 	if c.Client.ServerUrl == "" {
 		return errors.New("Could not determine server URL")
 	}
