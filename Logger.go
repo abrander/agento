@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"log/syslog"
+
+	"github.com/abrander/agento/configuration"
 )
 
 var logDebug *log.Logger = nil
@@ -11,7 +13,7 @@ var logWarning *log.Logger = nil
 var logError *log.Logger = nil
 var logInitialized = false
 
-func InitLogging(c *Configuration) {
+func InitLogging(c *configuration.Configuration) {
 	if logInitialized == true {
 		return
 	}

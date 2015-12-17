@@ -18,6 +18,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 	_ "github.com/abrander/agento/plugins/cpuspeed"
 	_ "github.com/abrander/agento/plugins/cpustats"
@@ -33,7 +34,7 @@ import (
 	_ "github.com/abrander/agento/plugins/socketstats"
 )
 
-var config = Configuration{}
+var config = configuration.Configuration{}
 
 func getInfluxClient() *client.Client {
 	u, _ := url.Parse(config.Server.Influxdb.Url)
