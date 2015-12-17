@@ -9,6 +9,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -33,7 +34,7 @@ type MemoryStats struct {
 func getMemInfo() *map[string]int64 {
 	m := make(map[string]int64)
 
-	path := filepath.Join("/proc/meminfo")
+	path := filepath.Join(configuration.ProcPath, "/meminfo")
 	file, err := os.Open(path)
 	if err != nil {
 		return &m

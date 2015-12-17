@@ -8,7 +8,8 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-var defaultConfig = `
+var (
+	defaultConfig = `
 [client]
 enabled = true
 interval = 1
@@ -40,6 +41,23 @@ database = "agento"
 retentionPolicy = "default"
 retries = 0
 `
+
+	ProcPath  string
+	SysfsPath string
+)
+
+func init() {
+	ProcPath = os.Getenv("AGENTO_PROC_PATH")
+	SysfsPath = os.Getenv("AGENTO_SYSFS_PATH")
+
+	if ProcPath == "" {
+		ProcPath = "/proc"
+	}
+
+	if SysfsPath == "" {
+		SysfsPath = "/sys"
+	}
+}
 
 type InfluxdbConfiguration struct {
 	Url             string `toml:"url"`

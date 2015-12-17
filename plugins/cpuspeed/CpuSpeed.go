@@ -9,6 +9,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -25,7 +26,8 @@ type CpuSpeed struct {
 }
 
 func (c *CpuSpeed) Gather() error {
-	files, err := filepath.Glob("/sys/devices/system/cpu/cpu[0-9]*/cpufreq/cpuinfo_max_freq")
+	path := filepath.Join(configuration.SysfsPath, "/devices/system/cpu/cpu[0-9]*/cpufreq/cpuinfo_max_freq")
+	files, err := filepath.Glob(path)
 
 	if err != nil {
 		return err

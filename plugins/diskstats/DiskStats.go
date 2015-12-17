@@ -10,6 +10,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -31,7 +32,7 @@ func (d *DiskStats) Gather() error {
 	stat := DiskStats{}
 	stat.Disks = make(map[string]*SingleDiskStats)
 
-	path := filepath.Join("/proc/diskstats")
+	path := filepath.Join(configuration.ProcPath, "/diskstats")
 	file, err := os.Open(path)
 	if err != nil {
 		return err

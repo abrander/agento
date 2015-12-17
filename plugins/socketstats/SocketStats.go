@@ -2,10 +2,12 @@ package socketstats
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -60,10 +62,10 @@ func (stats *SocketStats) Gather() error {
 	stats.Closing = 0
 	stats.RootUser = 0
 
-	tcpLines := readFile("/proc/net/tcp")
-	tcp6Lines := readFile("/proc/net/tcp6")
-	udpLines := readFile("/proc/net/udp")
-	udp6Lines := readFile("/proc/net/udp6")
+	tcpLines := readFile(filepath.Join(configuration.ProcPath, "/net/tcp"))
+	tcp6Lines := readFile(filepath.Join(configuration.ProcPath, "/net/tcp6"))
+	udpLines := readFile(filepath.Join(configuration.ProcPath, "/net/udp"))
+	udp6Lines := readFile(filepath.Join(configuration.ProcPath, "/net/udp6"))
 
 	sockets := append(tcpLines, tcp6Lines...)
 	sockets = append(sockets, udpLines...)

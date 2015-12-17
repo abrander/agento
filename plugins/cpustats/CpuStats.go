@@ -10,6 +10,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -36,7 +37,7 @@ func (c *CpuStats) Gather() error {
 	stat := CpuStats{}
 	stat.Cpu = make(map[string]*SingleCpuStat)
 
-	path := filepath.Join("/proc/stat")
+	path := filepath.Join(configuration.ProcPath, "/stat")
 	file, err := os.Open(path)
 	if err != nil {
 		return err

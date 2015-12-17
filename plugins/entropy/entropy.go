@@ -2,11 +2,13 @@ package entropy
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -23,7 +25,8 @@ func NewEntropy() plugins.Plugin {
 func (e *Entropy) Gather() error {
 	*e = Entropy(0)
 
-	contents, err := ioutil.ReadFile("/proc/sys/kernel/random/entropy_avail")
+	path := filepath.Join(configuration.ProcPath, "/sys/kernel/random/entropy_avail")
+	contents, err := ioutil.ReadFile(path)
 
 	if err != nil {
 		return err

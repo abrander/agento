@@ -10,6 +10,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -31,7 +32,7 @@ func (n *NetStats) Gather() error {
 	stat := NetStats{}
 	stat.Interfaces = make(map[string]*SingleNetStats)
 
-	path := filepath.Join("/proc/net/dev")
+	path := filepath.Join(configuration.ProcPath, "/net/dev")
 	file, err := os.Open(path)
 	if err != nil {
 		return err

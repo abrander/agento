@@ -11,6 +11,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -115,7 +116,7 @@ type SnmpStats struct {
 func (snmp *SnmpStats) Gather() error {
 	stat := SnmpStats{}
 
-	path := filepath.Join("/proc/net/snmp")
+	path := filepath.Join(configuration.ProcPath, "/net/snmp")
 	file, err := os.Open(path)
 	if err != nil {
 		return err

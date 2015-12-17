@@ -9,6 +9,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -30,7 +31,7 @@ type LoadStats struct {
 
 func (stat *LoadStats) Gather() error {
 
-	path := filepath.Join("/proc/loadavg")
+	path := filepath.Join(configuration.ProcPath, "/loadavg")
 	file, err := os.Open(path)
 	if err != nil {
 		return err

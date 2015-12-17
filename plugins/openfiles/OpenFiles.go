@@ -3,11 +3,13 @@ package openfiles
 import (
 	"errors"
 	"io/ioutil"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/influxdb/influxdb/client"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 )
 
@@ -27,14 +29,15 @@ type OpenFiles struct {
 }
 
 func (stat *OpenFiles) Gather() error {
-	contents, err := ioutil.ReadFile("/proc/sys/fs/file-nr")
+	path := filepath.Join(configuration.ProcPath, "/sys/fs/file-nr")
+	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return err
 	}
 
 	fields := strings.Fields(string(contents))
 	if len(fields) != 3 {
-		return errors.New("Unknown format read from /proc/sys/fs/file-nr")
+		return errors.New("Unknown format read from " + path)
 	}
 
 	stat.Open, _ = strconv.ParseInt(fields[0], 10, 64)
