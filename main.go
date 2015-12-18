@@ -234,9 +234,9 @@ func main() {
 			defer conn.Close()
 
 			buf := make([]byte, 65535)
-			var sample Sample
 
 			for {
+				var sample Sample
 				n, _, err := conn.ReadFromUDP(buf)
 
 				if err == nil && json.Unmarshal(buf[:n], &sample) == nil {
