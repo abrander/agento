@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -131,6 +132,23 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "gendoc" {
+		d := plugins.GetDoc()
+
+		for _, doc := range d {
+			fmt.Printf("| %-40s | %-110s |\n", doc.Description, "")
+			fmt.Printf("|------------------------------------------|----------------------------------------------------------------------------------------------------------------|\n")
+			for name, description := range doc.Tags {
+				fmt.Printf("| %-40s | %-110s |\n", "Tag: "+name, description)
+			}
+			for name, description := range doc.Measurements {
+				fmt.Printf("| %-40s | %-110s |\n", name, description)
+			}
+			fmt.Printf("\n")
+		}
+		os.Exit(0)
+	}
+
 	err := config.LoadFromFile("/etc/agento.conf")
 	InitLogging(&config)
 
