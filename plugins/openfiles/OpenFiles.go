@@ -56,7 +56,7 @@ func (o *OpenFiles) GetPoints() []client.Point {
 }
 
 func (o *OpenFiles) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("File handle usage")
 
 	doc.AddMeasurement("misc.OpenFilesUsed", "The number of allocated file handles", "n")
 	doc.AddMeasurement("misc.OpenFilesFree", "The number of free file handles", "n")

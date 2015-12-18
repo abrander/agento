@@ -179,7 +179,7 @@ func (s *SnmpStats) GetPoints() []client.Point {
 }
 
 func (c *SnmpStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Various network statistics")
 
 	// FIXME: Return something ;)
 

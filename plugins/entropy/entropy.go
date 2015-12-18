@@ -48,7 +48,7 @@ func (h Entropy) GetPoints() []client.Point {
 }
 
 func (h Entropy) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Entropy")
 
 	doc.AddMeasurement("misc.AvailableEntropy", "Available entropy in the kernel pool", "b")
 

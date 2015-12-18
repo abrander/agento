@@ -76,7 +76,7 @@ func (d *DiskUsageStats) GetPoints() []client.Point {
 }
 
 func (c *DiskUsageStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Disk Usage")
 
 	doc.AddTag("mountpoint", "The mount point of the volume")
 

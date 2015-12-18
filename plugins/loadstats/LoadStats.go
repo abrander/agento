@@ -77,7 +77,7 @@ func (l *LoadStats) GetPoints() []client.Point {
 }
 
 func (l *LoadStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Miscellaneous")
 
 	doc.AddMeasurement("misc.Load1", "System load in the last minute", "")
 	doc.AddMeasurement("misc.Load5", "System load in the last 5 minutes", "")

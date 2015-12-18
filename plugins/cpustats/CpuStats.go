@@ -142,7 +142,7 @@ func (c *CpuStats) GetPoints() []client.Point {
 }
 
 func (c *CpuStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("CPU statistics")
 
 	doc.AddTag("core", "The cpu core")
 

@@ -14,6 +14,7 @@ type Plugin interface {
 }
 
 type Doc struct {
+	Description  string
 	Tags         map[string]string
 	Measurements map[string]string
 }
@@ -58,9 +59,10 @@ func GetDoc() map[string]*Doc {
 	return docs
 }
 
-func NewDoc() *Doc {
+func NewDoc(description string) *Doc {
 	var doc Doc
 
+	doc.Description = description
 	doc.Measurements = make(map[string]string)
 	doc.Tags = make(map[string]string)
 

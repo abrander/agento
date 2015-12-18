@@ -103,7 +103,7 @@ func (s *MemoryStats) GetPoints() []client.Point {
 }
 
 func (s *MemoryStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Memory & Swap")
 
 	doc.AddMeasurement("mem.Used", "Memory used", "b")
 	doc.AddMeasurement("mem.Free", "Free memory", "b")

@@ -104,7 +104,7 @@ func (d *DiskStats) GetPoints() []client.Point {
 }
 
 func (c *DiskStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("IO")
 
 	doc.AddTag("device", "The block device")
 

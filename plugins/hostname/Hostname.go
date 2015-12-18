@@ -30,7 +30,7 @@ func (h Hostname) GetPoints() []client.Point {
 }
 
 func (h Hostname) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Hostname")
 
 	doc.AddTag("hostname", "The hostname as returned by the hostname command")
 

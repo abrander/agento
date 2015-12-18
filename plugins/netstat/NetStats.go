@@ -107,7 +107,7 @@ func (n *NetStats) GetPoints() []client.Point {
 }
 
 func (c *NetStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Network")
 
 	doc.AddTag("interface", "The network interface")
 

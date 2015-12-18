@@ -131,7 +131,7 @@ func (s *SocketStats) GetPoints() []client.Point {
 }
 
 func (s *SocketStats) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc()
+	doc := plugins.NewDoc("Socket usage")
 
 	doc.AddMeasurement("sockets.Established", "Number of sockets in state ESTABLISHED", "n")
 	doc.AddMeasurement("sockets.SynSent", "Number of sockets in state SYN_SENT1", "n")
