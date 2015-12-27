@@ -2,11 +2,9 @@ package cpustats
 
 import (
 	"bufio"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/influxdb/influxdb/client"
 
@@ -19,8 +17,6 @@ func init() {
 }
 
 type CpuStats struct {
-	sampletime       time.Time `json:"-"`
-	previousCpuStats *CpuStats
 	Cpu              map[string]*SingleCpuStat `json:"cpu"`
 	Interrupts       float64                   `json:"in"`
 	ContextSwitches  float64                   `json:"ct"`
@@ -33,18 +29,16 @@ func NewCpuStats() plugins.Plugin {
 	return new(CpuStats)
 }
 
-func (c *CpuStats) Gather() error {
-	stat := CpuStats{}
+func (stat *CpuStats) Gather(transport plugins.Transport) error {
 	stat.Cpu = make(map[string]*SingleCpuStat)
 
 	path := filepath.Join(configuration.ProcPath, "/stat")
-	file, err := os.Open(path)
+	file, err := transport.Open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	stat.sampletime = time.Now()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -82,35 +76,7 @@ func (c *CpuStats) Gather() error {
 		}
 	}
 
-	ret := stat.Sub(c.previousCpuStats)
-	*c = *ret
-	c.previousCpuStats = &stat
-
 	return nil
-}
-
-func (c *CpuStats) Sub(previous *CpuStats) *CpuStats {
-	if previous == nil {
-		return &CpuStats{}
-	}
-
-	diff := CpuStats{}
-	diff.Cpu = make(map[string]*SingleCpuStat)
-
-	duration := float64(c.sampletime.Sub(previous.sampletime)) / float64(time.Second)
-	for key, value := range c.Cpu {
-		diff.Cpu[key] = value.Sub(previous.Cpu[key], duration)
-	}
-
-	diff.Interrupts = plugins.Round((c.Interrupts-previous.Interrupts)/duration, 1)
-	diff.ContextSwitches = plugins.Round((c.ContextSwitches-previous.ContextSwitches)/duration, 1)
-	diff.Forks = plugins.Round((c.Forks-previous.Forks)/duration, 1)
-
-	// These are not accumulated
-	diff.RunningProcesses = c.RunningProcesses
-	diff.BlockedProcesses = c.BlockedProcesses
-
-	return &diff
 }
 
 func (c *CpuStats) GetPoints() []client.Point {
@@ -165,3 +131,6 @@ func (c *CpuStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*CpuStats)(nil)

@@ -1,7 +1,6 @@
 package entropy
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -22,11 +21,11 @@ func NewEntropy() plugins.Plugin {
 	return new(Entropy)
 }
 
-func (e *Entropy) Gather() error {
+func (e *Entropy) Gather(transport plugins.Transport) error {
 	*e = Entropy(0)
 
 	path := filepath.Join(configuration.ProcPath, "/sys/kernel/random/entropy_avail")
-	contents, err := ioutil.ReadFile(path)
+	contents, err := transport.ReadFile(path)
 
 	if err != nil {
 		return err
@@ -54,3 +53,6 @@ func (h Entropy) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*Entropy)(nil)

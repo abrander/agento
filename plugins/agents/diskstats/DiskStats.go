@@ -2,11 +2,9 @@ package diskstats
 
 import (
 	"bufio"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/influxdb/influxdb/client"
 
@@ -23,23 +21,19 @@ func NewDiskStats() plugins.Plugin {
 }
 
 type DiskStats struct {
-	sampletime        time.Time `json:"-"`
-	previousDiskStats *DiskStats
-	Disks             map[string]*SingleDiskStats `json:"disks"`
+	Disks map[string]*SingleDiskStats `json:"disks"`
 }
 
-func (d *DiskStats) Gather() error {
-	stat := DiskStats{}
+func (stat *DiskStats) Gather(transport plugins.Transport) error {
 	stat.Disks = make(map[string]*SingleDiskStats)
 
 	path := filepath.Join(configuration.ProcPath, "/diskstats")
-	file, err := os.Open(path)
+	file, err := transport.Open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	stat.sampletime = time.Now()
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		text := scanner.Text()
@@ -58,26 +52,7 @@ func (d *DiskStats) Gather() error {
 		}
 	}
 
-	*d = *stat.Sub(d.previousDiskStats)
-	d.previousDiskStats = &stat
-
 	return nil
-}
-
-func (c *DiskStats) Sub(previousDiskStats *DiskStats) *DiskStats {
-	if previousDiskStats == nil {
-		return &DiskStats{}
-	}
-
-	diff := DiskStats{}
-	diff.Disks = make(map[string]*SingleDiskStats)
-
-	duration := float64(c.sampletime.Sub(previousDiskStats.sampletime)) / float64(time.Second)
-	for key, value := range c.Disks {
-		diff.Disks[key] = value.Sub(previousDiskStats.Disks[key], duration)
-	}
-
-	return &diff
 }
 
 func (d *DiskStats) GetPoints() []client.Point {
@@ -122,3 +97,6 @@ func (c *DiskStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*DiskStats)(nil)

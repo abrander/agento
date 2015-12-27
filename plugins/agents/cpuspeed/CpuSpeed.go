@@ -2,7 +2,6 @@ package cpuspeed
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -25,7 +24,7 @@ type CpuSpeed struct {
 	Frequency []int
 }
 
-func (c *CpuSpeed) Gather() error {
+func (c *CpuSpeed) Gather(transport plugins.Transport) error {
 	path := filepath.Join(configuration.SysfsPath, "/devices/system/cpu/cpu[0-9]*/cpufreq/cpuinfo_max_freq")
 	files, err := filepath.Glob(path)
 
@@ -36,7 +35,7 @@ func (c *CpuSpeed) Gather() error {
 	c.Frequency = make([]int, len(files))
 	i := 0
 	for _, file := range files {
-		contents, err := ioutil.ReadFile(file)
+		contents, err := transport.ReadFile(file)
 		if err == nil {
 			c.Frequency[i], _ = strconv.Atoi(strings.TrimSpace(string(contents)))
 			i += 1
@@ -74,3 +73,6 @@ func (c *CpuSpeed) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*CpuSpeed)(nil)

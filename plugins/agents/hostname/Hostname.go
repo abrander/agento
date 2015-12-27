@@ -1,5 +1,7 @@
 package hostname
 
+// FIXME: Port to plugins.Transport
+
 import (
 	"os"
 

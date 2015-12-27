@@ -2,7 +2,6 @@ package memorystats
 
 import (
 	"bufio"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -31,11 +30,11 @@ type MemoryStats struct {
 	SwapFree int64 `json:"sf"`
 }
 
-func getMemInfo() *map[string]int64 {
+func getMemInfo(transport plugins.Transport) *map[string]int64 {
 	m := make(map[string]int64)
 
 	path := filepath.Join(configuration.ProcPath, "/meminfo")
-	file, err := os.Open(path)
+	file, err := transport.Open(path)
 	if err != nil {
 		return &m
 	}
@@ -73,8 +72,8 @@ func getMemInfo() *map[string]int64 {
 	return &m
 }
 
-func (stat *MemoryStats) Gather() error {
-	meminfo := getMemInfo()
+func (stat *MemoryStats) Gather(transport plugins.Transport) error {
+	meminfo := getMemInfo(transport)
 
 	stat.Used = (*meminfo)["MemTotal"] - (*meminfo)["MemFree"] - (*meminfo)["Buffers"] - (*meminfo)["Cached"]
 	stat.Free = (*meminfo)["MemFree"]
@@ -115,3 +114,6 @@ func (s *MemoryStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*MemoryStats)(nil)

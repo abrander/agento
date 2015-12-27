@@ -1,7 +1,6 @@
 package socketstats
 
 import (
-	"io/ioutil"
 	"path/filepath"
 	"strings"
 
@@ -36,8 +35,8 @@ type SocketStats struct {
 	RootUser    int64 `json:"r"` // Sockets owned by root
 }
 
-func readFile(path string) []string {
-	data, err := ioutil.ReadFile(path)
+func readFile(transport plugins.Transport, path string) []string {
+	data, err := transport.ReadFile(path)
 	if err != nil {
 		return nil
 	}
@@ -47,7 +46,7 @@ func readFile(path string) []string {
 	return lines[1:]
 }
 
-func (stats *SocketStats) Gather() error {
+func (stats *SocketStats) Gather(transport plugins.Transport) error {
 	// Reset before accumulating
 	stats.Established = 0
 	stats.SynSent = 0
@@ -62,10 +61,10 @@ func (stats *SocketStats) Gather() error {
 	stats.Closing = 0
 	stats.RootUser = 0
 
-	tcpLines := readFile(filepath.Join(configuration.ProcPath, "/net/tcp"))
-	tcp6Lines := readFile(filepath.Join(configuration.ProcPath, "/net/tcp6"))
-	udpLines := readFile(filepath.Join(configuration.ProcPath, "/net/udp"))
-	udp6Lines := readFile(filepath.Join(configuration.ProcPath, "/net/udp6"))
+	tcpLines := readFile(transport, filepath.Join(configuration.ProcPath, "/net/tcp"))
+	tcp6Lines := readFile(transport, filepath.Join(configuration.ProcPath, "/net/tcp6"))
+	udpLines := readFile(transport, filepath.Join(configuration.ProcPath, "/net/udp"))
+	udp6Lines := readFile(transport, filepath.Join(configuration.ProcPath, "/net/udp6"))
 
 	sockets := append(tcpLines, tcp6Lines...)
 	sockets = append(sockets, udpLines...)
@@ -148,3 +147,6 @@ func (s *SocketStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*SocketStats)(nil)

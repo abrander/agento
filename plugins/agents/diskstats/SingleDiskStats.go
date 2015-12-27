@@ -109,21 +109,3 @@ func (s *SingleDiskStats) UnmarshalJSON(b []byte) error {
 
 	return err
 }
-
-func (s *SingleDiskStats) Sub(previous *SingleDiskStats, factor float64) *SingleDiskStats {
-	diff := SingleDiskStats{}
-	diff.IoInProgress = s.IoInProgress
-
-	diff.ReadsCompleted = (s.ReadsCompleted - previous.ReadsCompleted) / factor
-	diff.ReadsMerged = (s.ReadsMerged - previous.ReadsMerged) / factor
-	diff.ReadSectors = (s.ReadSectors - previous.ReadSectors) / factor
-	diff.ReadTime = (s.ReadTime - previous.ReadTime) / factor
-	diff.WritesCompleted = (s.WritesCompleted - previous.WritesCompleted) / factor
-	diff.WritesMerged = (s.WritesMerged - previous.WritesMerged) / factor
-	diff.WriteSectors = (s.WriteSectors - previous.WriteSectors) / factor
-	diff.WriteTime = (s.WriteTime - previous.WriteTime) / factor
-	diff.IoTime = (s.IoTime - previous.IoTime) / factor
-	diff.IoWeightedTime = (s.IoWeightedTime - previous.IoWeightedTime) / factor
-
-	return &diff
-}

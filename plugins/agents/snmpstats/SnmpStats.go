@@ -2,7 +2,6 @@ package snmpstats
 
 import (
 	"bufio"
-	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
@@ -113,11 +112,9 @@ type SnmpStats struct {
 	UdpLiteInCsumErrors float64 `json:"-" row:"11" col:"7"`
 }
 
-func (snmp *SnmpStats) Gather() error {
-	stat := SnmpStats{}
-
+func (stat *SnmpStats) Gather(transport plugins.Transport) error {
 	path := filepath.Join(configuration.ProcPath, "/net/snmp")
-	file, err := os.Open(path)
+	file, err := transport.Open(path)
 	if err != nil {
 		return err
 	}
@@ -135,8 +132,8 @@ func (snmp *SnmpStats) Gather() error {
 		row += 1
 	}
 
-	v := reflect.TypeOf(stat)
-	s := reflect.ValueOf(&stat).Elem()
+	v := reflect.TypeOf(*stat)
+	s := reflect.ValueOf(stat).Elem()
 
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
@@ -158,16 +155,7 @@ func (snmp *SnmpStats) Gather() error {
 		}
 	}
 
-	*snmp = *stat.Sub(snmp.previousSnmpStats)
-	snmp.previousSnmpStats = &stat
-
 	return nil
-}
-
-func (c *SnmpStats) Sub(previousSnmpStats *SnmpStats) *SnmpStats {
-	// FIXME: Compute delta
-
-	return c
 }
 
 func (s *SnmpStats) GetPoints() []client.Point {
@@ -185,3 +173,6 @@ func (c *SnmpStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*SnmpStats)(nil)

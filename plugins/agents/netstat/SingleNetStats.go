@@ -144,26 +144,3 @@ func (s *SingleNetStats) UnmarshalJSON(b []byte) error {
 
 	return err
 }
-
-func (s *SingleNetStats) Sub(previous *SingleNetStats, factor float64) *SingleNetStats {
-	diff := SingleNetStats{}
-
-	diff.RxBytes = (s.RxBytes - previous.RxBytes) / factor
-	diff.RxPackets = (s.RxPackets - previous.RxPackets) / factor
-	diff.RxErrors = (s.RxErrors - previous.RxErrors) / factor
-	diff.RxDropped = (s.RxDropped - previous.RxDropped) / factor
-	diff.RxFifo = (s.RxFifo - previous.RxFifo) / factor
-	diff.RxFrame = (s.RxFrame - previous.RxFrame) / factor
-	diff.RxCompressed = (s.RxCompressed - previous.RxCompressed) / factor
-	diff.RxMulticast = (s.RxMulticast - previous.RxMulticast) / factor
-	diff.TxBytes = (s.TxBytes - previous.TxBytes) / factor
-	diff.TxPackets = (s.TxPackets - previous.TxPackets) / factor
-	diff.TxErrors = (s.TxErrors - previous.TxErrors) / factor
-	diff.TxDropped = (s.TxDropped - previous.TxDropped) / factor
-	diff.TxFifo = (s.TxFifo - previous.TxFifo) / factor
-	diff.TxCollisions = (s.TxCollisions - previous.TxCollisions) / factor
-	diff.TxCarrier = (s.TxCarrier - previous.TxCarrier) / factor
-	diff.TxCompressed = (s.TxCompressed - previous.TxCompressed) / factor
-
-	return &diff
-}

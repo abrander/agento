@@ -2,7 +2,6 @@ package loadstats
 
 import (
 	"bufio"
-	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -29,10 +28,10 @@ type LoadStats struct {
 	Tasks       int64   `json:"t"`
 }
 
-func (stat *LoadStats) Gather() error {
+func (stat *LoadStats) Gather(transport plugins.Transport) error {
 
 	path := filepath.Join(configuration.ProcPath, "/loadavg")
-	file, err := os.Open(path)
+	file, err := transport.Open(path)
 	if err != nil {
 		return err
 	}
@@ -87,3 +86,6 @@ func (l *LoadStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*LoadStats)(nil)

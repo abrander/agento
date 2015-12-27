@@ -2,7 +2,6 @@ package openfiles
 
 import (
 	"errors"
-	"io/ioutil"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -28,9 +27,9 @@ type OpenFiles struct {
 	Max  int64 `json:"m"`
 }
 
-func (stat *OpenFiles) Gather() error {
+func (stat *OpenFiles) Gather(transport plugins.Transport) error {
 	path := filepath.Join(configuration.ProcPath, "/sys/fs/file-nr")
-	contents, err := ioutil.ReadFile(path)
+	contents, err := transport.ReadFile(path)
 	if err != nil {
 		return err
 	}
@@ -63,3 +62,6 @@ func (o *OpenFiles) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*OpenFiles)(nil)

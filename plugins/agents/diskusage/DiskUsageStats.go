@@ -1,5 +1,7 @@
 package diskusage
 
+// FIXME: Port this to plugins.Transport
+
 import (
 	"io/ioutil"
 	"strings"

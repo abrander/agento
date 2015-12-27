@@ -2,7 +2,6 @@ package netstat
 
 import (
 	"bufio"
-	"os"
 	"path/filepath"
 	//	"strconv"
 	"strings"
@@ -28,12 +27,11 @@ func NewNetStats() plugins.Plugin {
 	return new(NetStats)
 }
 
-func (n *NetStats) Gather() error {
-	stat := NetStats{}
+func (stat *NetStats) Gather(transport plugins.Transport) error {
 	stat.Interfaces = make(map[string]*SingleNetStats)
 
 	path := filepath.Join(configuration.ProcPath, "/net/dev")
-	file, err := os.Open(path)
+	file, err := transport.Open(path)
 	if err != nil {
 		return err
 	}
@@ -56,26 +54,7 @@ func (n *NetStats) Gather() error {
 		}
 	}
 
-	*n = *stat.Sub(n.previousNetStats)
-	n.previousNetStats = &stat
-
 	return nil
-}
-
-func (c *NetStats) Sub(previousNetStats *NetStats) *NetStats {
-	if previousNetStats == nil {
-		return &NetStats{}
-	}
-
-	diff := NetStats{}
-	diff.Interfaces = make(map[string]*SingleNetStats)
-
-	duration := float64(c.sampletime.Sub(previousNetStats.sampletime)) / float64(time.Second)
-	for key, value := range c.Interfaces {
-		diff.Interfaces[key] = value.Sub(previousNetStats.Interfaces[key], duration)
-	}
-
-	return &diff
 }
 
 func (n *NetStats) GetPoints() []client.Point {
@@ -130,3 +109,6 @@ func (c *NetStats) GetDoc() *plugins.Doc {
 
 	return doc
 }
+
+// Ensure compliance
+var _ plugins.Agent = (*NetStats)(nil)
