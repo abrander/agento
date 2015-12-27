@@ -33,6 +33,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/openfiles"
 	_ "github.com/abrander/agento/plugins/agents/snmpstats"
 	_ "github.com/abrander/agento/plugins/agents/socketstats"
+	_ "github.com/abrander/agento/plugins/transports/local"
 )
 
 var config = configuration.Configuration{}

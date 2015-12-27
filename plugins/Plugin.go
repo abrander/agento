@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"log"
+	"reflect"
 	"time"
 
 	"github.com/influxdb/influxdb/client"
@@ -37,8 +38,11 @@ func GatherAll() Results {
 	start := time.Now()
 
 	for name, p := range plugins {
-		p.(Agent).Gather()
-		results[name] = p
+		agent, ok := p.(Agent)
+		if ok {
+			agent.Gather()
+			results[name] = p
+		}
 	}
 
 	results["g"] = GatherDuration(time.Now().Sub(start))
@@ -50,7 +54,10 @@ func GetDoc() map[string]*Doc {
 	docs := make(map[string]*Doc)
 
 	for shortName, p := range plugins {
-		docs[shortName] = p.(Agent).GetDoc()
+		agent, ok := p.(Agent)
+		if ok {
+			docs[shortName] = agent.GetDoc()
+		}
 	}
 
 	return docs
@@ -86,4 +93,34 @@ func (g *GatherDuration) GetPoints() []client.Point {
 	points[0] = SimplePoint("agento.GatherDuration", Round(time.Duration(*g).Seconds()*1000.0, 1))
 
 	return points
+}
+
+func getPlugins(iType reflect.Type) map[string]PluginConstructor {
+	r := make(map[string]PluginConstructor)
+
+	for name, plugin := range plugins {
+		pType := reflect.TypeOf(plugin)
+		//		elem := reflect.TypeOf(plugin).Elem()
+		if pType.Implements(iType) {
+			r[name] = pluginConstructors[name]
+		}
+	}
+
+	return r
+}
+
+func GetPlugin(name string) Plugin {
+	return pluginConstructors[name]()
+}
+
+func GetPlugins() map[string]PluginConstructor {
+	return getPlugins(reflect.TypeOf((*Plugin)(nil)).Elem())
+}
+
+func GetAgents() map[string]PluginConstructor {
+	return getPlugins(reflect.TypeOf((*Agent)(nil)).Elem())
+}
+
+func GetTransports() map[string]PluginConstructor {
+	return getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
 }

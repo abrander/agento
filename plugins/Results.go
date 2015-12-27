@@ -13,7 +13,10 @@ func (r Results) GetPoints() []client.Point {
 
 	for _, p := range r {
 		pp := p.(Plugin)
-		points = append(points, pp.(Agent).GetPoints()...)
+		agent, ok := pp.(Agent)
+		if ok {
+			points = append(points, agent.GetPoints()...)
+		}
 	}
 
 	return points
