@@ -8,9 +8,6 @@ import (
 )
 
 type Plugin interface {
-	Gather() error
-	GetPoints() []client.Point
-	GetDoc() *Doc
 }
 
 type Doc struct {
@@ -40,7 +37,7 @@ func GatherAll() Results {
 	start := time.Now()
 
 	for name, p := range plugins {
-		p.Gather()
+		p.(Agent).Gather()
 		results[name] = p
 	}
 
@@ -53,7 +50,7 @@ func GetDoc() map[string]*Doc {
 	docs := make(map[string]*Doc)
 
 	for shortName, p := range plugins {
-		docs[shortName] = p.GetDoc()
+		docs[shortName] = p.(Agent).GetDoc()
 	}
 
 	return docs
