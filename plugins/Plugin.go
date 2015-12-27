@@ -34,13 +34,15 @@ func Register(shortName string, constructor PluginConstructor) {
 }
 
 func GatherAll() Results {
+	transport := GetPlugin("localtransport").(Transport)
+
 	var results = Results{}
 	start := time.Now()
 
 	for name, p := range plugins {
 		agent, ok := p.(Agent)
 		if ok {
-			agent.Gather()
+			agent.Gather(transport)
 			results[name] = p
 		}
 	}

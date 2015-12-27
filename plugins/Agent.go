@@ -6,7 +6,7 @@ import (
 
 type (
 	Agent interface {
-		Gather() error
+		Gather(transport Transport) error
 		GetPoints() []client.Point
 		GetDoc() *Doc
 	}
