@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
 
 	"github.com/abrander/agento/plugins"
@@ -56,6 +57,10 @@ func (l *LocalTransport) Open(path string) (io.ReadCloser, error) {
 
 func (l *LocalTransport) ReadFile(path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
+}
+
+func (l *LocalTransport) Statfs(path string, buf *syscall.Statfs_t) error {
+	return syscall.Statfs(path, buf)
 }
 
 // Ensure compliance

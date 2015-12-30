@@ -2,6 +2,8 @@ package diskusage
 
 import (
 	"syscall"
+
+	"github.com/abrander/agento/plugins"
 )
 
 type SingleDiskUsageStats struct {
@@ -12,11 +14,11 @@ type SingleDiskUsageStats struct {
 	FreeNodes int64 `json:"fn"`
 }
 
-func ReadSingleDiskUsageStats(path string) *SingleDiskUsageStats {
+func ReadSingleDiskUsageStats(transport plugins.Transport, path string) *SingleDiskUsageStats {
 	var stats SingleDiskUsageStats
 	var stat syscall.Statfs_t
 
-	err := syscall.Statfs(path, &stat)
+	err := transport.Statfs(path, &stat)
 	if err != nil {
 		return nil
 	}

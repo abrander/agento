@@ -48,13 +48,13 @@ func GetMountPoints() []string {
 	return mountPoints
 }
 
-func (du *DiskUsageStats) Gather() error {
+func (du *DiskUsageStats) Gather(transport plugins.Transport) error {
 	du.Disks = make(map[string]*SingleDiskUsageStats)
 
 	mountPoints := GetMountPoints()
 
 	for _, path := range mountPoints {
-		du.Disks[path] = ReadSingleDiskUsageStats(path)
+		du.Disks[path] = ReadSingleDiskUsageStats(transport, path)
 	}
 
 	return nil
