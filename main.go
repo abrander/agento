@@ -1,14 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,6 +15,7 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 
+	aclient "github.com/abrander/agento/client"
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
 	_ "github.com/abrander/agento/plugins/agents/cpuspeed"
@@ -264,45 +261,7 @@ func main() {
 
 	if config.Client.Enabled {
 		wg.Add(1)
-
-		LogInfo("agento client started, reporting to %s", config.Client.ServerUrl)
-
-		// Randomize our start time to avoid a big cluster reporting at the exact same time
-		time.Sleep(time.Second * time.Duration(rand.Intn(config.Client.Interval)))
-
-		// We need to gather one unreported set of metrics. It's needed for
-		// calculating deltas on first real report
-		plugins.GatherAll()
-
-		c := time.Tick(time.Second * time.Duration(config.Client.Interval))
-		for _ = range c {
-			results := plugins.GatherAll()
-			json, err := json.Marshal(results)
-
-			if err == nil {
-				client := &http.Client{}
-				req, err := http.NewRequest("POST", config.Client.ServerUrl, bytes.NewReader(json))
-				if err != nil {
-					LogError(err.Error())
-					continue
-				}
-
-				if config.Client.Secret != "" {
-					req.Header.Add("X-Agento-Secret", config.Client.Secret)
-				}
-
-				res, err := client.Do(req)
-				if err != nil {
-					LogError(err.Error())
-					continue
-				}
-				io.Copy(ioutil.Discard, res.Body)
-				res.Body.Close()
-			} else {
-				LogError(err.Error())
-			}
-
-		}
+		go aclient.GatherAndReport(config.Client)
 	}
 
 	wg.Wait()
