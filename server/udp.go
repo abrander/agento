@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 
 	"github.com/influxdb/influxdb/client"
 	"github.com/rcrowley/go-metrics"
+
+	"github.com/abrander/agento/logger"
 )
 
 func init() {
@@ -109,7 +111,7 @@ func ReportToInfluxdb() {
 		if err != nil {
 			var i int
 			for i = 1; i <= retries; i++ {
-				LogWarning("Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
+				logger.Yellow("server", "Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
 				time.Sleep(time.Millisecond * 500)
 				_, err = con.Write(bps)
 				if err == nil {
@@ -117,7 +119,7 @@ func ReportToInfluxdb() {
 				}
 			}
 			if i >= retries {
-				LogError("Error writing to influxdb: " + err.Error() + ", giving up")
+				logger.Red("server", "Error writing to influxdb: "+err.Error()+", giving up")
 			}
 		}
 	}
