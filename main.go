@@ -7,6 +7,7 @@ import (
 
 	"github.com/abrander/agento/client"
 	"github.com/abrander/agento/configuration"
+	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	_ "github.com/abrander/agento/plugins/agents/cpuspeed"
 	_ "github.com/abrander/agento/plugins/agents/cpustats"
@@ -45,10 +46,9 @@ func main() {
 	}
 
 	err := config.LoadFromFile("/etc/agento.conf")
-	InitLogging(&config)
 
 	if err != nil {
-		LogError("Configuration error: %s", err.Error())
+		logger.Red("agento", "Configuration error: %s", err.Error())
 		os.Exit(1)
 	}
 
