@@ -8,6 +8,5 @@ type (
 	Agent interface {
 		Gather(transport Transport) error
 		GetPoints() []client.Point
-		GetDoc() *Doc
 	}
 )

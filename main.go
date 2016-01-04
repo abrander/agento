@@ -32,7 +32,7 @@ func main() {
 		d := plugins.GetDoc()
 
 		for _, doc := range d {
-			fmt.Printf("| %-40s | %-110s |\n", doc.Description, "")
+			fmt.Printf("| %-40s | %-110s |\n", doc.Info.Description, "")
 			fmt.Printf("|------------------------------------------|----------------------------------------------------------------------------------------------------------------|\n")
 			for name, description := range doc.Tags {
 				fmt.Printf("| %-40s | %-110s |\n", "Tag: "+name, description)

@@ -9,12 +9,24 @@ import (
 )
 
 type Plugin interface {
+	GetDoc() *Doc
 }
 
 type Doc struct {
-	Description  string
-	Tags         map[string]string
-	Measurements map[string]string
+	Info struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	} `json:"info"`
+	Parameters   []Parameter       `json:"parameters"`
+	Tags         map[string]string `json:"-"`
+	Measurements map[string]string `json:"-"`
+}
+
+type Parameter struct {
+	Name        string   `json:"name"`
+	Type        string   `json:"type"`
+	Description string   `json:"description"`
+	EnumValues  []string `json:"enumValues"`
 }
 
 type PluginConstructor func() Plugin
@@ -56,7 +68,7 @@ func GetDoc() map[string]*Doc {
 	docs := make(map[string]*Doc)
 
 	for shortName, p := range plugins {
-		agent, ok := p.(Agent)
+		agent, ok := p.(Plugin)
 		if ok {
 			docs[shortName] = agent.GetDoc()
 		}
@@ -68,7 +80,7 @@ func GetDoc() map[string]*Doc {
 func NewDoc(description string) *Doc {
 	var doc Doc
 
-	doc.Description = description
+	doc.Info.Description = description
 	doc.Measurements = make(map[string]string)
 	doc.Tags = make(map[string]string)
 
@@ -125,4 +137,34 @@ func GetAgents() map[string]PluginConstructor {
 
 func GetTransports() map[string]PluginConstructor {
 	return getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
+}
+
+func getDescriptions(m map[string]PluginConstructor) map[string]*Doc {
+	r := make(map[string]*Doc)
+	for name, c := range m {
+		doc := c().(Plugin).GetDoc()
+
+		if doc.Info.Name == "" {
+			doc.Info.Name = name
+		}
+
+		r[name] = doc
+	}
+
+	return r
+}
+
+func AvailableAgents() map[string]*Doc {
+	p := getPlugins(reflect.TypeOf((*Agent)(nil)).Elem())
+	return getDescriptions(p)
+}
+
+func AvailablePlugins() map[string]*Doc {
+	p := getPlugins(reflect.TypeOf((*Plugin)(nil)).Elem())
+	return getDescriptions(p)
+}
+
+func AvailableTransports() map[string]*Doc {
+	p := getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
+	return getDescriptions(p)
 }

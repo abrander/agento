@@ -26,6 +26,12 @@ type (
 	}
 )
 
+func (l *LocalTransport) GetDoc() *plugins.Doc {
+	doc := plugins.NewDoc("Local transport")
+
+	return doc
+}
+
 func (l *LocalTransport) Dial(network string, address string) (net.Conn, error) {
 	dialer := &net.Dialer{
 		Timeout:   30 * time.Second,
