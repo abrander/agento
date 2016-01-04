@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/abrander/agento/api"
 	"github.com/abrander/agento/client"
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
@@ -79,6 +80,9 @@ func main() {
 
 	wg.Add(1)
 	go monitor.Loop(*wg)
+
+	wg.Add(1)
+	go api.Run(*wg)
 
 	wg.Wait()
 }
