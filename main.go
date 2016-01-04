@@ -8,6 +8,7 @@ import (
 	"github.com/abrander/agento/client"
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
+	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
 	_ "github.com/abrander/agento/plugins/agents/cpuspeed"
 	_ "github.com/abrander/agento/plugins/agents/cpustats"
@@ -75,6 +76,9 @@ func main() {
 		wg.Add(1)
 		go client.GatherAndReport(config.Client)
 	}
+
+	wg.Add(1)
+	go monitor.Loop(*wg)
 
 	wg.Wait()
 }
