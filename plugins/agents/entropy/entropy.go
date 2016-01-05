@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	plugins.Register("e", NewEntropy)
+	plugins.Register("entropy", NewEntropy)
 }
 
 type Entropy int

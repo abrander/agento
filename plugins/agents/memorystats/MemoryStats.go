@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugins.Register("m", NewMemoryStats)
+	plugins.Register("memory", NewMemoryStats)
 }
 
 func NewMemoryStats() plugins.Plugin {

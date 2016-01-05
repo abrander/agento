@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	plugins.Register("n", NewNetStats)
+	plugins.Register("netio", NewNetStats)
 }
 
 type NetStats struct {

@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugins.Register("o", NewOpenFiles)
+	plugins.Register("openfiles", NewOpenFiles)
 }
 
 func NewOpenFiles() plugins.Plugin {

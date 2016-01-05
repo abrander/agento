@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugins.Register("d", NewDiskStats)
+	plugins.Register("diskio", NewDiskStats)
 }
 
 func NewDiskStats() plugins.Plugin {

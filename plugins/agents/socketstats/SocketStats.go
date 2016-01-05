@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	plugins.Register("S", NewSocketStats)
+	plugins.Register("sockets", NewSocketStats)
 }
 
 func NewSocketStats() plugins.Plugin {

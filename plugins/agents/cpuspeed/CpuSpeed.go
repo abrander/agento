@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugins.Register("f", NewCpuSpeed)
+	plugins.Register("cpuspeed", NewCpuSpeed)
 }
 
 func NewCpuSpeed() plugins.Plugin {

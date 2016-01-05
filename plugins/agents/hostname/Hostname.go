@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	plugins.Register("h", NewHostname)
+	plugins.Register("hostname", NewHostname)
 }
 
 type Hostname string

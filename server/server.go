@@ -51,7 +51,7 @@ func sendToInflux(stats plugins.Results) {
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
-	hostname := string(*stats["h"].(*hostname.Hostname))
+	hostname := string(*stats["hostname"].(*hostname.Hostname))
 	for i := range points {
 		if points[i].Tags != nil {
 			points[i].Tags["hostname"] = hostname

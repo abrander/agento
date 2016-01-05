@@ -15,7 +15,7 @@ import (
 )
 
 func init() {
-	plugins.Register("s", NewSnmpStats)
+	plugins.Register("netstat", NewSnmpStats)
 }
 
 func NewSnmpStats() plugins.Plugin {

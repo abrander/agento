@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugins.Register("l", NewLoadStats)
+	plugins.Register("load", NewLoadStats)
 }
 
 func NewLoadStats() plugins.Plugin {

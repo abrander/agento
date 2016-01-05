@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	plugins.Register("du", NewDiskUsageStats)
+	plugins.Register("diskusage", NewDiskUsageStats)
 }
 
 func NewDiskUsageStats() plugins.Plugin {

@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	plugins.Register("c", NewCpuStats)
+	plugins.Register("cpustats", NewCpuStats)
 }
 
 type CpuStats struct {
