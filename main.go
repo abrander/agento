@@ -25,6 +25,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/snmpstats"
 	_ "github.com/abrander/agento/plugins/agents/socketstats"
 	_ "github.com/abrander/agento/plugins/transports/local"
+	_ "github.com/abrander/agento/plugins/transports/ssh"
 	"github.com/abrander/agento/server"
 )
 

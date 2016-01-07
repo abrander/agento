@@ -130,7 +130,7 @@ td > h4 {
     <h4>Add this to <code>~/.ssh/authorized_keys</code> <span ng-if="newHost.transport.host">on</span> {{ newHost.transport.host }}</h4>
     <pre>{{ sshPublicKey }}</pre>
     <h4>Or run:</h4>
-    <pre>ssh-copy-id -i /etc/agento/id_rsa -p {{ newHost.transport.port }} {{ newHost.transport.username }}@{{ newHost.transport.host }}</pre>
+    <pre>ssh-copy-id -i /var/lib/agento/id_rsa -p {{ newHost.transport.port }} {{ newHost.transport.username }}@{{ newHost.transport.host }}</pre>
     </div>
    </div>
  </script>

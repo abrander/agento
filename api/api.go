@@ -12,6 +12,7 @@ import (
 
 	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/plugins/transports/ssh"
 )
 
 type (
@@ -184,7 +185,9 @@ func Run(wg sync.WaitGroup) {
 	router.SetHTMLTemplate(templ)
 
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{})
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"sshPublicKey": ssh.PublicKey,
+		})
 	})
 
 	router.Run(":9901")
