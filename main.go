@@ -80,11 +80,14 @@ func main() {
 		go client.GatherAndReport(config.Client)
 	}
 
-	wg.Add(1)
-	go monitor.Loop(*wg)
+	if config.Monitor.Enabled {
+		monitor.Init()
+		wg.Add(1)
+		go monitor.Loop(*wg)
 
-	wg.Add(1)
-	go api.Run(*wg)
+		wg.Add(1)
+		go api.Run(*wg)
+	}
 
 	wg.Wait()
 }

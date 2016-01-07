@@ -46,6 +46,9 @@ password = "root"
 database = "agento"
 retentionPolicy = "default"
 retries = 0
+
+[monitor]
+enabled = false
 `
 
 	ProcPath  string
@@ -116,9 +119,14 @@ type ServerConfiguration struct {
 	Udp      UdpConfiguration      `toml:"udp"`
 }
 
+type MonitorConfiguration struct {
+	Enabled bool `toml:"enabled"`
+}
+
 type Configuration struct {
-	Client ClientConfiguration `toml:"client"`
-	Server ServerConfiguration `toml:"server"`
+	Client  ClientConfiguration  `toml:"client"`
+	Server  ServerConfiguration  `toml:"server"`
+	Monitor MonitorConfiguration `toml:"monitor"`
 }
 
 func fileExists(name string) bool {

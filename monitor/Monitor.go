@@ -36,7 +36,7 @@ var (
 	ErrorInvalidId error = errors.New("Invalid id")
 )
 
-func init() {
+func Init() {
 	sess, err := mgo.Dial("127.0.0.1")
 	if err != nil {
 		logger.Error("monitor", "Can't connect to mongo, go error %v", err)
