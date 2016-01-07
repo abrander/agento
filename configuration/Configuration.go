@@ -6,6 +6,12 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+
+	"github.com/abrander/agento/logger"
+)
+
+const (
+	StateDir = "/var/lib/agento/"
 )
 
 var (
@@ -56,6 +62,13 @@ func init() {
 
 	if SysfsPath == "" {
 		SysfsPath = "/sys"
+	}
+
+	_, err := os.Stat(StateDir)
+	if err != nil {
+		uid := os.Getuid()
+		gid := os.Getgid()
+		logger.Error("config", "Please run:\nsudo mkdir -p %s && sudo chown %d.%d %s\n", StateDir, uid, gid, StateDir)
 	}
 }
 
