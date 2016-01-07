@@ -3,6 +3,7 @@ package plugins
 import (
 	"log"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/influxdb/influxdb/client"
@@ -139,6 +140,44 @@ func GetTransports() map[string]PluginConstructor {
 	return getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
 }
 
+func getParams(elem reflect.Type) []Parameter {
+	parameters := []Parameter{}
+
+	if elem.Kind() != reflect.Struct {
+		return parameters
+	}
+
+	l := elem.NumField()
+
+	for i := 0; i < l; i++ {
+		f := elem.Field(i)
+
+		jsonName := f.Tag.Get("json")
+		description := f.Tag.Get("description")
+
+		if f.Anonymous {
+			parameters = append(parameters, getParams(f.Type)...)
+		} else if jsonName != "" && description != "" {
+			p := Parameter{}
+
+			p.Name = jsonName
+			p.Type = f.Type.String()
+			p.Description = description
+			enum := f.Tag.Get("enum")
+			if enum != "" {
+				p.EnumValues = strings.Split(enum, ",")
+				p.Type = "enum"
+			} else {
+				p.EnumValues = []string{}
+			}
+
+			parameters = append(parameters, p)
+		}
+	}
+
+	return parameters
+}
+
 func getDescriptions(m map[string]PluginConstructor) map[string]*Doc {
 	r := make(map[string]*Doc)
 	for name, c := range m {
@@ -147,6 +186,9 @@ func getDescriptions(m map[string]PluginConstructor) map[string]*Doc {
 		if doc.Info.Name == "" {
 			doc.Info.Name = name
 		}
+
+		elem := reflect.TypeOf(c().(Plugin)).Elem()
+		doc.Parameters = getParams(elem)
 
 		r[name] = doc
 	}
