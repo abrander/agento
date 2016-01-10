@@ -13,6 +13,7 @@ import (
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/server"
 	"github.com/influxdb/influxdb/client"
 )
 
@@ -169,6 +170,11 @@ func Loop(wg sync.WaitGroup) {
 					err = UpdateMonitor(&mon)
 					if err != nil {
 						logger.Red("monitor", "Error updating: %s", err.Error())
+					}
+
+					err = server.WritePoints(p)
+					if err != nil {
+						logger.Red("monitor", "Influxdb error: %s", err.Error())
 					}
 					inFlightLock.Lock()
 					delete(inFlight, mon.Id)
