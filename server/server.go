@@ -46,19 +46,8 @@ func getInfluxClient() *client.Client {
 	return con
 }
 
-func sendToInflux(stats plugins.Results) {
+func WritePoints(points []client.Point) error {
 	con := getInfluxClient()
-	points := stats.GetPoints()
-
-	// Add hostname tag to all points
-	hostname := string(*stats["hostname"].(*hostname.Hostname))
-	for i := range points {
-		if points[i].Tags != nil {
-			points[i].Tags["hostname"] = hostname
-		} else {
-			points[i].Tags = map[string]string{"hostname": hostname}
-		}
-	}
 
 	bps := client.BatchPoints{
 		Time:            time.Now(),
@@ -83,6 +72,24 @@ func sendToInflux(stats plugins.Results) {
 			logger.Red("server", "Error writing to influxdb: "+err.Error()+", giving up")
 		}
 	}
+
+	return err
+}
+
+func sendToInflux(stats plugins.Results) {
+	points := stats.GetPoints()
+
+	// Add hostname tag to all points
+	hostname := string(*stats["hostname"].(*hostname.Hostname))
+	for i := range points {
+		if points[i].Tags != nil {
+			points[i].Tags["hostname"] = hostname
+		} else {
+			points[i].Tags = map[string]string{"hostname": hostname}
+		}
+	}
+
+	WritePoints(points)
 }
 
 func reportHandler(w http.ResponseWriter, req *http.Request) {

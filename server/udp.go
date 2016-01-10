@@ -3,12 +3,9 @@ package server
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/influxdb/influxdb/client"
 	"github.com/rcrowley/go-metrics"
-
-	"github.com/abrander/agento/logger"
 )
 
 func init() {
@@ -97,30 +94,6 @@ func ReportToInfluxdb() {
 		}
 		value.Histogram.Sample().Clear()
 
-		con := getInfluxClient()
-
-		bps := client.BatchPoints{
-			Time:            time.Now(),
-			Points:          points,
-			Database:        config.Server.Influxdb.Database,
-			RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
-		}
-		retries := config.Server.Influxdb.Retries
-
-		_, err := con.Write(bps)
-		if err != nil {
-			var i int
-			for i = 1; i <= retries; i++ {
-				logger.Yellow("server", "Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
-				time.Sleep(time.Millisecond * 500)
-				_, err = con.Write(bps)
-				if err == nil {
-					break
-				}
-			}
-			if i >= retries {
-				logger.Red("server", "Error writing to influxdb: "+err.Error()+", giving up")
-			}
-		}
+		WritePoints(points)
 	}
 }
