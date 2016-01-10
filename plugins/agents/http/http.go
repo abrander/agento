@@ -103,7 +103,21 @@ func (h *Http) Gather(transport plugins.Transport) error {
 }
 
 func (h Http) GetPoints() []client.Point {
-	return make([]client.Point, 0)
+	p := make([]client.Point, 1)
+
+	p[0] = client.Point{
+		Tags: map[string]string{
+			"url": h.Url,
+		},
+		Measurement: "http",
+		Fields: map[string]interface{}{
+			"ConnectDuration": h.ConnectDuration.Seconds() * 1000.0,
+			"RequestDuration": h.RequestDuration.Seconds() * 1000.0,
+			"Status":          h.Status,
+		},
+	}
+
+	return p
 }
 
 // Ensure compliance
