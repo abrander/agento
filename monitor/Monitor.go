@@ -10,6 +10,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
+	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/influxdb/influxdb/client"
@@ -36,14 +37,14 @@ var (
 	ErrorInvalidId error = errors.New("Invalid id")
 )
 
-func Init() {
-	sess, err := mgo.Dial("127.0.0.1")
+func Init(config configuration.MonitorConfiguration) {
+	sess, err := mgo.Dial(config.Mongo.Url)
 	if err != nil {
 		logger.Error("monitor", "Can't connect to mongo, go error %v", err)
 		os.Exit(1)
 	}
 
-	db = sess.DB("agento")
+	db = sess.DB(config.Mongo.Database)
 	hostCollection = db.C("hosts")
 	monitorCollection = db.C("monitors")
 }

@@ -49,6 +49,10 @@ retries = 0
 
 [monitor]
 enabled = false
+
+[monitor.mongo]
+url = "127.0.0.1"
+database = "agento"
 `
 
 	ProcPath  string
@@ -120,7 +124,13 @@ type ServerConfiguration struct {
 }
 
 type MonitorConfiguration struct {
-	Enabled bool `toml:"enabled"`
+	Enabled bool               `toml:"enabled"`
+	Mongo   MongoConfiguration `toml:mongo`
+}
+
+type MongoConfiguration struct {
+	Url      string `toml:"url`
+	Database string `toml:database`
 }
 
 type Configuration struct {
@@ -166,6 +176,11 @@ func (c *Configuration) LoadFromFile(path string) error {
 	envServer := os.Getenv("AGENTO_SERVER_URL")
 	if envServer != "" {
 		c.Client.ServerUrl = envServer
+	}
+
+	envMongoUrl := os.Getenv("AGENTO_MONGO_URL")
+	if envMongoUrl != "" {
+		c.Monitor.Mongo.Url = envMongoUrl
 	}
 
 	if c.Client.ServerUrl == "" {

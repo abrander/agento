@@ -82,7 +82,7 @@ func main() {
 	}
 
 	if config.Monitor.Enabled {
-		monitor.Init()
+		monitor.Init(config.Monitor)
 		wg.Add(1)
 		go monitor.Loop(*wg)
 
