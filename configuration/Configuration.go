@@ -178,6 +178,11 @@ func (c *Configuration) LoadFromFile(path string) error {
 		c.Client.ServerUrl = envServer
 	}
 
+	envInfluxdbUrl := os.Getenv("AGENTO_INFLUXDB_URL")
+	if envInfluxdbUrl != "" {
+		c.Server.Influxdb.Url = envInfluxdbUrl
+	}
+
 	envMongoUrl := os.Getenv("AGENTO_MONGO_URL")
 	if envMongoUrl != "" {
 		c.Monitor.Mongo.Url = envMongoUrl
