@@ -4,9 +4,6 @@ import (
 	"log"
 	"reflect"
 	"strings"
-	"time"
-
-	"github.com/influxdb/influxdb/client"
 )
 
 type Plugin interface {
@@ -36,39 +33,6 @@ func Register(shortName string, constructor PluginConstructor) {
 	pluginConstructors[shortName] = constructor
 }
 
-func GatherAll() Results {
-	transport := GetPlugin("localtransport").(Transport)
-
-	var results = Results{}
-	start := time.Now()
-
-	for name, p := range plugins {
-		agent, ok := p.(Agent)
-		if ok {
-			agent.Gather(transport)
-			results[name] = p
-		}
-	}
-
-	results["g"] = GatherDuration(time.Now().Sub(start))
-
-	return results
-}
-
-type GatherDuration time.Duration
-
-func (g *GatherDuration) Gather() error {
-	return nil
-}
-
-func (g *GatherDuration) GetPoints() []client.Point {
-	points := make([]client.Point, 1)
-
-	points[0] = SimplePoint("agento.GatherDuration", Round(time.Duration(*g).Seconds()*1000.0, 1))
-
-	return points
-}
-
 func getPlugins(iType reflect.Type) map[string]PluginConstructor {
 	r := make(map[string]PluginConstructor)
 
@@ -81,10 +45,6 @@ func getPlugins(iType reflect.Type) map[string]PluginConstructor {
 	}
 
 	return r
-}
-
-func GetPlugin(name string) Plugin {
-	return pluginConstructors[name]()
 }
 
 func GetPlugins() map[string]PluginConstructor {

@@ -12,6 +12,8 @@ import (
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/plugins/agents/linuxhost"
+	"github.com/abrander/agento/plugins/transports/local"
 )
 
 func GatherAndReport(clientConfig configuration.ClientConfiguration) {
@@ -22,8 +24,15 @@ func GatherAndReport(clientConfig configuration.ClientConfiguration) {
 
 	c := time.Tick(time.Second * time.Duration(clientConfig.Interval))
 	for _ = range c {
-		results := plugins.GatherAll()
-		json, err := json.Marshal(results)
+		l := linuxhost.LinuxHost{}
+		t := localtransport.NewLocalTransport().(plugins.Transport)
+		err := l.Gather(t)
+		if err != nil {
+			logger.Error("client", "gather Failed: %s", err.Error())
+			continue
+		}
+
+		json, err := json.Marshal(l.Agents)
 
 		if err == nil {
 			client := &http.Client{}
@@ -41,6 +50,10 @@ func GatherAndReport(clientConfig configuration.ClientConfiguration) {
 			if err != nil {
 				logger.Error("client", "%s", err.Error())
 				continue
+			}
+			if res.StatusCode != 200 {
+				b, _ := ioutil.ReadAll(res.Body)
+				logger.Red("client", "server returned %d: %s", res.StatusCode, string(b))
 			}
 			io.Copy(ioutil.Discard, res.Body)
 			res.Body.Close()
