@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/influxdb/influxdb/client"
+
+	"github.com/abrander/agento/logger"
 )
 
 type Results map[string]interface{}
@@ -40,6 +42,9 @@ func (r *Results) UnmarshalJSON(b []byte) error {
 			}
 
 			(*r)[t] = res
+		} else {
+			logger.Yellow("plugins", "Trying to unmarshal unknown type: %s", t)
+
 		}
 		// Fail silently if we don't know the type to allow forward compatibility
 	}
