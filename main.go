@@ -5,6 +5,8 @@ import (
 	"os"
 	"sync"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/abrander/agento/api"
 	"github.com/abrander/agento/client"
 	"github.com/abrander/agento/configuration"
@@ -57,18 +59,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	server.Init(config)
-
 	wg := &sync.WaitGroup{}
+
+	engine := gin.New()
+
+	if config.Server.Http.Enabled || config.Server.Https.Enabled {
+		server.Init(engine, config)
+	}
 
 	if config.Server.Http.Enabled {
 		wg.Add(1)
-		go server.ListenAndServe()
+		go server.ListenAndServe(engine)
 	}
 
 	if config.Server.Https.Enabled {
 		wg.Add(1)
-		go server.ListenAndServeTLS()
+		go server.ListenAndServeTLS(engine)
 	}
 
 	if config.Server.Udp.Enabled {

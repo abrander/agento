@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/influxdb/influxdb/client"
 
 	"github.com/abrander/agento/configuration"
@@ -17,14 +18,11 @@ import (
 	"github.com/abrander/agento/plugins/agents/hostname"
 )
 
-func init() {
-	http.HandleFunc("/report", reportHandler)
-	http.HandleFunc("/health", healthHandler)
-}
-
 var config = configuration.Configuration{}
 
-func Init(cfg configuration.Configuration) {
+func Init(router gin.IRouter, cfg configuration.Configuration) {
+	router.Any("/report", reportHandler)
+	router.Any("/health", healthHandler)
 	config = cfg
 }
 
@@ -76,7 +74,7 @@ func WritePoints(points []client.Point) error {
 	return err
 }
 
-func sendToInflux(stats plugins.Results) {
+func sendToInflux(stats plugins.Results) error {
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
@@ -89,31 +87,37 @@ func sendToInflux(stats plugins.Results) {
 		}
 	}
 
-	WritePoints(points)
+	return WritePoints(points)
 }
 
-func reportHandler(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "POST" {
-		http.Error(w, "Only POST allowed", 400)
+func reportHandler(c *gin.Context) {
+	if c.Request.Method != "POST" {
+		c.Header("Allow", "POST")
+		c.String(http.StatusMethodNotAllowed, "only POST allowed")
 		return
 	}
 
 	var results = plugins.Results{}
 
-	d := json.NewDecoder(req.Body)
-	d.UseNumber()
-	err := d.Decode(&results)
+	err := c.BindJSON(&results)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		c.String(http.StatusBadRequest, "%s", err.Error())
 		return
 	}
 
-	sendToInflux(results)
+	err = sendToInflux(results)
+	if err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.String(http.StatusOK, "%s", "Got it")
 }
 
-func healthHandler(w http.ResponseWriter, req *http.Request) {
-	if req.Method != "GET" {
-		http.Error(w, "Only GET allowed", 400)
+func healthHandler(c *gin.Context) {
+	if c.Request.Method != "GET" {
+		c.Header("Allow", "GET")
+		c.String(http.StatusMethodNotAllowed, "only GET allowed")
 		return
 	}
 
@@ -121,24 +125,25 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 
 	_, _, err := con.Ping()
 	if err != nil {
-		http.Error(w, "Can't ping InfluxDB", http.StatusServiceUnavailable)
-		return
+		logger.Green("server", "%s", err.Error())
+		c.AbortWithError(http.StatusServiceUnavailable, err)
+		//		return
 	}
 
-	w.Write([]byte("ok"))
+	c.String(200, "ok")
 }
 
-func ListenAndServe() {
+func ListenAndServe(engine *gin.Engine) {
 	// Listen for http connections if needed
 	addr := config.Server.Http.Bind + ":" + strconv.Itoa(int(config.Server.Http.Port))
 	logger.Yellow("server", "Listening for http at %s", addr)
-	err := http.ListenAndServe(addr, nil)
+	err := http.ListenAndServe(addr, engine)
 	if err != nil {
 		logger.Red("ListenAndServe(%s): %s", addr, err.Error())
 	}
 }
 
-func ListenAndServeTLS() {
+func ListenAndServeTLS(engine *gin.Engine) {
 	// Listen for https connections if needed
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
@@ -155,7 +160,7 @@ func ListenAndServeTLS() {
 	}
 	addr := config.Server.Https.Bind + ":" + strconv.Itoa(int(config.Server.Https.Port))
 	logger.Yellow("server", "Listening for https at %s", addr)
-	server := &http.Server{Addr: addr, Handler: nil, TLSConfig: tlsConfig}
+	server := &http.Server{Addr: addr, Handler: engine, TLSConfig: tlsConfig}
 	err := server.ListenAndServeTLS(config.Server.Https.CertPath, config.Server.Https.KeyPath)
 	if err != nil {
 		logger.Red("ListenAndServeTLS(%s): %s", addr, err.Error())
