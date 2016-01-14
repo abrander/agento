@@ -8,29 +8,36 @@ import (
 
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/userdb"
 )
 
 type (
 	Host struct {
 		Id          bson.ObjectId     `json:"id" bson:"_id"`
+		AccountId   bson.ObjectId     `json:"accountId" bson:"accountId"`
 		Name        string            `json:"name"`
 		TransportId string            `json:"transportId" bson:"transportId"`
 		Transport   plugins.Transport `json:"transport"`
 	}
 )
 
-func (s *Scheduler) GetAllHosts() []Host {
+func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error) {
 	var hosts []Host
 
-	err := hostCollection.Find(bson.M{}).All(&hosts)
+	err := subject.CanAccess(accountId)
+	if err != nil {
+		return hosts, err
+	}
+
+	err = hostCollection.Find(bson.M{"accountId": bson.ObjectIdHex(accountId)}).All(&hosts)
 	if err != nil {
 		logger.Red("monitor", "Error getting hosts from Mongo: %s", err.Error())
 	}
 
-	return hosts
+	return hosts, nil
 }
 
-func (s *Scheduler) GetHost(id string) (Host, error) {
+func (s *Scheduler) GetHost(subject userdb.Subject, id string) (Host, error) {
 	var host Host
 
 	if !bson.IsObjectIdHex(id) {
@@ -43,25 +50,49 @@ func (s *Scheduler) GetHost(id string) (Host, error) {
 		return host, err
 	}
 
+	err = subject.CanAccess(host.AccountId.Hex())
+	if err != nil {
+		return Host{}, err
+	}
+
 	return host, nil
 }
 
-func (s *Scheduler) AddHost(host *Host) error {
+func (s *Scheduler) AddHost(subject userdb.Subject, host *Host) error {
 	host.Id = bson.NewObjectId()
 
-	s.changes.Broadcast("hostadd", *host)
+	err := subject.CanAccess(host.AccountId.Hex())
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("hostadd", host)
 
 	return hostCollection.Insert(host)
 }
 
-func (s *Scheduler) DeleteHost(id string) error {
+func (s *Scheduler) DeleteHost(subject userdb.Subject, id string) error {
 	if !bson.IsObjectIdHex(id) {
 		return ErrorInvalidId
 	}
 
-	s.changes.Broadcast("hostdelete", id)
+	host, err := s.GetHost(subject, id)
+	if err != nil {
+		return err
+	}
+
+	err = subject.CanAccess(id)
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("hostdelete", &host)
 
 	return hostCollection.RemoveId(bson.ObjectIdHex(id))
+}
+
+func (h *Host) GetAccountId() string {
+	return h.AccountId.Hex()
 }
 
 func (host *Host) UnmarshalJSON(data []byte) error {
@@ -80,6 +111,16 @@ func (host *Host) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		host.Id = bson.ObjectIdHex(id)
+	}
+
+	accountIdRaw, found := m["accountId"]
+	if found {
+		id := ""
+		err = json.Unmarshal(accountIdRaw, &id)
+		if err != nil {
+			return err
+		}
+		host.AccountId = bson.ObjectIdHex(id)
 	}
 
 	nameRaw, found := m["name"]
@@ -136,6 +177,14 @@ func (host *Host) SetBSON(raw bson.Raw) error {
 	idRaw, found := m["_id"]
 	if found {
 		err = idRaw.Unmarshal(&host.Id)
+		if err != nil {
+			return err
+		}
+	}
+
+	accountIdRaw, found := m["accountId"]
+	if found {
+		err = accountIdRaw.Unmarshal(&host.AccountId)
 		if err != nil {
 			return err
 		}

@@ -32,6 +32,7 @@ import (
 	_ "github.com/abrander/agento/plugins/transports/local"
 	"github.com/abrander/agento/plugins/transports/ssh"
 	"github.com/abrander/agento/server"
+	"github.com/abrander/agento/userdb"
 )
 
 var config = configuration.Configuration{}
@@ -93,10 +94,12 @@ func main() {
 		monitor.Init(config.Monitor)
 		emitter := monitor.NewSimpleEmitter()
 		scheduler := monitor.NewScheduler(emitter)
-		wg.Add(1)
-		go scheduler.Loop(*wg)
+		db := userdb.NewSingleUser(config.Client.Secret)
 
-		go api.Init(engine.Group("/api"), scheduler, emitter)
+		wg.Add(1)
+		go scheduler.Loop(*wg, db)
+
+		go api.Init(engine.Group("/api"), scheduler, emitter, db)
 
 		// Website for debugging
 		templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
@@ -104,6 +107,7 @@ func main() {
 		engine.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"sshPublicKey": ssh.PublicKey,
+				"agentoSecret": config.Client.Secret,
 			})
 		})
 		engine.Static("/static", "web/")

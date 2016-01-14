@@ -2,26 +2,33 @@ package monitor
 
 import (
 	"sync"
+
+	"github.com/abrander/agento/userdb"
 )
 
 type (
 	Emitter interface {
-		Subscribe() chan Change
+		Subscribe(subject userdb.Subject) chan Change
 		Unsubscribe(chan Change)
 	}
 
 	Broadcaster interface {
-		Broadcast(typ string, payload interface{})
+		Broadcast(typ string, payload userdb.Object)
 	}
 
 	SimpleEmitter struct {
-		changesLock sync.Mutex
-		changes     []chan Change
+		lock      sync.Mutex
+		listeners []*Listener
+	}
+
+	Listener struct {
+		subject userdb.Subject
+		channel chan Change
 	}
 
 	Change struct {
-		Type    string      `json:"type"`
-		Payload interface{} `json:"payload"`
+		Type    string        `json:"type"`
+		Payload userdb.Object `json:"payload"`
 	}
 )
 
@@ -29,36 +36,42 @@ func NewSimpleEmitter() *SimpleEmitter {
 	return &SimpleEmitter{}
 }
 
-func (s *SimpleEmitter) Subscribe() chan Change {
-	channel := make(chan Change)
-	s.changesLock.Lock()
-	s.changes = append(s.changes, channel)
-	s.changesLock.Unlock()
+func (s *SimpleEmitter) Subscribe(subject userdb.Subject) chan Change {
+	listener := &Listener{
+		subject: subject,
+		channel: make(chan Change),
+	}
 
-	return channel
+	s.lock.Lock()
+	s.listeners = append(s.listeners, listener)
+	s.lock.Unlock()
+
+	return listener.channel
 }
 
 func (s *SimpleEmitter) Unsubscribe(ch chan Change) {
-	s.changesLock.Lock()
+	s.lock.Lock()
 
-	for i, c := range s.changes {
-		if ch == c {
-			s.changes = append(s.changes[:i], s.changes[i+1:]...)
+	for i, l := range s.listeners {
+		if ch == l.channel {
+			s.listeners = append(s.listeners[:i], s.listeners[i+1:]...)
 			break
 		}
 	}
-	s.changesLock.Unlock()
+	s.lock.Unlock()
 }
 
-func (s *SimpleEmitter) Broadcast(typ string, payload interface{}) {
+func (s *SimpleEmitter) Broadcast(typ string, payload userdb.Object) {
 	change := Change{
 		Type:    typ,
 		Payload: payload,
 	}
 
-	s.changesLock.Lock()
-	for _, ch := range s.changes {
-		ch <- change
+	s.lock.Lock()
+	for _, listener := range s.listeners {
+		if listener.subject.CanAccess(payload.GetAccountId()) == nil {
+			listener.channel <- change
+		}
 	}
-	s.changesLock.Unlock()
+	s.lock.Unlock()
 }

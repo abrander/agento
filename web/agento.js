@@ -27,6 +27,10 @@ Agento.Filter = {};
  */
 Agento.Service = {};
 
+agento.config(['$httpProvider', function($httpProvider) {
+    $httpProvider.defaults.headers.common['X-Agento-Secret'] = agentoSecret;
+}]);
+
 /**
  * @constructor
  * @param {*} $resource
@@ -102,6 +106,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 				}
 			});
 		modalInstance.result.then(function(result) {
+			result.accountId = '000000000000000000000000';
 			HostService.save(result);
 		});
 	};
@@ -145,6 +150,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 			// Convert to seconds
 			result.interval *= 1000000000;
 			result.agent.agentId = agentId;
+			result.accountId = '000000000000000000000000';
 			MonitorService.save(result);
 		});
 	};
@@ -155,7 +161,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 		url += 'wss://';
 	else
 		url += 'ws://';
-	url += window.location.host + '/api/ws';
+	url += window.location.host + '/api/ws/' + window.agentoSecret;
 
 	var socket = new WebSocket(url);
 
@@ -179,7 +185,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 					break;
 				case 'hostdelete':
 					self.hosts.forEach(function(monitor, index) {
-						if (monitor.id == message.payload) {
+						if (monitor.id == message.payload.id) {
 							self.hosts.splice(index, 1);
 						}
 					});
@@ -196,7 +202,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 					break;
 				case 'mondelete':
 					self.monitors.forEach(function(monitor, index) {
-						if (monitor.id == message.payload) {
+						if (monitor.id == message.payload.id) {
 							self.monitors.splice(index, 1);
 						}
 					});

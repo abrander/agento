@@ -14,25 +14,27 @@ import (
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/server"
+	"github.com/abrander/agento/userdb"
 	"github.com/influxdb/influxdb/client"
 )
 
 type (
 	Admin interface {
-		GetAllMonitors() []Monitor
-		AddMonitor(mon *Monitor) error
-		GetMonitor(id string) (Monitor, error)
-		UpdateMonitor(mon *Monitor) error
-		DeleteMonitor(id string) error
+		GetAllMonitors(subject userdb.Subject, accountId string) ([]Monitor, error)
+		AddMonitor(subject userdb.Subject, mon *Monitor) error
+		GetMonitor(subject userdb.Subject, id string) (*Monitor, error)
+		UpdateMonitor(subject userdb.Subject, mon *Monitor) error
+		DeleteMonitor(subject userdb.Subject, id string) error
 
-		GetAllHosts() []Host
-		AddHost(host *Host) error
-		GetHost(id string) (Host, error)
-		DeleteHost(id string) error
+		GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error)
+		AddHost(subject userdb.Subject, host *Host) error
+		GetHost(subject userdb.Subject, id string) (Host, error)
+		DeleteHost(subject userdb.Subject, id string) error
 	}
 
 	Monitor struct {
 		Id         bson.ObjectId  `json:"id" bson:"_id"`
+		AccountId  bson.ObjectId  `json:"accountId" bson:"accountId"`
 		HostId     bson.ObjectId  `json:"hostId" bson:"hostId"`
 		Interval   time.Duration  `json:"interval"`
 		Job        Job            `json:"agent"` // FIXME: Rename json to "job" - maybe
@@ -61,69 +63,96 @@ func Init(config configuration.MonitorConfiguration) {
 		logger.Error("monitor", "Can't connect to mongo, go error %v", err)
 		os.Exit(1)
 	}
+	logger.Green("monitor", "Connected to mongo/%s at %s", config.Mongo.Database, config.Mongo.Url)
 
 	db = sess.DB(config.Mongo.Database)
 	hostCollection = db.C("hosts")
 	monitorCollection = db.C("monitors")
 }
 
+func (m *Monitor) GetAccountId() string {
+	return m.AccountId.Hex()
+}
+
 func NewScheduler(changes Broadcaster) *Scheduler {
 	return &Scheduler{changes: changes}
 }
 
-func (s *Scheduler) GetAllMonitors() []Monitor {
+func (s *Scheduler) GetAllMonitors(subject userdb.Subject, accountId string) ([]Monitor, error) {
 	var monitors []Monitor
 
-	err := monitorCollection.Find(bson.M{}).All(&monitors)
+	err := subject.CanAccess(accountId)
 	if err != nil {
-		logger.Red("monitor", "Error getting monitors from Mongo: %s", err.Error())
+		return []Monitor{}, err
 	}
 
-	return monitors
+	err = monitorCollection.Find(bson.M{"accountId": bson.ObjectIdHex(accountId)}).All(&monitors)
+	if err != nil {
+		return []Monitor{}, err
+	}
+
+	return monitors, nil
 }
 
-func (s *Scheduler) GetMonitor(id string) (Monitor, error) {
+func (s *Scheduler) GetMonitor(subject userdb.Subject, id string) (*Monitor, error) {
 	var monitor Monitor
 
 	if !bson.IsObjectIdHex(id) {
-		return monitor, ErrorInvalidId
+		return &monitor, ErrorInvalidId
 	}
 
 	err := monitorCollection.FindId(bson.ObjectIdHex(id)).One(&monitor)
 	if err != nil {
-		logger.Red("monitor", "Error getting monitors from Mongo: %s", err.Error())
-		return monitor, err
+		logger.Red("monitor", "Error getting monitor %s from Mongo: %s", id, err.Error())
+		return &monitor, err
 	}
 
-	return monitor, nil
+	err = subject.CanAccess(monitor.AccountId.Hex())
+
+	return &monitor, nil
 }
 
-func (s *Scheduler) UpdateMonitor(mon *Monitor) error {
-	s.changes.Broadcast("monchange", *mon)
+func (s *Scheduler) UpdateMonitor(subject userdb.Subject, mon *Monitor) error {
+	_, err := s.GetMonitor(subject, mon.Id.Hex())
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("monchange", mon)
 
 	return monitorCollection.UpdateId(mon.Id, mon)
 }
 
-func (s *Scheduler) AddMonitor(mon *Monitor) error {
+func (s *Scheduler) AddMonitor(subject userdb.Subject, mon *Monitor) error {
 	mon.Id = bson.NewObjectId()
 
-	s.changes.Broadcast("monadd", *mon)
+	err := subject.CanAccess(mon.AccountId.Hex())
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("monadd", mon)
 
 	return monitorCollection.Insert(mon)
 }
 
-func (s *Scheduler) DeleteMonitor(id string) error {
+func (s *Scheduler) DeleteMonitor(subject userdb.Subject, id string) error {
 	if !bson.IsObjectIdHex(id) {
 		return ErrorInvalidId
 	}
 
-	s.changes.Broadcast("mondelete", id)
+	mon, err := s.GetMonitor(subject, id)
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("mondelete", mon)
 
 	return monitorCollection.RemoveId(bson.ObjectIdHex(id))
 }
 
-func (s *Scheduler) Loop(wg sync.WaitGroup) {
-	_, err := s.GetHost("000000000000000000000000")
+func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject) {
+	_, err := s.GetHost(subject, "000000000000000000000000")
 	if err != nil {
 		p, found := plugins.GetTransports()["localtransport"]
 		if !found {
@@ -131,12 +160,16 @@ func (s *Scheduler) Loop(wg sync.WaitGroup) {
 		}
 		host := Host{
 			Id:          bson.ObjectIdHex("000000000000000000000000"),
+			AccountId:   bson.ObjectIdHex("000000000000000000000000"),
 			Name:        "localhost",
 			TransportId: "localtransport",
 			Transport:   p().(plugins.Transport),
 		}
-		hostCollection.Insert(host)
-		logger.Yellow("monitor", "Added localhost transport with id %s", host.Id.String())
+		err = hostCollection.Insert(host)
+		if err != nil {
+			logger.Red("monitor", "Error inserting: %s", err.Error())
+		}
+		logger.Yellow("monitor", "Added localhost transport with id %s", host.Id.Hex())
 	}
 
 	ticker := time.Tick(time.Millisecond * 100)
@@ -166,7 +199,7 @@ func (s *Scheduler) Loop(wg sync.WaitGroup) {
 				mon.NextCheck = t.Add(checkIn)
 				logger.Yellow("monitor", "%s %s: Delaying first check by %s", mon.Id.Hex(), mon.Job.AgentId, checkIn)
 
-				err = s.UpdateMonitor(&mon)
+				err = s.UpdateMonitor(subject, &mon)
 				if err != nil {
 					logger.Red("Error updating: %v", err.Error())
 				}
@@ -188,7 +221,7 @@ func (s *Scheduler) Loop(wg sync.WaitGroup) {
 					mon.LastCheck = t
 					mon.NextCheck = t.Add(mon.Interval)
 
-					err = s.UpdateMonitor(&mon)
+					err = s.UpdateMonitor(subject, &mon)
 					if err != nil {
 						logger.Red("monitor", "Error updating: %s", err.Error())
 					}
