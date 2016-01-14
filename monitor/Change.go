@@ -5,47 +5,60 @@ import (
 )
 
 type (
+	Emitter interface {
+		Subscribe() chan Change
+		Unsubscribe(chan Change)
+	}
+
+	Broadcaster interface {
+		Broadcast(typ string, payload interface{})
+	}
+
+	SimpleEmitter struct {
+		changesLock sync.Mutex
+		changes     []chan Change
+	}
+
 	Change struct {
 		Type    string      `json:"type"`
 		Payload interface{} `json:"payload"`
 	}
 )
 
-var (
-	changesLock sync.Mutex
-	changes     []chan Change
-)
+func NewSimpleEmitter() *SimpleEmitter {
+	return &SimpleEmitter{}
+}
 
-func SubscribeChanges() chan Change {
+func (s *SimpleEmitter) Subscribe() chan Change {
 	channel := make(chan Change)
-	changesLock.Lock()
-	changes = append(changes, channel)
-	changesLock.Unlock()
+	s.changesLock.Lock()
+	s.changes = append(s.changes, channel)
+	s.changesLock.Unlock()
 
 	return channel
 }
 
-func UnsubscribeChanges(ch chan Change) {
-	changesLock.Lock()
+func (s *SimpleEmitter) Unsubscribe(ch chan Change) {
+	s.changesLock.Lock()
 
-	for i, c := range changes {
+	for i, c := range s.changes {
 		if ch == c {
-			changes = append(changes[:i], changes[i+1:]...)
+			s.changes = append(s.changes[:i], s.changes[i+1:]...)
 			break
 		}
 	}
-	changesLock.Unlock()
+	s.changesLock.Unlock()
 }
 
-func broadcastChange(typ string, payload interface{}) {
+func (s *SimpleEmitter) Broadcast(typ string, payload interface{}) {
 	change := Change{
 		Type:    typ,
 		Payload: payload,
 	}
 
-	changesLock.Lock()
-	for _, ch := range changes {
+	s.changesLock.Lock()
+	for _, ch := range s.changes {
 		ch <- change
 	}
-	changesLock.Unlock()
+	s.changesLock.Unlock()
 }

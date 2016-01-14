@@ -89,11 +89,13 @@ func main() {
 
 	if config.Monitor.Enabled {
 		monitor.Init(config.Monitor)
+		emitter := monitor.NewSimpleEmitter()
+		scheduler := monitor.NewScheduler(emitter)
 		wg.Add(1)
-		go monitor.Loop(*wg)
+		go scheduler.Loop(*wg)
 
 		wg.Add(1)
-		go api.Run(*wg)
+		go api.Run(*wg, scheduler, emitter)
 	}
 
 	wg.Wait()

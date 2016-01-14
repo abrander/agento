@@ -36,14 +36,14 @@ var (
 	}
 )
 
-func wsHandler(c *gin.Context) {
+func wsHandler(c *gin.Context, emitter monitor.Emitter) {
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return
 	}
 
 	ticker := time.Tick(time.Second)
-	changes := monitor.SubscribeChanges()
+	changes := emitter.Subscribe()
 
 	status := Status{
 		Started: StartTime,
@@ -67,10 +67,10 @@ func wsHandler(c *gin.Context) {
 	}
 
 unsubscribe:
-	monitor.UnsubscribeChanges(changes)
+	emitter.Unsubscribe(changes)
 }
 
-func Run(wg sync.WaitGroup) {
+func Run(wg sync.WaitGroup, admin monitor.Admin, emitter monitor.Emitter) {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
@@ -78,7 +78,9 @@ func Run(wg sync.WaitGroup) {
 
 	router.Use(static.Serve("/", static.LocalFile("web/", false)))
 
-	router.GET("/ws", wsHandler)
+	router.GET("/ws", func(c *gin.Context) {
+		wsHandler(c, emitter)
+	})
 
 	{
 		a := router.Group("/agent")
@@ -95,7 +97,7 @@ func Run(wg sync.WaitGroup) {
 		h.DELETE("/:id", func(c *gin.Context) {
 			id := c.Param("id")
 
-			err := monitor.DeleteHost(id)
+			err := admin.DeleteHost(id)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -106,7 +108,7 @@ func Run(wg sync.WaitGroup) {
 		h.POST("/new", func(c *gin.Context) {
 			var host monitor.Host
 			c.Bind(&host)
-			err := monitor.AddHost(&host)
+			err := admin.AddHost(&host)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -115,7 +117,7 @@ func Run(wg sync.WaitGroup) {
 		})
 
 		h.GET("/", func(c *gin.Context) {
-			c.JSON(200, monitor.GetAllHosts())
+			c.JSON(200, admin.GetAllHosts())
 		})
 	}
 
@@ -125,7 +127,7 @@ func Run(wg sync.WaitGroup) {
 		m.GET("/:id", func(c *gin.Context) {
 			id := c.Param("id")
 
-			mon, err := monitor.GetMonitor(id)
+			mon, err := admin.GetMonitor(id)
 			if err == monitor.ErrorInvalidId {
 				c.AbortWithError(400, err)
 			} else if err != nil {
@@ -138,7 +140,7 @@ func Run(wg sync.WaitGroup) {
 		m.PUT("/:id", func(c *gin.Context) {
 			var mon monitor.Monitor
 			c.Bind(&mon)
-			err := monitor.UpdateMonitor(&mon)
+			err := admin.UpdateMonitor(&mon)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -149,7 +151,7 @@ func Run(wg sync.WaitGroup) {
 		m.DELETE("/:id", func(c *gin.Context) {
 			id := c.Param("id")
 
-			err := monitor.DeleteMonitor(id)
+			err := admin.DeleteMonitor(id)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -160,7 +162,7 @@ func Run(wg sync.WaitGroup) {
 		m.POST("/new", func(c *gin.Context) {
 			var mon monitor.Monitor
 			c.Bind(&mon)
-			err := monitor.AddMonitor(&mon)
+			err := admin.AddMonitor(&mon)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -169,7 +171,7 @@ func Run(wg sync.WaitGroup) {
 		})
 
 		m.GET("/", func(c *gin.Context) {
-			c.JSON(200, monitor.GetAllMonitors())
+			c.JSON(200, admin.GetAllMonitors())
 		})
 	}
 

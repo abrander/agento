@@ -18,6 +18,19 @@ import (
 )
 
 type (
+	Admin interface {
+		GetAllMonitors() []Monitor
+		AddMonitor(mon *Monitor) error
+		GetMonitor(id string) (Monitor, error)
+		UpdateMonitor(mon *Monitor) error
+		DeleteMonitor(id string) error
+
+		GetAllHosts() []Host
+		AddHost(host *Host) error
+		GetHost(id string) (Host, error)
+		DeleteHost(id string) error
+	}
+
 	Monitor struct {
 		Id         bson.ObjectId  `json:"id" bson:"_id"`
 		HostId     bson.ObjectId  `json:"hostId" bson:"hostId"`
@@ -26,6 +39,10 @@ type (
 		LastCheck  time.Time      `json:"lastCheck"`
 		NextCheck  time.Time      `json:"nextCheck"`
 		LastPoints []client.Point `json:"lastResult"`
+	}
+
+	Scheduler struct {
+		changes Broadcaster
 	}
 )
 
@@ -50,7 +67,11 @@ func Init(config configuration.MonitorConfiguration) {
 	monitorCollection = db.C("monitors")
 }
 
-func GetAllMonitors() []Monitor {
+func NewScheduler(changes Broadcaster) *Scheduler {
+	return &Scheduler{changes: changes}
+}
+
+func (s *Scheduler) GetAllMonitors() []Monitor {
 	var monitors []Monitor
 
 	err := monitorCollection.Find(bson.M{}).All(&monitors)
@@ -61,7 +82,7 @@ func GetAllMonitors() []Monitor {
 	return monitors
 }
 
-func GetMonitor(id string) (Monitor, error) {
+func (s *Scheduler) GetMonitor(id string) (Monitor, error) {
 	var monitor Monitor
 
 	if !bson.IsObjectIdHex(id) {
@@ -77,32 +98,32 @@ func GetMonitor(id string) (Monitor, error) {
 	return monitor, nil
 }
 
-func UpdateMonitor(mon *Monitor) error {
-	broadcastChange("monchange", *mon)
+func (s *Scheduler) UpdateMonitor(mon *Monitor) error {
+	s.changes.Broadcast("monchange", *mon)
 
 	return monitorCollection.UpdateId(mon.Id, mon)
 }
 
-func AddMonitor(mon *Monitor) error {
+func (s *Scheduler) AddMonitor(mon *Monitor) error {
 	mon.Id = bson.NewObjectId()
 
-	broadcastChange("monadd", *mon)
+	s.changes.Broadcast("monadd", *mon)
 
 	return monitorCollection.Insert(mon)
 }
 
-func DeleteMonitor(id string) error {
+func (s *Scheduler) DeleteMonitor(id string) error {
 	if !bson.IsObjectIdHex(id) {
 		return ErrorInvalidId
 	}
 
-	broadcastChange("mondelete", id)
+	s.changes.Broadcast("mondelete", id)
 
 	return monitorCollection.RemoveId(bson.ObjectIdHex(id))
 }
 
-func Loop(wg sync.WaitGroup) {
-	_, err := GetHost("000000000000000000000000")
+func (s *Scheduler) Loop(wg sync.WaitGroup) {
+	_, err := s.GetHost("000000000000000000000000")
 	if err != nil {
 		p, found := plugins.GetTransports()["localtransport"]
 		if !found {
@@ -145,7 +166,7 @@ func Loop(wg sync.WaitGroup) {
 				mon.NextCheck = t.Add(checkIn)
 				logger.Yellow("monitor", "%s %s: Delaying first check by %s", mon.Id.Hex(), mon.Job.AgentId, checkIn)
 
-				err = UpdateMonitor(&mon)
+				err = s.UpdateMonitor(&mon)
 				if err != nil {
 					logger.Red("Error updating: %v", err.Error())
 				}
@@ -167,7 +188,7 @@ func Loop(wg sync.WaitGroup) {
 					mon.LastCheck = t
 					mon.NextCheck = t.Add(mon.Interval)
 
-					err = UpdateMonitor(&mon)
+					err = s.UpdateMonitor(&mon)
 					if err != nil {
 						logger.Red("monitor", "Error updating: %s", err.Error())
 					}

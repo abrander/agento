@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func GetAllHosts() []Host {
+func (s *Scheduler) GetAllHosts() []Host {
 	var hosts []Host
 
 	err := hostCollection.Find(bson.M{}).All(&hosts)
@@ -30,7 +30,7 @@ func GetAllHosts() []Host {
 	return hosts
 }
 
-func GetHost(id string) (Host, error) {
+func (s *Scheduler) GetHost(id string) (Host, error) {
 	var host Host
 
 	if !bson.IsObjectIdHex(id) {
@@ -46,20 +46,20 @@ func GetHost(id string) (Host, error) {
 	return host, nil
 }
 
-func AddHost(host *Host) error {
+func (s *Scheduler) AddHost(host *Host) error {
 	host.Id = bson.NewObjectId()
 
-	broadcastChange("hostadd", *host)
+	s.changes.Broadcast("hostadd", *host)
 
 	return hostCollection.Insert(host)
 }
 
-func DeleteHost(id string) error {
+func (s *Scheduler) DeleteHost(id string) error {
 	if !bson.IsObjectIdHex(id) {
 		return ErrorInvalidId
 	}
 
-	broadcastChange("hostdelete", id)
+	s.changes.Broadcast("hostdelete", id)
 
 	return hostCollection.RemoveId(bson.ObjectIdHex(id))
 }
