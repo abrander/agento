@@ -36,4 +36,5 @@ type (
 var (
 	ErrorNoAccess         error = errors.New("access forbidden")
 	ErrorInvalidAccountId error = errors.New("invalid account id")
+	ErrorInvalidUserId    error = errors.New("invalid user id")
 )
