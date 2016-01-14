@@ -173,6 +173,11 @@ func (c *Configuration) LoadFromFile(path string) error {
 		}
 	}
 
+	envSecret := os.Getenv("AGENTO_SECRET")
+	if envSecret != "" {
+		c.Client.Secret = envSecret
+	}
+
 	envServer := os.Getenv("AGENTO_SERVER_URL")
 	if envServer != "" {
 		c.Client.ServerUrl = envServer
