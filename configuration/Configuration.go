@@ -19,7 +19,7 @@ var (
 [client]
 enabled = true
 interval = 1
-secret = ""
+secret = "insecure"
 
 [server.http]
 enabled = false
