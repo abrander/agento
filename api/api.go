@@ -1,18 +1,13 @@
 package api
 
 import (
-	"html/template"
-	"net/http"
-	"sync"
 	"time"
 
-	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
 	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
-	"github.com/abrander/agento/plugins/transports/ssh"
 )
 
 type (
@@ -70,14 +65,7 @@ unsubscribe:
 	emitter.Unsubscribe(changes)
 }
 
-func Run(wg sync.WaitGroup, admin monitor.Admin, emitter monitor.Emitter) {
-	gin.SetMode(gin.ReleaseMode)
-
-	router := gin.New()
-	router.Use(gin.Logger())
-
-	router.Use(static.Serve("/", static.LocalFile("web/", false)))
-
+func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter) {
 	router.GET("/ws", func(c *gin.Context) {
 		wsHandler(c, emitter)
 	})
@@ -182,17 +170,4 @@ func Run(wg sync.WaitGroup, admin monitor.Admin, emitter monitor.Emitter) {
 			c.JSON(200, plugins.AvailableTransports())
 		})
 	}
-
-	templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
-	router.SetHTMLTemplate(templ)
-
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"sshPublicKey": ssh.PublicKey,
-		})
-	})
-
-	router.Run(":9901")
-
-	wg.Done()
 }

@@ -34,9 +34,9 @@ Agento.Service = {};
  * @suppress {checkTypes}
  */
 Agento.Factory.HostService = function($resource) {
-	return $resource('/host/:id', {id: '@id'}, {
+	return $resource('/api/host/:id', {id: '@id'}, {
 		save: {
-			url: '/host/new',
+			url: '/api/host/new',
 			method: 'POST'
 		}
 	});
@@ -51,9 +51,9 @@ agento.factory('HostService', Agento.Factory.HostService);
  * @suppress {checkTypes}
  */
 Agento.Factory.MonitorService = function($resource) {
-	return $resource('/monitor/:id', {id: '@id'}, {
+	return $resource('/api/monitor/:id', {id: '@id'}, {
 		save: {
-			url: '/monitor/new',
+			url: '/api/monitor/new',
 			method: 'POST'
 		}
 	});
@@ -73,7 +73,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 	this.uptime = 0;
 
 	this.agents = {};
-	$http.get('/agent/').then(function(response) {
+	$http.get('/api/agent/').then(function(response) {
 		self.agents = response.data;
 	});
 
@@ -155,7 +155,7 @@ Agento.Controller.MainController = function(HostService, MonitorService, $http, 
 		url += 'wss://';
 	else
 		url += 'ws://';
-	url += window.location.host + '/ws';
+	url += window.location.host + '/api/ws';
 
 	var socket = new WebSocket(url);
 

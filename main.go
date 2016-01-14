@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"html/template"
+	"net/http"
 	"os"
 	"sync"
 
@@ -28,7 +30,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/snmpstats"
 	_ "github.com/abrander/agento/plugins/agents/socketstats"
 	_ "github.com/abrander/agento/plugins/transports/local"
-	_ "github.com/abrander/agento/plugins/transports/ssh"
+	"github.com/abrander/agento/plugins/transports/ssh"
 	"github.com/abrander/agento/server"
 )
 
@@ -94,8 +96,17 @@ func main() {
 		wg.Add(1)
 		go scheduler.Loop(*wg)
 
-		wg.Add(1)
-		go api.Run(*wg, scheduler, emitter)
+		go api.Init(engine.Group("/api"), scheduler, emitter)
+
+		// Website for debugging
+		templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
+		engine.SetHTMLTemplate(templ)
+		engine.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"sshPublicKey": ssh.PublicKey,
+			})
+		})
+		engine.Static("/static", "web/")
 	}
 
 	wg.Wait()
