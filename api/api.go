@@ -69,13 +69,7 @@ unsubscribe:
 }
 
 func getSubject(c *gin.Context) userdb.Subject {
-	subject, exists := c.Get("subject")
-	if !exists {
-		c.AbortWithStatus(http.StatusForbidden)
-		return nil
-	}
-
-	return subject.(userdb.Subject)
+	return c.MustGet("subject").(userdb.Subject)
 }
 
 func getAccountId(c *gin.Context) string {
@@ -86,21 +80,19 @@ func getAccountId(c *gin.Context) string {
 		return accountId
 	}
 
-	subject, found := c.Get("subject")
-	if found {
-		switch subject.(type) {
-		case userdb.Account:
-			return subject.(userdb.Account).GetId()
-		case userdb.User:
-			accounts, err := subject.(userdb.User).GetAccounts()
-			if err != nil {
-				c.AbortWithError(http.StatusInternalServerError, err)
-				return ""
-			}
+	subject := c.MustGet("subject")
+	switch subject.(type) {
+	case userdb.Account:
+		return subject.(userdb.Account).GetId()
+	case userdb.User:
+		accounts, err := subject.(userdb.User).GetAccounts()
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return ""
+		}
 
-			if len(accounts) == 1 {
-				return accounts[0].GetId()
-			}
+		if len(accounts) == 1 {
+			return accounts[0].GetId()
 		}
 	}
 
