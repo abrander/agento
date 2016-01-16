@@ -15,6 +15,7 @@ type (
 		RefreshKey(key string) error
 		DeleteKey(key string) error
 		CanAccess(accountId string) error
+		Save() error
 	}
 
 	User interface {

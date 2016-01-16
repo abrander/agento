@@ -58,6 +58,10 @@ func (s *SingleUser) CanAccess(accountId string) error {
 	return nil
 }
 
+func (s *SingleUser) Save() error {
+	return nil
+}
+
 func (s *SingleUser) GetUsers() ([]User, error) {
 	return []User{s}, nil
 }
