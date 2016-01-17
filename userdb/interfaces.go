@@ -11,9 +11,6 @@ type (
 
 	Subject interface {
 		GetId() string
-		GetKey() (string, error)
-		RefreshKey(key string) error
-		DeleteKey(key string) error
 		CanAccess(accountId string) error
 		Save() error
 	}

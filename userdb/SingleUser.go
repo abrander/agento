@@ -21,18 +21,6 @@ func (s *SingleUser) GetId() string {
 	return "000000000000000000000000"
 }
 
-func (s *SingleUser) GetKey() (string, error) {
-	return s.key, nil
-}
-
-func (s *SingleUser) RefreshKey(key string) error {
-	return nil
-}
-
-func (s *SingleUser) DeleteKey(key string) error {
-	return nil
-}
-
 func (s *SingleUser) ResolveKey(key string) (Subject, error) {
 	if key == s.key {
 		return s, nil

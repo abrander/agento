@@ -112,7 +112,6 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 
 		logger.Green("api", "[%s %s] API key '%s' authorized for %s", c.Request.Method, c.Request.URL, key, subject.GetId())
 
-		subject.RefreshKey(key)
 		wsHandler(c, emitter, subject)
 	})
 
@@ -133,7 +132,6 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 
 		logger.Green("api", "[%s %s] API key '%s' authorized for %s", c.Request.Method, c.Request.URL, key, subject.GetId())
 
-		subject.RefreshKey(key)
 		c.Set("subject", subject)
 	})
 
