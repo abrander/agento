@@ -11,7 +11,7 @@ type (
 
 	Subject interface {
 		GetId() string
-		CanAccess(accountId string) error
+		CanAccess(object Object) error
 		Save() error
 	}
 
@@ -21,6 +21,7 @@ type (
 	}
 
 	Account interface {
+		Object
 		Subject
 		GetUsers() ([]User, error)
 	}

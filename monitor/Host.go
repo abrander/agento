@@ -24,7 +24,7 @@ type (
 func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error) {
 	var hosts []Host
 
-	err := subject.CanAccess(accountId)
+	err := subject.CanAccess(userdb.ObjectProxy(accountId))
 	if err != nil {
 		return hosts, err
 	}
@@ -37,31 +37,31 @@ func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Hos
 	return hosts, nil
 }
 
-func (s *Scheduler) GetHost(subject userdb.Subject, id string) (Host, error) {
+func (s *Scheduler) GetHost(subject userdb.Subject, id string) (*Host, error) {
 	var host Host
 
 	if !bson.IsObjectIdHex(id) {
-		return host, ErrorInvalidId
+		return nil, ErrorInvalidId
 	}
 
 	err := hostCollection.FindId(bson.ObjectIdHex(id)).One(&host)
 	if err != nil {
 		logger.Red("host", "Error getting host from Mongo: %s", err.Error())
-		return host, err
+		return nil, err
 	}
 
-	err = subject.CanAccess(host.AccountId.Hex())
+	err = subject.CanAccess(&host)
 	if err != nil {
-		return Host{}, err
+		return nil, err
 	}
 
-	return host, nil
+	return &host, nil
 }
 
 func (s *Scheduler) AddHost(subject userdb.Subject, host *Host) error {
 	host.Id = bson.NewObjectId()
 
-	err := subject.CanAccess(host.AccountId.Hex())
+	err := subject.CanAccess(host)
 	if err != nil {
 		return err
 	}
@@ -81,12 +81,12 @@ func (s *Scheduler) DeleteHost(subject userdb.Subject, id string) error {
 		return err
 	}
 
-	err = subject.CanAccess(id)
+	err = subject.CanAccess(host)
 	if err != nil {
 		return err
 	}
 
-	s.changes.Broadcast("hostdelete", &host)
+	s.changes.Broadcast("hostdelete", host)
 
 	return hostCollection.RemoveId(bson.ObjectIdHex(id))
 }

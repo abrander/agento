@@ -28,7 +28,7 @@ type (
 
 		GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error)
 		AddHost(subject userdb.Subject, host *Host) error
-		GetHost(subject userdb.Subject, id string) (Host, error)
+		GetHost(subject userdb.Subject, id string) (*Host, error)
 		DeleteHost(subject userdb.Subject, id string) error
 	}
 
@@ -81,7 +81,7 @@ func NewScheduler(changes Broadcaster) *Scheduler {
 func (s *Scheduler) GetAllMonitors(subject userdb.Subject, accountId string) ([]Monitor, error) {
 	var monitors []Monitor
 
-	err := subject.CanAccess(accountId)
+	err := subject.CanAccess(userdb.ObjectProxy(accountId))
 	if err != nil {
 		return []Monitor{}, err
 	}
@@ -107,7 +107,10 @@ func (s *Scheduler) GetMonitor(subject userdb.Subject, id string) (*Monitor, err
 		return &monitor, err
 	}
 
-	err = subject.CanAccess(monitor.AccountId.Hex())
+	err = subject.CanAccess(&monitor)
+	if err != nil {
+		return nil, err
+	}
 
 	return &monitor, nil
 }
@@ -126,7 +129,7 @@ func (s *Scheduler) UpdateMonitor(subject userdb.Subject, mon *Monitor) error {
 func (s *Scheduler) AddMonitor(subject userdb.Subject, mon *Monitor) error {
 	mon.Id = bson.NewObjectId()
 
-	err := subject.CanAccess(mon.AccountId.Hex())
+	err := subject.CanAccess(mon)
 	if err != nil {
 		return err
 	}

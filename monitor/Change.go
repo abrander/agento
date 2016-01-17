@@ -69,7 +69,7 @@ func (s *SimpleEmitter) Broadcast(typ string, payload userdb.Object) {
 
 	s.lock.Lock()
 	for _, listener := range s.listeners {
-		if listener.subject.CanAccess(payload.GetAccountId()) == nil {
+		if listener.subject.CanAccess(payload) == nil {
 			listener.channel <- change
 		}
 	}

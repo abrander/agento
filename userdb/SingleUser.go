@@ -3,8 +3,6 @@ package userdb
 
 import (
 	"errors"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type (
@@ -19,6 +17,10 @@ func NewSingleUser(key string) *SingleUser {
 
 func (s *SingleUser) GetId() string {
 	return "000000000000000000000000"
+}
+
+func (s *SingleUser) GetAccountId() string {
+	return s.GetId()
 }
 
 func (s *SingleUser) ResolveKey(key string) (Subject, error) {
@@ -38,11 +40,7 @@ func (s *SingleUser) GetAccounts() ([]Account, error) {
 	return []Account{s}, nil
 }
 
-func (s *SingleUser) CanAccess(accountId string) error {
-	if !bson.IsObjectIdHex(accountId) {
-		return ErrorInvalidAccountId
-	}
-
+func (s *SingleUser) CanAccess(object Object) error {
 	return nil
 }
 
