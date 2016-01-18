@@ -3,28 +3,29 @@ package plugins
 import (
 	"math"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 )
 
-func SimplePoint(key string, value interface{}) client.Point {
-	return client.Point{
-		Measurement: key,
-		Fields: map[string]interface{}{
-			"value": value,
-		},
-	}
+func SimplePoint(key string, value interface{}) *client.Point {
+	point, _ := client.NewPoint(key, nil, map[string]interface{}{
+		"value": value,
+	})
+
+	return point
 }
 
-func PointWithTag(key string, value interface{}, tagKey string, tagValue string) client.Point {
-	return client.Point{
-		Tags: map[string]string{
+func PointWithTag(key string, value interface{}, tagKey string, tagValue string) *client.Point {
+	point, _ := client.NewPoint(
+		key,
+		map[string]string{
 			tagKey: tagValue,
 		},
-		Measurement: key,
-		Fields: map[string]interface{}{
+		map[string]interface{}{
 			"value": value,
 		},
-	}
+	)
+
+	return point
 }
 
 func Round(value float64, places int) float64 {

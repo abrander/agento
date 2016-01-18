@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -110,8 +110,8 @@ func (stats *SocketStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (s *SocketStats) GetPoints() []client.Point {
-	points := make([]client.Point, 12)
+func (s *SocketStats) GetPoints() []*client.Point {
+	points := make([]*client.Point, 12)
 
 	points[0] = plugins.SimplePoint("sockets.Established", s.Established)
 	points[1] = plugins.SimplePoint("sockets.SynSent", s.SynSent)

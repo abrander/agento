@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/plugins"
 )
@@ -102,20 +102,20 @@ func (h *Http) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (h Http) GetPoints() []client.Point {
-	p := make([]client.Point, 1)
+func (h Http) GetPoints() []*client.Point {
+	p := make([]*client.Point, 1)
 
-	p[0] = client.Point{
-		Tags: map[string]string{
+	p[0], _ = client.NewPoint(
+		"http",
+		map[string]string{
 			"url": h.Url,
 		},
-		Measurement: "http",
-		Fields: map[string]interface{}{
+		map[string]interface{}{
 			"ConnectDuration": h.ConnectDuration.Seconds() * 1000.0,
 			"RequestDuration": h.RequestDuration.Seconds() * 1000.0,
 			"Status":          h.Status,
 		},
-	}
+	)
 
 	return p
 }

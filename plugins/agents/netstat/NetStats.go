@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -57,8 +57,8 @@ func (stat *NetStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (n *NetStats) GetPoints() []client.Point {
-	points := make([]client.Point, len(n.Interfaces)*16)
+func (n *NetStats) GetPoints() []*client.Point {
+	points := make([]*client.Point, len(n.Interfaces)*16)
 
 	i := 0
 	for key, value := range n.Interfaces {

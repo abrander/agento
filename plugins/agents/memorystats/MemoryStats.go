@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -87,8 +87,8 @@ func (stat *MemoryStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (s *MemoryStats) GetPoints() []client.Point {
-	points := make([]client.Point, 7)
+func (s *MemoryStats) GetPoints() []*client.Point {
+	points := make([]*client.Point, 7)
 
 	points[0] = plugins.SimplePoint("mem.Used", s.Used)
 	points[1] = plugins.SimplePoint("mem.Free", s.Free)

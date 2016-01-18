@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -55,8 +55,8 @@ func (stat *DiskStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (d *DiskStats) GetPoints() []client.Point {
-	points := make([]client.Point, len(d.Disks)*11)
+func (d *DiskStats) GetPoints() []*client.Point {
+	points := make([]*client.Point, len(d.Disks)*11)
 
 	i := 0
 	for key, value := range d.Disks {

@@ -1,7 +1,7 @@
 package linuxhost
 
 import (
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/plugins"
 )
@@ -48,8 +48,8 @@ func (l *LinuxHost) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (l *LinuxHost) GetPoints() []client.Point {
-	points := make([]client.Point, 0, 300)
+func (l *LinuxHost) GetPoints() []*client.Point {
+	points := make([]*client.Point, 0, 300)
 
 	for _, p := range l.Agents {
 		agent, ok := p.(plugins.Agent)

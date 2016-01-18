@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"net"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
@@ -18,50 +17,56 @@ import (
 	"github.com/abrander/agento/plugins/agents/hostname"
 )
 
-var config = configuration.Configuration{}
+var (
+	config  = configuration.Configuration{}
+	con     client.Client
+	bpsConf client.BatchPointsConfig
+)
 
 func Init(router gin.IRouter, cfg configuration.Configuration) {
 	router.Any("/report", reportHandler)
 	router.Any("/health", healthHandler)
 	config = cfg
-}
 
-func getInfluxClient() *client.Client {
-	u, _ := url.Parse(config.Server.Influxdb.Url)
-
-	conf := client.Config{
-		URL:       *u,
+	conf := client.HTTPConfig{
+		Addr:      config.Server.Influxdb.Url,
 		Username:  config.Server.Influxdb.Username,
 		Password:  config.Server.Influxdb.Password,
 		UserAgent: "agento-server",
 	}
 
-	con, err := client.NewClient(conf)
+	var err error
+	con, err = client.NewHTTPClient(conf)
 	if err != nil {
 		logger.Red("server", "InfluxDB error: %s", err.Error())
 	}
 
-	return con
+	bpsConf = client.BatchPointsConfig{
+		Database:         config.Server.Influxdb.Database,
+		RetentionPolicy:  config.Server.Influxdb.RetentionPolicy,
+		WriteConsistency: "1",
+	}
 }
 
-func WritePoints(points []client.Point) error {
-	con := getInfluxClient()
-
-	bps := client.BatchPoints{
-		Time:            time.Now(),
-		Points:          points,
-		Database:        config.Server.Influxdb.Database,
-		RetentionPolicy: config.Server.Influxdb.RetentionPolicy,
+func WritePoints(points []*client.Point) error {
+	bps, err := client.NewBatchPoints(bpsConf)
+	if err != nil {
+		return err
 	}
+
+	for _, point := range points {
+		bps.AddPoint(point)
+	}
+
 	retries := config.Server.Influxdb.Retries
 
-	_, err := con.Write(bps)
+	err = con.Write(bps)
 	if err != nil {
 		var i int
 		for i = 1; i <= retries; i++ {
 			logger.Red("server", "Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
 			time.Sleep(time.Millisecond * 500)
-			_, err = con.Write(bps)
+			err = con.Write(bps)
 			if err == nil {
 				break
 			}
@@ -79,12 +84,14 @@ func sendToInflux(stats plugins.Results) error {
 
 	// Add hostname tag to all points
 	hostname := string(*stats["hostname"].(*hostname.Hostname))
-	for i := range points {
-		if points[i].Tags != nil {
-			points[i].Tags["hostname"] = hostname
-		} else {
-			points[i].Tags = map[string]string{"hostname": hostname}
-		}
+	for index, point := range points {
+		// FIXME: We do this hack while we wait for InfluxDB PR 5387:
+		// https://github.com/influxdata/influxdb/pull/5387
+		tags := point.Tags()
+
+		tags["hostname"] = hostname
+
+		points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 	}
 
 	return WritePoints(points)
@@ -119,15 +126,6 @@ func healthHandler(c *gin.Context) {
 		c.Header("Allow", "GET")
 		c.String(http.StatusMethodNotAllowed, "only GET allowed")
 		return
-	}
-
-	con := getInfluxClient()
-
-	_, _, err := con.Ping()
-	if err != nil {
-		logger.Green("server", "%s", err.Error())
-		c.AbortWithError(http.StatusServiceUnavailable, err)
-		//		return
 	}
 
 	c.String(200, "ok")

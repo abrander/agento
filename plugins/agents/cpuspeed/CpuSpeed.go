@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -54,8 +54,8 @@ func (c *CpuSpeed) UnmarshalJSON(b []byte) error {
 	return json.Unmarshal(b, &c.Frequency)
 }
 
-func (c *CpuSpeed) GetPoints() []client.Point {
-	points := make([]client.Point, len(c.Frequency))
+func (c *CpuSpeed) GetPoints() []*client.Point {
+	points := make([]*client.Point, len(c.Frequency))
 
 	for i, frequency := range c.Frequency {
 		points[i] = plugins.PointWithTag("cpu.Frequency", frequency, "core", strconv.Itoa(i))

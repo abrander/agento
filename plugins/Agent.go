@@ -1,12 +1,12 @@
 package plugins
 
 import (
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 type (
 	Agent interface {
 		Gather(transport Transport) error
-		GetPoints() []client.Point
+		GetPoints() []*client.Point
 	}
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -80,18 +80,18 @@ func ReportToInfluxdb() {
 			continue
 		}
 
-		points := make([]client.Point, 1)
-		points[0] = client.Point{
-			Measurement: value.Identifier,
-			Tags:        value.Tags,
-			Fields: map[string]interface{}{
+		points := make([]*client.Point, 1)
+		points[0], _ = client.NewPoint(
+			value.Identifier,
+			value.Tags,
+			map[string]interface{}{
 				"min":  float64(value.Histogram.Min()) / 1000000.0,
 				"max":  float64(value.Histogram.Max()) / 1000000.0,
 				"mean": float64(value.Histogram.Mean()) / 1000000.0,
 				"p99":  float64(value.Histogram.Percentile(0.99) / 1000000.0),
 				"p90":  float64(value.Histogram.Percentile(0.90) / 1000000.0),
 			},
-		}
+		)
 		value.Histogram.Sample().Clear()
 
 		WritePoints(points)

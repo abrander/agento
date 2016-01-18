@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -79,8 +79,8 @@ func (stat *CpuStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (c *CpuStats) GetPoints() []client.Point {
-	points := make([]client.Point, 5+len(c.Cpu)*10)
+func (c *CpuStats) GetPoints() []*client.Point {
+	points := make([]*client.Point, 5+len(c.Cpu)*10)
 
 	points[0] = plugins.SimplePoint("misc.Interrupts", c.Interrupts)
 	points[1] = plugins.SimplePoint("misc.ContextSwitches", c.ContextSwitches)

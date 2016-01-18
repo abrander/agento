@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/abrander/agento/plugins"
@@ -111,7 +111,7 @@ func (job *Job) SetBSON(raw bson.Raw) error {
 	return nil
 }
 
-func (job *Job) Run(transport plugins.Transport) ([]client.Point, error) {
+func (job *Job) Run(transport plugins.Transport) ([]*client.Point, error) {
 	err := job.Agent.Gather(transport)
 	if err != nil {
 		return nil, err

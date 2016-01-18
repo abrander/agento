@@ -15,7 +15,7 @@ import (
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/server"
 	"github.com/abrander/agento/userdb"
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 type (
@@ -33,14 +33,14 @@ type (
 	}
 
 	Monitor struct {
-		Id         bson.ObjectId  `json:"id" bson:"_id"`
-		AccountId  bson.ObjectId  `json:"accountId" bson:"accountId"`
-		HostId     bson.ObjectId  `json:"hostId" bson:"hostId"`
-		Interval   time.Duration  `json:"interval"`
-		Job        Job            `json:"agent"` // FIXME: Rename json to "job" - maybe
-		LastCheck  time.Time      `json:"lastCheck"`
-		NextCheck  time.Time      `json:"nextCheck"`
-		LastPoints []client.Point `json:"lastResult"`
+		Id         bson.ObjectId   `json:"id" bson:"_id"`
+		AccountId  bson.ObjectId   `json:"accountId" bson:"accountId"`
+		HostId     bson.ObjectId   `json:"hostId" bson:"hostId"`
+		Interval   time.Duration   `json:"interval"`
+		Job        Job             `json:"agent"` // FIXME: Rename json to "job" - maybe
+		LastCheck  time.Time       `json:"lastCheck"`
+		NextCheck  time.Time       `json:"nextCheck"`
+		LastPoints []*client.Point `json:"lastResult"`
 	}
 
 	Scheduler struct {

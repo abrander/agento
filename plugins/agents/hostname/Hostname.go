@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -33,8 +33,8 @@ func (h *Hostname) Gather(transport plugins.Transport) error {
 	return err
 }
 
-func (h Hostname) GetPoints() []client.Point {
-	return make([]client.Point, 0)
+func (h Hostname) GetPoints() []*client.Point {
+	return make([]*client.Point, 0)
 }
 
 func (h Hostname) GetDoc() *plugins.Doc {

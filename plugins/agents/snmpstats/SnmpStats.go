@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
@@ -158,8 +158,8 @@ func (stat *SnmpStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (s *SnmpStats) GetPoints() []client.Point {
-	points := make([]client.Point, 0)
+func (s *SnmpStats) GetPoints() []*client.Point {
+	points := make([]*client.Point, 0)
 
 	// FIXME: Return something ;)
 
