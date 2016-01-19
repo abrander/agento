@@ -64,8 +64,10 @@ func main() {
 
 	wg := &sync.WaitGroup{}
 
+	db := userdb.NewSingleUser(config.Server.Secret)
+
 	engine := gin.New()
-	serv, err := server.NewServer(engine, config.Server)
+	serv, err := server.NewServer(engine, config.Server, db)
 	if err != nil {
 		logger.Red("agento", "Server error: %s", err.Error())
 		os.Exit(1)
@@ -95,7 +97,6 @@ func main() {
 		monitor.Init(config.Monitor)
 		emitter := monitor.NewSimpleEmitter()
 		scheduler := monitor.NewScheduler(emitter)
-		db := userdb.NewSingleUser(config.Client.Secret)
 
 		wg.Add(1)
 		go scheduler.Loop(*wg, db, serv)

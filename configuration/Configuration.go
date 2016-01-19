@@ -21,6 +21,9 @@ enabled = true
 interval = 1
 secret = "insecure"
 
+[server]
+secret = ""
+
 [server.http]
 enabled = false
 bind = "0.0.0.0"
@@ -120,6 +123,7 @@ type ServerConfiguration struct {
 	Influxdb InfluxdbConfiguration `toml:"influxdb"`
 	Http     HttpConfiguration     `toml:"http"`
 	Https    HttpsConfiguration    `toml:"https"`
+	Secret   string                `toml:"secret"`
 	Udp      UdpConfiguration      `toml:"udp"`
 }
 
@@ -176,6 +180,7 @@ func (c *Configuration) LoadFromFile(path string) error {
 	envSecret := os.Getenv("AGENTO_SECRET")
 	if envSecret != "" {
 		c.Client.Secret = envSecret
+		c.Server.Secret = envSecret
 	}
 
 	envServer := os.Getenv("AGENTO_SERVER_URL")

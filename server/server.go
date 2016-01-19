@@ -13,6 +13,7 @@ import (
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/plugins/agents/hostname"
+	"github.com/abrander/agento/userdb"
 )
 
 type (
@@ -24,10 +25,12 @@ type (
 		http            configuration.HttpConfiguration
 		https           configuration.HttpsConfiguration
 		udp             configuration.UdpConfiguration
+		secret          string
+		db              userdb.Database
 	}
 )
 
-func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration) (*Server, error) {
+func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database) (*Server, error) {
 	s := &Server{}
 
 	router.Any("/report", s.reportHandler)
@@ -57,6 +60,8 @@ func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration) (*Serv
 	s.http = cfg.Http
 	s.https = cfg.Https
 	s.udp = cfg.Udp
+	s.secret = cfg.Secret
+	s.db = db
 
 	s.inventory = make(map[string]*Inventory)
 
@@ -94,7 +99,7 @@ func (s *Server) WritePoints(points []*client.Point) error {
 	return err
 }
 
-func (s *Server) sendToInflux(stats plugins.Results) error {
+func (s *Server) sendToInflux(stats plugins.Results, id string) error {
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
@@ -105,6 +110,10 @@ func (s *Server) sendToInflux(stats plugins.Results) error {
 		tags := point.Tags()
 
 		tags["hostname"] = hostname
+
+		if id != "000000000000000000000000" {
+			tags["id"] = id
+		}
 
 		points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 	}
@@ -119,15 +128,23 @@ func (s *Server) reportHandler(c *gin.Context) {
 		return
 	}
 
+	key := c.Request.Header.Get("X-Agento-Secret")
+
+	subject, err := s.db.ResolveKey(key)
+	if err != nil {
+		c.String(http.StatusForbidden, "%s", err.Error())
+		return
+	}
+
 	var results = plugins.Results{}
 
-	err := c.BindJSON(&results)
+	err = c.BindJSON(&results)
 	if err != nil {
 		c.String(http.StatusBadRequest, "%s", err.Error())
 		return
 	}
 
-	err = s.sendToInflux(results)
+	err = s.sendToInflux(results, subject.GetId())
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
