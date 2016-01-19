@@ -65,24 +65,25 @@ func main() {
 	wg := &sync.WaitGroup{}
 
 	engine := gin.New()
-
-	if config.Server.Http.Enabled || config.Server.Https.Enabled {
-		server.Init(engine, config)
+	serv, err := server.NewServer(engine, config.Server)
+	if err != nil {
+		logger.Red("agento", "Server error: %s", err.Error())
+		os.Exit(1)
 	}
 
 	if config.Server.Http.Enabled {
 		wg.Add(1)
-		go server.ListenAndServe(engine)
+		go serv.ListenAndServe(engine)
 	}
 
 	if config.Server.Https.Enabled {
 		wg.Add(1)
-		go server.ListenAndServeTLS(engine)
+		go serv.ListenAndServeTLS(engine)
 	}
 
 	if config.Server.Udp.Enabled {
 		wg.Add(1)
-		go server.ListenAndServeUDP()
+		go serv.ListenAndServeUDP()
 	}
 
 	if config.Client.Enabled {
@@ -97,7 +98,7 @@ func main() {
 		db := userdb.NewSingleUser(config.Client.Secret)
 
 		wg.Add(1)
-		go scheduler.Loop(*wg, db)
+		go scheduler.Loop(*wg, db, serv)
 
 		go api.Init(engine.Group("/api"), scheduler, emitter, db)
 

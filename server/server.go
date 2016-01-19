@@ -15,39 +15,56 @@ import (
 	"github.com/abrander/agento/plugins/agents/hostname"
 )
 
-var (
-	config  = configuration.Configuration{}
-	con     client.Client
-	bpsConf client.BatchPointsConfig
+type (
+	Server struct {
+		influxDb        client.Client
+		influxDbRetries int
+		inventory       map[string]*Inventory
+		bpsConf         client.BatchPointsConfig
+		http            configuration.HttpConfiguration
+		https           configuration.HttpsConfiguration
+		udp             configuration.UdpConfiguration
+	}
 )
 
-func Init(router gin.IRouter, cfg configuration.Configuration) {
-	router.Any("/report", reportHandler)
-	router.Any("/health", healthHandler)
-	config = cfg
+func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration) (*Server, error) {
+	s := &Server{}
+
+	router.Any("/report", s.reportHandler)
+	router.Any("/health", s.healthHandler)
 
 	conf := client.HTTPConfig{
-		Addr:      config.Server.Influxdb.Url,
-		Username:  config.Server.Influxdb.Username,
-		Password:  config.Server.Influxdb.Password,
+		Addr:      cfg.Influxdb.Url,
+		Username:  cfg.Influxdb.Username,
+		Password:  cfg.Influxdb.Password,
 		UserAgent: "agento-server",
 	}
 
 	var err error
-	con, err = client.NewHTTPClient(conf)
+	s.influxDb, err = client.NewHTTPClient(conf)
 	if err != nil {
-		logger.Red("server", "InfluxDB error: %s", err.Error())
+		return nil, err
 	}
 
-	bpsConf = client.BatchPointsConfig{
-		Database:         config.Server.Influxdb.Database,
-		RetentionPolicy:  config.Server.Influxdb.RetentionPolicy,
+	s.bpsConf = client.BatchPointsConfig{
+		Database:         cfg.Influxdb.Database,
+		RetentionPolicy:  cfg.Influxdb.RetentionPolicy,
 		WriteConsistency: "1",
 	}
+
+	s.influxDbRetries = cfg.Influxdb.Retries
+
+	s.http = cfg.Http
+	s.https = cfg.Https
+	s.udp = cfg.Udp
+
+	s.inventory = make(map[string]*Inventory)
+
+	return s, nil
 }
 
-func WritePoints(points []*client.Point) error {
-	bps, err := client.NewBatchPoints(bpsConf)
+func (s *Server) WritePoints(points []*client.Point) error {
+	bps, err := client.NewBatchPoints(s.bpsConf)
 	if err != nil {
 		return err
 	}
@@ -56,15 +73,15 @@ func WritePoints(points []*client.Point) error {
 		bps.AddPoint(point)
 	}
 
-	retries := config.Server.Influxdb.Retries
+	retries := s.influxDbRetries
 
-	err = con.Write(bps)
+	err = s.influxDb.Write(bps)
 	if err != nil {
 		var i int
 		for i = 1; i <= retries; i++ {
 			logger.Red("server", "Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
 			time.Sleep(time.Millisecond * 500)
-			err = con.Write(bps)
+			err = s.influxDb.Write(bps)
 			if err == nil {
 				break
 			}
@@ -77,7 +94,7 @@ func WritePoints(points []*client.Point) error {
 	return err
 }
 
-func sendToInflux(stats plugins.Results) error {
+func (s *Server) sendToInflux(stats plugins.Results) error {
 	points := stats.GetPoints()
 
 	// Add hostname tag to all points
@@ -92,10 +109,10 @@ func sendToInflux(stats plugins.Results) error {
 		points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 	}
 
-	return WritePoints(points)
+	return s.WritePoints(points)
 }
 
-func reportHandler(c *gin.Context) {
+func (s *Server) reportHandler(c *gin.Context) {
 	if c.Request.Method != "POST" {
 		c.Header("Allow", "POST")
 		c.String(http.StatusMethodNotAllowed, "only POST allowed")
@@ -110,7 +127,7 @@ func reportHandler(c *gin.Context) {
 		return
 	}
 
-	err = sendToInflux(results)
+	err = s.sendToInflux(results)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -119,7 +136,7 @@ func reportHandler(c *gin.Context) {
 	c.String(http.StatusOK, "%s", "Got it")
 }
 
-func healthHandler(c *gin.Context) {
+func (s *Server) healthHandler(c *gin.Context) {
 	if c.Request.Method != "GET" {
 		c.Header("Allow", "GET")
 		c.String(http.StatusMethodNotAllowed, "only GET allowed")
@@ -129,8 +146,8 @@ func healthHandler(c *gin.Context) {
 	c.String(200, "ok")
 }
 
-func ListenAndServe(engine *gin.Engine) {
-	addr := config.Server.Http.Bind + ":" + strconv.Itoa(int(config.Server.Http.Port))
+func (s *Server) ListenAndServe(engine *gin.Engine) {
+	addr := s.http.Bind + ":" + strconv.Itoa(int(s.http.Port))
 
 	err := http.ListenAndServe(addr, engine)
 	if err != nil {
@@ -140,7 +157,7 @@ func ListenAndServe(engine *gin.Engine) {
 	}
 }
 
-func ListenAndServeTLS(engine *gin.Engine) {
+func (s *Server) ListenAndServeTLS(engine *gin.Engine) {
 	// Choose strong TLS defaults
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
@@ -156,14 +173,14 @@ func ListenAndServeTLS(engine *gin.Engine) {
 		},
 	}
 
-	addr := config.Server.Https.Bind + ":" + strconv.Itoa(int(config.Server.Https.Port))
+	addr := s.https.Bind + ":" + strconv.Itoa(int(s.https.Port))
 
 	server := &http.Server{
 		Addr:      addr,
 		Handler:   engine,
 		TLSConfig: tlsConfig}
 
-	err := server.ListenAndServeTLS(config.Server.Https.CertPath, config.Server.Https.KeyPath)
+	err := server.ListenAndServeTLS(s.https.CertPath, s.https.KeyPath)
 	if err != nil {
 		logger.Red("server", "ListenAndServeTLS(%s): %s", addr, err.Error())
 	} else {

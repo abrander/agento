@@ -154,7 +154,7 @@ func (s *Scheduler) DeleteMonitor(subject userdb.Subject, id string) error {
 	return monitorCollection.RemoveId(bson.ObjectIdHex(id))
 }
 
-func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject) {
+func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject, serv *server.Server) {
 	_, err := s.GetHost(subject, "000000000000000000000000")
 	if err != nil {
 		p, found := plugins.GetTransports()["localtransport"]
@@ -229,7 +229,7 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject) {
 						logger.Red("monitor", "Error updating: %s", err.Error())
 					}
 
-					err = server.WritePoints(p)
+					err = serv.WritePoints(p)
 					if err != nil {
 						logger.Red("monitor", "Influxdb error: %s", err.Error())
 					}

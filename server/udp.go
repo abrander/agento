@@ -13,25 +13,21 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
-func init() {
-	inventory = make(map[string]*Inventory)
-}
+type (
+	Sample struct {
+		Type        int               `json:"t"`
+		Probability float64           `json:"p"`
+		Identifier  string            `json:"i"`
+		Tags        map[string]string `json:"T"`
+		Value       float64           `json:"v"`
+	}
 
-type Sample struct {
-	Type        int               `json:"t"`
-	Probability float64           `json:"p"`
-	Identifier  string            `json:"i"`
-	Tags        map[string]string `json:"T"`
-	Value       float64           `json:"v"`
-}
-
-type Inventory struct {
-	Histogram  metrics.Histogram
-	Identifier string
-	Tags       map[string]string
-}
-
-var inventory map[string]*Inventory
+	Inventory struct {
+		Histogram  metrics.Histogram
+		Identifier string
+		Tags       map[string]string
+	}
+)
 
 func (s *Sample) computeKey() string {
 	sortedKeys := make([]string, len(s.Tags))
@@ -52,24 +48,24 @@ func (s *Sample) computeKey() string {
 	return fmt.Sprintf("%d:%s:%s", s.Type, s.Identifier, tags)
 }
 
-func AddUdpSample(s *Sample) error {
-	key := s.computeKey()
-	intValue := int64(s.Value * 1000000.0)
+func (s *Server) AddUdpSample(sample *Sample) error {
+	key := sample.computeKey()
+	intValue := int64(sample.Value * 1000000.0)
 
-	i, found := inventory[key]
+	i, found := s.inventory[key]
 	if !found {
 		hist := metrics.GetOrRegisterHistogram(key, metrics.DefaultRegistry, metrics.NewUniformSample(1001))
 
 		i = &Inventory{
 			Histogram:  hist,
-			Identifier: s.Identifier,
-			Tags:       s.Tags,
+			Identifier: sample.Identifier,
+			Tags:       sample.Tags,
 		}
 
-		inventory[key] = i
+		s.inventory[key] = i
 	}
 
-	switch s.Type {
+	switch sample.Type {
 	case 1:
 		i.Histogram.Update(intValue)
 	}
@@ -77,11 +73,11 @@ func AddUdpSample(s *Sample) error {
 	return nil
 }
 
-func ReportToInfluxdb() {
-	for key, value := range inventory {
+func (s *Server) ReportToInfluxdb() {
+	for key, value := range s.inventory {
 		// If the histogram was unused for a cycle, we remove it from inventory
 		if value.Histogram.Count() == 0 {
-			delete(inventory, key)
+			delete(s.inventory, key)
 			continue
 		}
 
@@ -99,16 +95,16 @@ func ReportToInfluxdb() {
 		)
 		value.Histogram.Sample().Clear()
 
-		WritePoints(points)
+		s.WritePoints(points)
 	}
 }
 
-func ListenAndServeUDP() {
+func (s *Server) ListenAndServeUDP() {
 	samples := make(chan *Sample)
 
 	// UDP reader loop
 	go func() {
-		addr := config.Server.Udp.Bind + ":" + strconv.Itoa(int(config.Server.Udp.Port))
+		addr := s.udp.Bind + ":" + strconv.Itoa(int(s.udp.Port))
 
 		laddr, err := net.ResolveUDPAddr("udp", addr)
 		if err != nil {
@@ -136,15 +132,15 @@ func ListenAndServeUDP() {
 		}
 	}()
 
-	c := time.Tick(time.Second * time.Duration(config.Server.Udp.Interval))
+	c := time.Tick(time.Second * time.Duration(s.udp.Interval))
 
 	// Main loop
 	for {
 		select {
 		case sample := <-samples:
-			AddUdpSample(sample)
+			s.AddUdpSample(sample)
 		case <-c:
-			ReportToInfluxdb()
+			s.ReportToInfluxdb()
 		}
 	}
 }
