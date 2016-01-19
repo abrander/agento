@@ -2,8 +2,6 @@ package server
 
 import (
 	"crypto/tls"
-	"encoding/json"
-	"net"
 	"net/http"
 	"strconv"
 	"time"
@@ -162,51 +160,5 @@ func ListenAndServeTLS(engine *gin.Engine) {
 	err := server.ListenAndServeTLS(config.Server.Https.CertPath, config.Server.Https.KeyPath)
 	if err != nil {
 		logger.Red("ListenAndServeTLS(%s): %s", addr, err.Error())
-	}
-}
-
-func ListenAndServeUDP() {
-	samples := make(chan *Sample)
-
-	// UDP reader loop
-	go func() {
-		addr := config.Server.Udp.Bind + ":" + strconv.Itoa(int(config.Server.Udp.Port))
-
-		laddr, err := net.ResolveUDPAddr("udp", addr)
-		if err != nil {
-			logger.Red("server", "ResolveUDPAddr(%s): %s", addr, err.Error())
-			return
-		}
-
-		conn, err := net.ListenUDP("udp", laddr)
-		if err != nil {
-			logger.Red("server", "ListenUDP(%s): %s", addr, err.Error())
-			return
-		}
-
-		defer conn.Close()
-
-		buf := make([]byte, 65535)
-
-		for {
-			var sample Sample
-			n, _, err := conn.ReadFromUDP(buf)
-
-			if err == nil && json.Unmarshal(buf[:n], &sample) == nil {
-				samples <- &sample
-			}
-		}
-	}()
-
-	c := time.Tick(time.Second * time.Duration(config.Server.Udp.Interval))
-
-	// Main loop
-	for {
-		select {
-		case sample := <-samples:
-			AddUdpSample(sample)
-		case <-c:
-			ReportToInfluxdb()
-		}
 	}
 }
