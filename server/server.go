@@ -130,17 +130,18 @@ func healthHandler(c *gin.Context) {
 }
 
 func ListenAndServe(engine *gin.Engine) {
-	// Listen for http connections if needed
 	addr := config.Server.Http.Bind + ":" + strconv.Itoa(int(config.Server.Http.Port))
-	logger.Yellow("server", "Listening for http at %s", addr)
+
 	err := http.ListenAndServe(addr, engine)
 	if err != nil {
-		logger.Red("ListenAndServe(%s): %s", addr, err.Error())
+		logger.Red("server", "ListenAndServe(%s): %s", addr, err.Error())
+	} else {
+		logger.Yellow("server", "Listening for http at %s", addr)
 	}
 }
 
 func ListenAndServeTLS(engine *gin.Engine) {
-	// Listen for https connections if needed
+	// Choose strong TLS defaults
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
 		CipherSuites: []uint16{
@@ -154,11 +155,18 @@ func ListenAndServeTLS(engine *gin.Engine) {
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 		},
 	}
+
 	addr := config.Server.Https.Bind + ":" + strconv.Itoa(int(config.Server.Https.Port))
-	logger.Yellow("server", "Listening for https at %s", addr)
-	server := &http.Server{Addr: addr, Handler: engine, TLSConfig: tlsConfig}
+
+	server := &http.Server{
+		Addr:      addr,
+		Handler:   engine,
+		TLSConfig: tlsConfig}
+
 	err := server.ListenAndServeTLS(config.Server.Https.CertPath, config.Server.Https.KeyPath)
 	if err != nil {
-		logger.Red("ListenAndServeTLS(%s): %s", addr, err.Error())
+		logger.Red("server", "ListenAndServeTLS(%s): %s", addr, err.Error())
+	} else {
+		logger.Yellow("server", "Listening for https at %s", addr)
 	}
 }
