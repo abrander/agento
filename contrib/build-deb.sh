@@ -36,6 +36,11 @@ setuid nobody
 setgid nogroup
 
 script
+    if [ -r /etc/default/agento ]; then
+        . /etc/default/agento
+        export AGENTO_SECRET AGENTO_SERVER_URL AGENTO_INFLUXDB_URL AGENTO_MONGO_URL
+    fi
+
     exec /usr/sbin/agento
 end script
 EOF
