@@ -109,7 +109,7 @@ func main() {
 		engine.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "index.html", gin.H{
 				"sshPublicKey": ssh.PublicKey,
-				"agentoSecret": config.Client.Secret,
+				"agentoSecret": config.Server.Secret,
 			})
 		})
 		engine.Static("/static", "web/")
