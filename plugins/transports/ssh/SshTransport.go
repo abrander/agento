@@ -16,10 +16,6 @@ type (
 	SshTransport struct {
 		Ssh
 	}
-
-	closer struct {
-		io.Reader
-	}
 )
 
 func init() {
@@ -71,12 +67,16 @@ func (s *SshTransport) Dial(network string, address string) (net.Conn, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer pool.Done(s.Ssh) // FIXME: This can easily leak ssh connections.
 
 	logger.Yellow("ssh", "Dialing %s://%s via ssh://%s@%s:%d", network, address, s.Ssh.Username, s.Ssh.Host, s.Ssh.Port)
 
-	// FIXME: This should return a custom type implementing net.Conn to allow Close() to call pool.Done().
-	return conn.Dial(network, address)
+	c, err := conn.Dial(network, address)
+	if err != nil {
+		return nil, err
+	}
+	c = NewConnWrapper(c, s.Ssh)
+
+	return c, err
 }
 
 func (s *SshTransport) Open(path string) (io.ReadCloser, error) {
