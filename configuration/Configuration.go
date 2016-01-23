@@ -153,10 +153,7 @@ func fileExists(name string) bool {
 }
 
 func (c *Configuration) LoadFromFile(path string) error {
-	// Start by loading default values - should never err
-	if _, err := toml.Decode(defaultConfig, &c); err != nil {
-		return err
-	}
+	c.LoadDefaults()
 
 	// We default to agento.domain, try to guess it
 	hostname, err := os.Hostname()
@@ -177,6 +174,23 @@ func (c *Configuration) LoadFromFile(path string) error {
 		}
 	}
 
+	c.LoadFromEnvironment()
+
+	if c.Client.ServerUrl == "" {
+		return errors.New("Could not determine server URL")
+	}
+
+	return nil
+}
+
+func (c *Configuration) LoadDefaults() {
+	// Start by loading default values - should never err
+	if _, err := toml.Decode(defaultConfig, &c); err != nil {
+		panic(err.Error())
+	}
+}
+
+func (c *Configuration) LoadFromEnvironment() {
 	envSecret := os.Getenv("AGENTO_SECRET")
 	if envSecret != "" {
 		c.Client.Secret = envSecret
@@ -197,10 +211,4 @@ func (c *Configuration) LoadFromFile(path string) error {
 	if envMongoUrl != "" {
 		c.Monitor.Mongo.Url = envMongoUrl
 	}
-
-	if c.Client.ServerUrl == "" {
-		return errors.New("Could not determine server URL")
-	}
-
-	return nil
 }
