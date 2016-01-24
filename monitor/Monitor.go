@@ -216,9 +216,9 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject, serv *server
 					hostCollection.FindId(mon.HostId).One(&host)
 					p, err := mon.Job.Run(host.Transport)
 					if err == nil {
-						logger.Green("monitor", "%s: %s", mon.Id.Hex(), mon.Job.AgentId)
+						logger.Green("monitor", "%s, %s", mon.Id.Hex(), mon.Job.AgentId)
 					} else {
-						logger.Red("monitor", "%s: %s", mon.Id.Hex(), mon.Job.AgentId)
+						logger.Red("monitor", "%s, %s: %s", mon.Id.Hex(), mon.Job.AgentId, err.Error())
 					}
 					mon.LastPoints = p
 					mon.LastCheck = t
