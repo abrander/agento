@@ -13,7 +13,7 @@ import (
 
 type (
 	Host struct {
-		Id          bson.ObjectId     `json:"id" bson:"_id"`
+		Id          bson.ObjectId     `json:"id,omitempty" bson:"_id"`
 		AccountId   bson.ObjectId     `json:"accountId" bson:"accountId"`
 		Name        string            `json:"name"`
 		TransportId string            `json:"transportId" bson:"transportId"`
@@ -110,6 +110,11 @@ func (host *Host) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
+
+		if !bson.IsObjectIdHex(id) {
+			return fmt.Errorf("id '%s' is not a valid ObjectId", id)
+		}
+
 		host.Id = bson.ObjectIdHex(id)
 	}
 
@@ -120,6 +125,11 @@ func (host *Host) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
+
+		if !bson.IsObjectIdHex(id) {
+			return fmt.Errorf("accountId '%s' is not a valid ObjectId", id)
+		}
+
 		host.AccountId = bson.ObjectIdHex(id)
 	}
 
