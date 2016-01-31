@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"sync"
 
 	"golang.org/x/crypto/ssh"
 
@@ -31,10 +32,18 @@ const (
 
 var (
 	signer    ssh.Signer
-	PublicKey string
+	publicKey string
+	lock      sync.Mutex
 )
 
-func init() {
+func PublicKey() string {
+	lock.Lock()
+	defer lock.Unlock()
+
+	if publicKey != "" {
+		return publicKey
+	}
+
 	pemBytes, err := ioutil.ReadFile(path.Join(configuration.StateDir, privateKeyFilename))
 	if err != nil {
 		pemBytes, err = GenerateKey()
@@ -53,31 +62,33 @@ func init() {
 	key, err := ssh.ParseRawPrivateKey(pemBytes)
 	if err != nil {
 		logger.Error("ssh", err.Error())
-		return
+		return ""
 	}
 
 	// Convert to RSA key
 	rsaKey, ok := key.(*rsa.PrivateKey)
 	if !ok {
 		logger.Error("ssh", "Wrong key file format")
-		return
+		return ""
 	}
 
 	// Generate public key (this is deterministic)
 	rsaPubKey, err := ssh.NewPublicKey(&rsaKey.PublicKey)
 	if err != nil {
 		logger.Error("ssh", err.Error())
-		return
+		return ""
 	}
 
 	// Generate nice string for ~/.ssh/authorized_keys
-	PublicKey = string(bytes.TrimSpace(ssh.MarshalAuthorizedKey(rsaPubKey))) + " https://github.com/abrander/agento\n"
+	publicKey = string(bytes.TrimSpace(ssh.MarshalAuthorizedKey(rsaPubKey))) + " https://github.com/abrander/agento\n"
 
 	// Write file for convenience and automation
-	err = ioutil.WriteFile(path.Join(configuration.StateDir, publicKeyFilename), []byte(PublicKey), 0644)
+	err = ioutil.WriteFile(path.Join(configuration.StateDir, publicKeyFilename), []byte(publicKey), 0644)
 	if err != nil {
 		logger.Error("ssh", err.Error())
 	}
+
+	return publicKey
 }
 
 // Generate a new private RSA key for ssh
@@ -113,6 +124,9 @@ func (s *Ssh) Connect() (*ssh.Client, error) {
 
 	dialString := fmt.Sprintf("%s:%d", s.Host, s.Port)
 	logger.Yellow("ssh", "Connecting to %s as %s", dialString, s.Username)
+
+	// We have to call PublicKey() to make sure signer is initialized
+	PublicKey()
 
 	config := &ssh.ClientConfig{
 		User: s.Username,

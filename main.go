@@ -108,7 +108,7 @@ func main() {
 		engine.SetHTMLTemplate(templ)
 		engine.GET("/", func(c *gin.Context) {
 			c.HTML(http.StatusOK, "index.html", gin.H{
-				"sshPublicKey": ssh.PublicKey,
+				"sshPublicKey": ssh.PublicKey(),
 				"agentoSecret": config.Server.Secret,
 			})
 		})
