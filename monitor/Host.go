@@ -48,7 +48,7 @@ func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Hos
 func (s *Scheduler) GetHostByName(subject userdb.Subject, name string) (*Host, error) {
 	var host Host
 
-	err := hostCollection.FindId(bson.M{"Name": name}).One(&host)
+	err := hostCollection.Find(bson.M{"name": name}).One(&host)
 	if err != nil {
 		return nil, err
 	}
