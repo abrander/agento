@@ -85,6 +85,7 @@ func (s *Scheduler) GetHost(subject userdb.Subject, id string) (*Host, error) {
 func (s *Scheduler) AddHost(subject userdb.Subject, host *Host) error {
 	host.Id = bson.NewObjectId()
 
+	host.AccountId = bson.ObjectIdHex(subject.GetId())
 	err := subject.CanAccess(host)
 	if err != nil {
 		return err
