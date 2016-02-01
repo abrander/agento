@@ -21,6 +21,14 @@ type (
 	}
 )
 
+func NewHost(name string, transportId string, transport plugins.Transport) *Host {
+	return &Host{
+		Name:        name,
+		TransportId: transportId,
+		Transport:   transport,
+	}
+}
+
 func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error) {
 	var hosts []Host
 
@@ -35,6 +43,22 @@ func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Hos
 	}
 
 	return hosts, nil
+}
+
+func (s *Scheduler) GetHostByName(subject userdb.Subject, name string) (*Host, error) {
+	var host Host
+
+	err := hostCollection.FindId(bson.M{"Name": name}).One(&host)
+	if err != nil {
+		return nil, err
+	}
+
+	err = subject.CanAccess(&host)
+	if err != nil {
+		return nil, err
+	}
+
+	return &host, nil
 }
 
 func (s *Scheduler) GetHost(subject userdb.Subject, id string) (*Host, error) {
