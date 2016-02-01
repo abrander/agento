@@ -10,8 +10,10 @@ import (
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
+	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/plugins/agents/hostname"
+	"github.com/abrander/agento/plugins/transports/local"
 	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 )
@@ -25,10 +27,11 @@ type (
 		secret    string
 		db        userdb.Database
 		tsdb      timeseries.Database
+		admin     monitor.Admin
 	}
 )
 
-func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database) (*Server, error) {
+func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database, admin monitor.Admin) (*Server, error) {
 	s := &Server{}
 
 	router.Any("/report", s.reportHandler)
@@ -44,6 +47,7 @@ func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db use
 	if err != nil {
 		return nil, err
 	}
+	s.admin = admin
 
 	s.inventory = make(map[string]*Inventory)
 
@@ -86,7 +90,7 @@ func (s *Server) reportHandler(c *gin.Context) {
 		c.String(http.StatusForbidden, "%s", err.Error())
 		return
 	}
-	_, ok := subject.(userdb.Account)
+	account, ok := subject.(userdb.Account)
 	if !ok {
 		c.String(http.StatusForbidden, "Only account keys can report metrics")
 		return
@@ -98,6 +102,22 @@ func (s *Server) reportHandler(c *gin.Context) {
 	if err != nil {
 		c.String(http.StatusBadRequest, "%s", err.Error())
 		return
+	}
+
+	hostname := string(*results["hostname"].(*hostname.Hostname))
+	host, err := s.admin.GetHostByName(account, hostname)
+	if err == userdb.ErrorNoAccess {
+		c.String(http.StatusForbidden, "The hostname belongs to another account")
+		return
+	} else if err != nil {
+		transport := localtransport.NewLocalTransport().(plugins.Transport)
+		host = monitor.NewHost(hostname, "localtransport", transport)
+
+		err = s.admin.AddHost(account, host)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Cannot add host")
+			return
+		}
 	}
 
 	err = s.sendToInflux(results, subject.GetId())

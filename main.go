@@ -67,8 +67,21 @@ func main() {
 
 	db := userdb.NewSingleUser(config.Server.Secret)
 
+	monitor.Init(config.Monitor)
+	emitter := monitor.NewSimpleEmitter()
+	scheduler := monitor.NewScheduler(emitter)
+
+	var tsdb timeseries.Database
+	if config.Server.Http.Enabled || config.Server.Https.Enabled || config.Server.Udp.Enabled {
+		tsdb, err = timeseries.NewInfluxDb(&config.Server.Influxdb)
+		if err != nil {
+			logger.Red("agento", "InfluxDB error: %s", err.Error())
+			os.Exit(1)
+		}
+	}
+
 	engine := gin.New()
-	serv, err := server.NewServer(engine, config.Server, db)
+	serv, err := server.NewServer(engine, config.Server, db, scheduler)
 	if err != nil {
 		logger.Red("agento", "Server error: %s", err.Error())
 		os.Exit(1)
@@ -94,20 +107,7 @@ func main() {
 		go client.GatherAndReport(config.Client)
 	}
 
-	var tsdb timeseries.Database
-	if config.Server.Http.Enabled || config.Server.Https.Enabled || config.Server.Udp.Enabled {
-		tsdb, err = timeseries.NewInfluxDb(&config.Server.Influxdb)
-		if err != nil {
-			logger.Red("agento", "InfluxDB error: %s", err.Error())
-			os.Exit(1)
-		}
-	}
-
 	if config.Monitor.Enabled {
-		monitor.Init(config.Monitor)
-		emitter := monitor.NewSimpleEmitter()
-		scheduler := monitor.NewScheduler(emitter)
-
 		wg.Add(1)
 		go scheduler.Loop(*wg, db, tsdb)
 
