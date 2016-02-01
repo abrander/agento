@@ -55,3 +55,9 @@ func (s *SingleUser) Save() error {
 func (s *SingleUser) GetUsers() ([]User, error) {
 	return []User{s}, nil
 }
+
+// Ensure compliance
+var _ Object = (*SingleUser)(nil)
+var _ Subject = (*SingleUser)(nil)
+var _ User = (*SingleUser)(nil)
+var _ Account = (*SingleUser)(nil)
