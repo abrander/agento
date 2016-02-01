@@ -95,7 +95,7 @@ func (s *Server) ReportToInfluxdb() {
 		)
 		value.Histogram.Sample().Clear()
 
-		s.WritePoints(points)
+		s.tsdb.WritePoints(points)
 	}
 }
 

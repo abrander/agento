@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/influxdata/influxdb/client/v2"
@@ -13,20 +12,19 @@ import (
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/plugins/agents/hostname"
+	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 )
 
 type (
 	Server struct {
-		influxDb        client.Client
-		influxDbRetries int
-		inventory       map[string]*Inventory
-		bpsConf         client.BatchPointsConfig
-		http            configuration.HttpConfiguration
-		https           configuration.HttpsConfiguration
-		udp             configuration.UdpConfiguration
-		secret          string
-		db              userdb.Database
+		inventory map[string]*Inventory
+		http      configuration.HttpConfiguration
+		https     configuration.HttpsConfiguration
+		udp       configuration.UdpConfiguration
+		secret    string
+		db        userdb.Database
+		tsdb      timeseries.Database
 	}
 )
 
@@ -36,67 +34,20 @@ func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db use
 	router.Any("/report", s.reportHandler)
 	router.Any("/health", s.healthHandler)
 
-	conf := client.HTTPConfig{
-		Addr:      cfg.Influxdb.Url,
-		Username:  cfg.Influxdb.Username,
-		Password:  cfg.Influxdb.Password,
-		UserAgent: "agento-server",
-	}
-
 	var err error
-	s.influxDb, err = client.NewHTTPClient(conf)
-	if err != nil {
-		return nil, err
-	}
-
-	s.bpsConf = client.BatchPointsConfig{
-		Database:         cfg.Influxdb.Database,
-		RetentionPolicy:  cfg.Influxdb.RetentionPolicy,
-		WriteConsistency: "1",
-	}
-
-	s.influxDbRetries = cfg.Influxdb.Retries
-
 	s.http = cfg.Http
 	s.https = cfg.Https
 	s.udp = cfg.Udp
 	s.secret = cfg.Secret
 	s.db = db
+	s.tsdb, err = timeseries.NewInfluxDb(&cfg.Influxdb)
+	if err != nil {
+		return nil, err
+	}
 
 	s.inventory = make(map[string]*Inventory)
 
 	return s, nil
-}
-
-func (s *Server) WritePoints(points []*client.Point) error {
-	bps, err := client.NewBatchPoints(s.bpsConf)
-	if err != nil {
-		return err
-	}
-
-	for _, point := range points {
-		bps.AddPoint(point)
-	}
-
-	retries := s.influxDbRetries
-
-	err = s.influxDb.Write(bps)
-	if err != nil {
-		var i int
-		for i = 1; i <= retries; i++ {
-			logger.Red("server", "Error writing to influxdb: "+err.Error()+", retry %d/%d", i, 5)
-			time.Sleep(time.Millisecond * 500)
-			err = s.influxDb.Write(bps)
-			if err == nil {
-				break
-			}
-		}
-		if i >= retries {
-			logger.Red("server", "Error writing to influxdb: "+err.Error()+", giving up")
-		}
-	}
-
-	return err
 }
 
 func (s *Server) sendToInflux(stats plugins.Results, id string) error {
@@ -118,7 +69,7 @@ func (s *Server) sendToInflux(stats plugins.Results, id string) error {
 		points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 	}
 
-	return s.WritePoints(points)
+	return s.tsdb.WritePoints(points)
 }
 
 func (s *Server) reportHandler(c *gin.Context) {

@@ -13,7 +13,7 @@ import (
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
-	"github.com/abrander/agento/server"
+	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 	"github.com/influxdata/influxdb/client/v2"
 )
@@ -154,7 +154,7 @@ func (s *Scheduler) DeleteMonitor(subject userdb.Subject, id string) error {
 	return monitorCollection.RemoveId(bson.ObjectIdHex(id))
 }
 
-func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject, serv *server.Server) {
+func (s *Scheduler) Loop(wg sync.WaitGroup, subject userdb.Subject, serv timeseries.Database) {
 	_, err := s.GetHost(subject, "000000000000000000000000")
 	if err != nil {
 		p, found := plugins.GetTransports()["localtransport"]

@@ -32,6 +32,7 @@ import (
 	_ "github.com/abrander/agento/plugins/transports/local"
 	"github.com/abrander/agento/plugins/transports/ssh"
 	"github.com/abrander/agento/server"
+	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 )
 
@@ -93,13 +94,22 @@ func main() {
 		go client.GatherAndReport(config.Client)
 	}
 
+	var tsdb timeseries.Database
+	if config.Server.Http.Enabled || config.Server.Https.Enabled || config.Server.Udp.Enabled {
+		tsdb, err = timeseries.NewInfluxDb(&config.Server.Influxdb)
+		if err != nil {
+			logger.Red("agento", "InfluxDB error: %s", err.Error())
+			os.Exit(1)
+		}
+	}
+
 	if config.Monitor.Enabled {
 		monitor.Init(config.Monitor)
 		emitter := monitor.NewSimpleEmitter()
 		scheduler := monitor.NewScheduler(emitter)
 
 		wg.Add(1)
-		go scheduler.Loop(*wg, db, serv)
+		go scheduler.Loop(*wg, db, tsdb)
 
 		go api.Init(engine.Group("/api"), scheduler, emitter, db)
 
