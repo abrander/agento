@@ -86,6 +86,11 @@ func (s *Server) reportHandler(c *gin.Context) {
 		c.String(http.StatusForbidden, "%s", err.Error())
 		return
 	}
+	_, ok := subject.(userdb.Account)
+	if !ok {
+		c.String(http.StatusForbidden, "Only account keys can report metrics")
+		return
+	}
 
 	var results = plugins.Results{}
 
