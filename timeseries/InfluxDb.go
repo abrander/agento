@@ -36,7 +36,7 @@ func NewInfluxDb(cfg *configuration.InfluxdbConfiguration) (*InfluxDb, error) {
 		bpsConf: client.BatchPointsConfig{
 			Database:         cfg.Database,
 			RetentionPolicy:  cfg.RetentionPolicy,
-			WriteConsistency: "1",
+			WriteConsistency: "one",
 		},
 	}, nil
 }
