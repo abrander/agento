@@ -104,19 +104,21 @@ func (s *Server) reportHandler(c *gin.Context) {
 		return
 	}
 
-	hostname := string(*results["hostname"].(*hostname.Hostname))
-	host, err := s.admin.GetHostByName(account, hostname)
-	if err == userdb.ErrorNoAccess {
-		c.String(http.StatusForbidden, "The hostname belongs to another account")
-		return
-	} else if err != nil {
-		transport := localtransport.NewLocalTransport().(plugins.Transport)
-		host = monitor.NewHost(hostname, "localtransport", transport)
-
-		err = s.admin.AddHost(account, host)
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Cannot add host")
+	if s.admin != nil {
+		hostname := string(*results["hostname"].(*hostname.Hostname))
+		_, err = s.admin.GetHostByName(account, hostname)
+		if err == userdb.ErrorNoAccess {
+			c.String(http.StatusForbidden, "The hostname belongs to another account")
 			return
+		} else if err != nil {
+			transport := localtransport.NewLocalTransport().(plugins.Transport)
+			host := monitor.NewHost(hostname, "localtransport", transport)
+
+			err = s.admin.AddHost(account, host)
+			if err != nil {
+				c.String(http.StatusInternalServerError, "Cannot add host")
+				return
+			}
 		}
 	}
 
