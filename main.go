@@ -66,10 +66,26 @@ func main() {
 	wg := &sync.WaitGroup{}
 
 	db := userdb.NewSingleUser(config.Server.Secret)
+	engine := gin.New()
 
-	monitor.Init(config.Monitor)
-	emitter := monitor.NewSimpleEmitter()
-	scheduler := monitor.NewScheduler(emitter)
+	var emitter *monitor.SimpleEmitter
+	var scheduler *monitor.Scheduler
+	var serv *server.Server
+
+	if config.Monitor.Enabled {
+		monitor.Init(config.Monitor)
+
+		emitter = monitor.NewSimpleEmitter()
+		scheduler = monitor.NewScheduler(emitter)
+
+		serv, err = server.NewServer(engine, config.Server, db, scheduler)
+	} else {
+		serv, err = server.NewServer(engine, config.Server, db, nil)
+	}
+	if err != nil {
+		logger.Red("agento", "Server error: %s", err.Error())
+		os.Exit(1)
+	}
 
 	var tsdb timeseries.Database
 	if config.Server.Http.Enabled || config.Server.Https.Enabled || config.Server.Udp.Enabled {
@@ -78,13 +94,6 @@ func main() {
 			logger.Red("agento", "InfluxDB error: %s", err.Error())
 			os.Exit(1)
 		}
-	}
-
-	engine := gin.New()
-	serv, err := server.NewServer(engine, config.Server, db, scheduler)
-	if err != nil {
-		logger.Red("agento", "Server error: %s", err.Error())
-		os.Exit(1)
 	}
 
 	if config.Server.Http.Enabled {
