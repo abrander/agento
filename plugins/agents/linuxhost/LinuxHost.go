@@ -41,7 +41,10 @@ func (l *LinuxHost) Gather(transport plugins.Transport) error {
 
 		if found {
 			l.Agents[agentId] = agent().(plugins.Agent)
-			l.Agents[agentId].Gather(transport)
+			err := l.Agents[agentId].Gather(transport)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
