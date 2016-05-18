@@ -6,10 +6,13 @@ import (
 	"strings"
 )
 
+// Plugin is a basic interface all plugins must implement.
 type Plugin interface {
 	GetDoc() *Doc
 }
 
+// Parameter describes the user supplied parameters of a plugin (most often
+// an agent).
 type Parameter struct {
 	Name        string   `json:"name"`
 	Type        string   `json:"type"`
@@ -17,11 +20,18 @@ type Parameter struct {
 	EnumValues  []string `json:"enumValues"`
 }
 
+// PluginConstructor is the type for a function that will instantiate a plugin.
 type PluginConstructor func() Plugin
 
+// A map al already instantiated and configured plugins.
 var plugins = map[string]Plugin{}
+
+// Constructors for all plugins. Please note that the plugin will *not* be
+// configured after calling the constructor.
 var pluginConstructors = map[string]func() Plugin{}
 
+// Register will register (at runtime) a new plugin. This should be done from
+// init() in the plugin.
 func Register(shortName string, constructor PluginConstructor) {
 	_, exists := plugins[shortName]
 	if exists {
@@ -47,14 +57,17 @@ func getPlugins(iType reflect.Type) map[string]PluginConstructor {
 	return r
 }
 
+// GetPlugins will return a list of constructors for all compiled plugins.
 func GetPlugins() map[string]PluginConstructor {
 	return getPlugins(reflect.TypeOf((*Plugin)(nil)).Elem())
 }
 
+// GetAgents will return a list of constructors for all compiled agents.
 func GetAgents() map[string]PluginConstructor {
 	return getPlugins(reflect.TypeOf((*Agent)(nil)).Elem())
 }
 
+// GetTransports will return a list of constructors for all compiled transports.
 func GetTransports() map[string]PluginConstructor {
 	return getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
 }

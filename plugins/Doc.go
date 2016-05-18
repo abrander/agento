@@ -4,6 +4,7 @@ import (
 	"reflect"
 )
 
+// Doc represents end user documentation for a plugin.
 type Doc struct {
 	Info struct {
 		Name        string `json:"name"`
@@ -14,6 +15,28 @@ type Doc struct {
 	Measurements map[string]string `json:"-"`
 }
 
+// NewDoc will instantiate a new Doc. Can be used from plugins to build GetDoc().
+func NewDoc(description string) *Doc {
+	var doc Doc
+
+	doc.Info.Description = description
+	doc.Measurements = make(map[string]string)
+	doc.Tags = make(map[string]string)
+
+	return &doc
+}
+
+// AddMeasurement will add documentation for a measurement.
+func (d *Doc) AddMeasurement(key string, description string, unit string) {
+	d.Measurements[key] = description + " (" + unit + ")"
+}
+
+// AddTag will add documentation for a tag.
+func (d *Doc) AddTag(key string, description string) {
+	d.Tags[key] = description
+}
+
+// GetDoc will return a map of documentation for all plugins.
 func GetDoc() map[string]*Doc {
 	docs := make(map[string]*Doc)
 
@@ -27,22 +50,18 @@ func GetDoc() map[string]*Doc {
 	return docs
 }
 
-func NewDoc(description string) *Doc {
-	var doc Doc
-
-	doc.Info.Description = description
-	doc.Measurements = make(map[string]string)
-	doc.Tags = make(map[string]string)
-
-	return &doc
+// GetDocAgents behaves like GetDoc(), but will only return documentaiton for
+// agents.
+func GetDocAgents() map[string]*Doc {
+	p := getPlugins(reflect.TypeOf((*Agent)(nil)).Elem())
+	return getDescriptions(p)
 }
 
-func (d *Doc) AddMeasurement(key string, description string, unit string) {
-	d.Measurements[key] = description + " (" + unit + ")"
-}
-
-func (d *Doc) AddTag(key string, description string) {
-	d.Tags[key] = description
+// GetDocTransports behaves like GetDoc(), but will only return documentaiton
+// for transports.
+func GetDocTransports() map[string]*Doc {
+	p := getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
+	return getDescriptions(p)
 }
 
 func getDescriptions(m map[string]PluginConstructor) map[string]*Doc {
@@ -61,19 +80,4 @@ func getDescriptions(m map[string]PluginConstructor) map[string]*Doc {
 	}
 
 	return r
-}
-
-func AvailableAgents() map[string]*Doc {
-	p := getPlugins(reflect.TypeOf((*Agent)(nil)).Elem())
-	return getDescriptions(p)
-}
-
-func AvailablePlugins() map[string]*Doc {
-	p := getPlugins(reflect.TypeOf((*Plugin)(nil)).Elem())
-	return getDescriptions(p)
-}
-
-func AvailableTransports() map[string]*Doc {
-	p := getPlugins(reflect.TypeOf((*Transport)(nil)).Elem())
-	return getDescriptions(p)
 }

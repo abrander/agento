@@ -139,7 +139,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 		a := router.Group("/agent")
 
 		a.GET("/", func(c *gin.Context) {
-			c.JSON(200, plugins.AvailableAgents())
+			c.JSON(200, plugins.GetDocAgents())
 		})
 
 	}
@@ -258,7 +258,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 		t := router.Group("/transport")
 
 		t.GET("/", func(c *gin.Context) {
-			c.JSON(200, plugins.AvailableTransports())
+			c.JSON(200, plugins.GetDocTransports())
 		})
 	}
 }
