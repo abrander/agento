@@ -50,7 +50,13 @@ func NewConfigurationStore(config *configuration.Configuration, changes Broadcas
 		}
 
 		host.Name = name
-		host.Id = bson.NewObjectId()
+		if host.Name == "localhost" {
+			// localhost is special for now. Scheduler and javascript client
+			// expect this id.
+			host.Id = bson.ObjectIdHex("000000000000000000000000")
+		} else {
+			host.Id = bson.NewObjectId()
+		}
 
 		// Try to get a transport.
 		construct, found := plugins.GetTransports()[host.TransportId]
