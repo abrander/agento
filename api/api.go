@@ -100,7 +100,7 @@ func getAccountId(c *gin.Context) string {
 	return ""
 }
 
-func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db userdb.Database) {
+func Init(router gin.IRouter, store monitor.Store, emitter monitor.Emitter, db userdb.Database) {
 	router.GET("/ws/:key", func(c *gin.Context) {
 		key := c.Param("key")
 		subject, error := db.ResolveKey(key)
@@ -151,7 +151,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			id := c.Param("id")
 			subject := getSubject(c)
 
-			err := admin.DeleteHost(subject, id)
+			err := store.DeleteHost(subject, id)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -164,7 +164,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			subject := getSubject(c)
 
 			c.Bind(&host)
-			err := admin.AddHost(subject, &host)
+			err := store.AddHost(subject, &host)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -176,7 +176,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			subject := getSubject(c)
 			accountId := getAccountId(c)
 
-			hosts, err := admin.GetAllHosts(subject, accountId)
+			hosts, err := store.GetAllHosts(subject, accountId)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -192,7 +192,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			id := c.Param("id")
 			subject := getSubject(c)
 
-			mon, err := admin.GetMonitor(subject, id)
+			mon, err := store.GetMonitor(subject, id)
 			if err == monitor.ErrorInvalidId {
 				c.AbortWithError(400, err)
 			} else if err != nil {
@@ -207,7 +207,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			subject := getSubject(c)
 
 			c.Bind(&mon)
-			err := admin.UpdateMonitor(subject, &mon)
+			err := store.UpdateMonitor(subject, &mon)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -219,7 +219,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			id := c.Param("id")
 			subject := getSubject(c)
 
-			err := admin.DeleteMonitor(subject, id)
+			err := store.DeleteMonitor(subject, id)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -232,7 +232,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			subject := getSubject(c)
 
 			c.Bind(&mon)
-			err := admin.AddMonitor(subject, &mon)
+			err := store.AddMonitor(subject, &mon)
 			if err != nil {
 				logger.Yellow("api", "Error: %s", err.Error())
 				c.AbortWithError(500, err)
@@ -245,7 +245,7 @@ func Init(router gin.IRouter, admin monitor.Admin, emitter monitor.Emitter, db u
 			subject := getSubject(c)
 			accountId := getAccountId(c)
 
-			monitors, err := admin.GetAllMonitors(subject, accountId)
+			monitors, err := store.GetAllMonitors(subject, accountId)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {

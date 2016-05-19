@@ -27,11 +27,11 @@ type (
 		secret    string
 		db        userdb.Database
 		tsdb      timeseries.Database
-		admin     monitor.Admin
+		store     monitor.HostStore
 	}
 )
 
-func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database, admin monitor.Admin) (*Server, error) {
+func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database, store monitor.HostStore) (*Server, error) {
 	s := &Server{}
 
 	router.Any("/report", s.reportHandler)
@@ -47,7 +47,7 @@ func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db use
 	if err != nil {
 		return nil, err
 	}
-	s.admin = admin
+	s.store = store
 
 	s.inventory = make(map[string]*Inventory)
 
@@ -104,9 +104,9 @@ func (s *Server) reportHandler(c *gin.Context) {
 		return
 	}
 
-	if s.admin != nil {
+	if s.store != nil {
 		hostname := string(*results["hostname"].(*hostname.Hostname))
-		_, err = s.admin.GetHostByName(account, hostname)
+		_, err = s.store.GetHostByName(account, hostname)
 		if err == userdb.ErrorNoAccess {
 			c.String(http.StatusForbidden, "The hostname belongs to another account")
 			return
@@ -114,7 +114,7 @@ func (s *Server) reportHandler(c *gin.Context) {
 			transport := localtransport.NewLocalTransport().(plugins.Transport)
 			host := monitor.NewHost(hostname, "localtransport", transport)
 
-			err = s.admin.AddHost(account, host)
+			err = s.store.AddHost(account, host)
 			if err != nil {
 				c.String(http.StatusInternalServerError, "Cannot add host")
 				return

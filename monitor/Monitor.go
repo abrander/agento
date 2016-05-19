@@ -19,13 +19,23 @@ import (
 )
 
 type (
-	Admin interface {
+	// Store is an interface describing a complete Agento storage.
+	Store interface {
+		MonitorStore
+		HostStore
+	}
+
+	// MonitorStore describes a store capable of storing monitors.
+	MonitorStore interface {
 		GetAllMonitors(subject userdb.Subject, accountId string) ([]Monitor, error)
 		AddMonitor(subject userdb.Subject, mon *Monitor) error
 		GetMonitor(subject userdb.Subject, id string) (*Monitor, error)
 		UpdateMonitor(subject userdb.Subject, mon *Monitor) error
 		DeleteMonitor(subject userdb.Subject, id string) error
+	}
 
+	// HostStore is an interface describing a store for hosts.
+	HostStore interface {
 		GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error)
 		AddHost(subject userdb.Subject, host *Host) error
 		GetHost(subject userdb.Subject, id string) (*Host, error)
