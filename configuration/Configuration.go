@@ -138,9 +138,12 @@ type MongoConfiguration struct {
 }
 
 type Configuration struct {
-	Client  ClientConfiguration  `toml:"client"`
-	Server  ServerConfiguration  `toml:"server"`
-	Monitor MonitorConfiguration `toml:"monitor"`
+	Client   ClientConfiguration       `toml:"client"`
+	Server   ServerConfiguration       `toml:"server"`
+	Monitor  MonitorConfiguration      `toml:"monitor"`
+	Hosts    map[string]toml.Primitive `toml:"host"`
+	Monitors map[string]toml.Primitive `toml:"mon"`
+	metadata toml.MetaData
 }
 
 func fileExists(name string) bool {
@@ -169,7 +172,8 @@ func (c *Configuration) LoadFromFile(path string) error {
 
 	// Read values from config file if it exists
 	if fileExists(path) {
-		if _, err := toml.DecodeFile(path, &c); err != nil {
+		c.metadata, err = toml.DecodeFile(path, &c)
+		if err != nil {
 			return err
 		}
 	}
@@ -211,4 +215,17 @@ func (c *Configuration) LoadFromEnvironment() {
 	if envMongoUrl != "" {
 		c.Monitor.Mongo.Url = envMongoUrl
 	}
+}
+
+// GetAllHosts will return enough for someone to decode [host.*] fields from the
+// TOML file.
+func (c *Configuration) GetAllHosts() (toml.MetaData, map[string]toml.Primitive) {
+	return c.metadata, c.Hosts
+}
+
+// GetAllMonitors will return enough for someone to decode [mon.*] fields from
+// the TOML file.
+// FIXME: Remove monitor, and remame THIS monitor.
+func (c *Configuration) GetAllMonitors() (toml.MetaData, map[string]toml.Primitive) {
+	return c.metadata, c.Monitors
 }
