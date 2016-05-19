@@ -68,17 +68,18 @@ func main() {
 	db := userdb.NewSingleUser(config.Server.Secret)
 	engine := gin.New()
 
+	var store monitor.Store
 	var emitter *monitor.SimpleEmitter
 	var scheduler *monitor.Scheduler
 	var serv *server.Server
 
 	if config.Monitor.Enabled {
-		monitor.Init(config.Monitor)
+		store, err = monitor.NewMongoStore(config.Monitor, emitter)
 
 		emitter = monitor.NewSimpleEmitter()
-		scheduler = monitor.NewScheduler(emitter)
+		scheduler = monitor.NewScheduler(store, db)
 
-		serv, err = server.NewServer(engine, config.Server, db, scheduler)
+		serv, err = server.NewServer(engine, config.Server, db, store)
 	} else {
 		serv, err = server.NewServer(engine, config.Server, db, nil)
 	}
@@ -118,9 +119,9 @@ func main() {
 
 	if config.Monitor.Enabled {
 		wg.Add(1)
-		go scheduler.Loop(*wg, db, tsdb)
+		go scheduler.Loop(*wg, tsdb)
 
-		go api.Init(engine.Group("/api"), scheduler, emitter, db)
+		go api.Init(engine.Group("/api"), store, emitter, db)
 
 		// Website for debugging
 		templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))

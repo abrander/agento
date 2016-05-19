@@ -6,9 +6,7 @@ import (
 
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
-	"github.com/abrander/agento/userdb"
 )
 
 type (
@@ -27,93 +25,6 @@ func NewHost(name string, transportId string, transport plugins.Transport) *Host
 		TransportId: transportId,
 		Transport:   transport,
 	}
-}
-
-func (s *Scheduler) GetAllHosts(subject userdb.Subject, accountId string) ([]Host, error) {
-	var hosts []Host
-
-	err := subject.CanAccess(userdb.ObjectProxy(accountId))
-	if err != nil {
-		return hosts, err
-	}
-
-	err = hostCollection.Find(bson.M{"accountId": bson.ObjectIdHex(accountId)}).All(&hosts)
-	if err != nil {
-		logger.Red("monitor", "Error getting hosts from Mongo: %s", err.Error())
-	}
-
-	return hosts, nil
-}
-
-func (s *Scheduler) GetHostByName(subject userdb.Subject, name string) (*Host, error) {
-	var host Host
-
-	err := hostCollection.Find(bson.M{"name": name}).One(&host)
-	if err != nil {
-		return nil, err
-	}
-
-	err = subject.CanAccess(&host)
-	if err != nil {
-		return nil, err
-	}
-
-	return &host, nil
-}
-
-func (s *Scheduler) GetHost(subject userdb.Subject, id string) (*Host, error) {
-	var host Host
-
-	if !bson.IsObjectIdHex(id) {
-		return nil, ErrorInvalidId
-	}
-
-	err := hostCollection.FindId(bson.ObjectIdHex(id)).One(&host)
-	if err != nil {
-		logger.Red("host", "Error getting host from Mongo: %s", err.Error())
-		return nil, err
-	}
-
-	err = subject.CanAccess(&host)
-	if err != nil {
-		return nil, err
-	}
-
-	return &host, nil
-}
-
-func (s *Scheduler) AddHost(subject userdb.Subject, host *Host) error {
-	host.Id = bson.NewObjectId()
-
-	host.AccountId = bson.ObjectIdHex(subject.GetId())
-	err := subject.CanAccess(host)
-	if err != nil {
-		return err
-	}
-
-	s.changes.Broadcast("hostadd", host)
-
-	return hostCollection.Insert(host)
-}
-
-func (s *Scheduler) DeleteHost(subject userdb.Subject, id string) error {
-	if !bson.IsObjectIdHex(id) {
-		return ErrorInvalidId
-	}
-
-	host, err := s.GetHost(subject, id)
-	if err != nil {
-		return err
-	}
-
-	err = subject.CanAccess(host)
-	if err != nil {
-		return err
-	}
-
-	s.changes.Broadcast("hostdelete", host)
-
-	return hostCollection.RemoveId(bson.ObjectIdHex(id))
 }
 
 func (h *Host) GetAccountId() string {
