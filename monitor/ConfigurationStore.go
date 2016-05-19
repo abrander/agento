@@ -25,8 +25,11 @@ type (
 )
 
 var (
-	// ErrNotSupported is returned if an unsupported operation is tried.
-	ErrNotSupported = errors.New("Not supported in ConfigurationStore")
+	// ErrHostNotFound will be returned iof the host cannot be found.
+	ErrHostNotFound = errors.New("Host not found")
+
+	// ErrMonitorNotFound will be returned if the monitor cannot be found.
+	ErrMonitorNotFound = errors.New("Monitor not found")
 )
 
 // NewConfigurationStore will instantiate a new store based on the configuration
@@ -136,14 +139,18 @@ func (s *ConfigurationStore) GetAllHosts(_ userdb.Subject, _ string) ([]Host, er
 	return hosts, nil
 }
 
-// AddHost does nothing in a ConfigurationStore. Will return ErrNotSupported.
-func (s *ConfigurationStore) AddHost(_ userdb.Subject, _ *Host) error {
-	return ErrNotSupported
+// AddHost adds a host to memory, not to the configuration file.
+func (s *ConfigurationStore) AddHost(_ userdb.Subject, host *Host) error {
+	host.Id = bson.NewObjectId()
+	s.hosts[host.Id] = *host
+
+	s.changes.Broadcast("hostadd", host)
+
+	return nil
 }
 
 // GetHost will return the host with the given id.
 func (s *ConfigurationStore) GetHost(_ userdb.Subject, id string) (*Host, error) {
-	fmt.Printf("LOOKING FOR '%s'\n", id)
 	host, found := s.hosts[bson.ObjectIdHex(id)]
 	if !found {
 		return nil, ErrorInvalidId
@@ -163,9 +170,18 @@ func (s *ConfigurationStore) GetHostByName(_ userdb.Subject, name string) (*Host
 	return nil, fmt.Errorf("Host '%s' not found", name)
 }
 
-// DeleteHost does nothing. ConfigurationStore is read-only.
-func (s *ConfigurationStore) DeleteHost(_ userdb.Subject, _ string) error {
-	return ErrNotSupported
+// DeleteHost will remove a host from memory, but not from configuration file.
+func (s *ConfigurationStore) DeleteHost(_ userdb.Subject, id string) error {
+	host, found := s.hosts[bson.ObjectIdHex(id)]
+	if !found {
+		return ErrHostNotFound
+	}
+
+	delete(s.hosts, bson.ObjectIdHex(id))
+
+	s.changes.Broadcast("hostdelete", &host)
+
+	return nil
 }
 
 // GetAllMonitors return all known monitors.
@@ -182,9 +198,14 @@ func (s *ConfigurationStore) GetAllMonitors(_ userdb.Subject, _ string) ([]Monit
 	return monitors, nil
 }
 
-// AddMonitor does nothing. ConfigurationStore is read-only.
+// AddMonitor adds a monitor to memory.
 func (s *ConfigurationStore) AddMonitor(_ userdb.Subject, mon *Monitor) error {
-	return ErrNotSupported
+	mon.Id = bson.NewObjectId()
+	s.monitors[mon.Id] = *mon
+
+	s.changes.Broadcast("monadd", mon)
+
+	return nil
 }
 
 // GetMonitor will return a monitor identified by id if found.
@@ -195,7 +216,7 @@ func (s *ConfigurationStore) GetMonitor(_ userdb.Subject, id string) (*Monitor, 
 		}
 	}
 
-	return nil, fmt.Errorf("Monitor '%s' not found", id)
+	return nil, ErrMonitorNotFound
 }
 
 // UpdateMonitor accepts the write but otherwise does no writing to disk.
@@ -208,6 +229,15 @@ func (s *ConfigurationStore) UpdateMonitor(_ userdb.Subject, mon *Monitor) error
 }
 
 // DeleteMonitor does nothing. ConfigurationStore is read-only.
-func (s *ConfigurationStore) DeleteMonitor(_ userdb.Subject, _ string) error {
-	return ErrNotSupported
+func (s *ConfigurationStore) DeleteMonitor(_ userdb.Subject, id string) error {
+	mon, found := s.monitors[bson.ObjectIdHex(id)]
+	if !found {
+		return ErrMonitorNotFound
+	}
+
+	delete(s.monitors, bson.ObjectIdHex(id))
+
+	s.changes.Broadcast("mondelete", &mon)
+
+	return nil
 }
