@@ -16,7 +16,7 @@ func init() {
 	plugins.Register("cpuspeed", NewCpuSpeed)
 }
 
-func NewCpuSpeed() plugins.Plugin {
+func NewCpuSpeed() interface{} {
 	return new(CpuSpeed)
 }
 

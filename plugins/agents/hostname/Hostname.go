@@ -16,7 +16,7 @@ func init() {
 
 type Hostname string
 
-func NewHostname() plugins.Plugin {
+func NewHostname() interface{} {
 	return new(Hostname)
 }
 

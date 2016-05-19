@@ -16,7 +16,7 @@ func init() {
 	plugins.Register("openfiles", NewOpenFiles)
 }
 
-func NewOpenFiles() plugins.Plugin {
+func NewOpenFiles() interface{} {
 	return new(OpenFiles)
 }
 

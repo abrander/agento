@@ -21,14 +21,14 @@ type Parameter struct {
 }
 
 // PluginConstructor is the type for a function that will instantiate a plugin.
-type PluginConstructor func() Plugin
+type PluginConstructor func() interface{}
 
 // A map al already instantiated and configured plugins.
 var plugins = map[string]Plugin{}
 
 // Constructors for all plugins. Please note that the plugin will *not* be
 // configured after calling the constructor.
-var pluginConstructors = map[string]func() Plugin{}
+var pluginConstructors = map[string]PluginConstructor{}
 
 // Register will register (at runtime) a new plugin. This should be done from
 // init() in the plugin.
@@ -39,7 +39,7 @@ func Register(shortName string, constructor PluginConstructor) {
 		return
 	}
 
-	plugins[shortName] = constructor()
+	plugins[shortName] = constructor().(Plugin)
 	pluginConstructors[shortName] = constructor
 }
 

@@ -23,7 +23,7 @@ type NetStats struct {
 	Interfaces       map[string]*SingleNetStats `json:"ifs"`
 }
 
-func NewNetStats() plugins.Plugin {
+func NewNetStats() interface{} {
 	return new(NetStats)
 }
 

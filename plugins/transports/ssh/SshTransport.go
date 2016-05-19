@@ -22,7 +22,7 @@ func init() {
 	plugins.Register("ssh-command", NewSshTransport)
 }
 
-func NewSshTransport() plugins.Plugin {
+func NewSshTransport() interface{} {
 	return new(SshTransport)
 }
 

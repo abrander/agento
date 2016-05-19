@@ -25,7 +25,7 @@ type CpuStats struct {
 	BlockedProcesses int64                     `json:"bl"` // Since 2.5.45
 }
 
-func NewCpuStats() plugins.Plugin {
+func NewCpuStats() interface{} {
 	return new(CpuStats)
 }
 

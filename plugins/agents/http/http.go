@@ -14,7 +14,7 @@ func init() {
 	plugins.Register("http", NewHttp)
 }
 
-func NewHttp() plugins.Plugin {
+func NewHttp() interface{} {
 	return new(Http)
 }
 

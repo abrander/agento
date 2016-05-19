@@ -16,7 +16,7 @@ func init() {
 	plugins.Register("diskio", NewDiskStats)
 }
 
-func NewDiskStats() plugins.Plugin {
+func NewDiskStats() interface{} {
 	return new(DiskStats)
 }
 

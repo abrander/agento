@@ -17,7 +17,7 @@ func init() {
 
 type Entropy int
 
-func NewEntropy() plugins.Plugin {
+func NewEntropy() interface{} {
 	return new(Entropy)
 }
 

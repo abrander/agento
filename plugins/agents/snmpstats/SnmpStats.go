@@ -18,7 +18,7 @@ func init() {
 	plugins.Register("netstat", NewSnmpStats)
 }
 
-func NewSnmpStats() plugins.Plugin {
+func NewSnmpStats() interface{} {
 	return new(SnmpStats)
 }
 

@@ -16,7 +16,7 @@ func init() {
 	plugins.Register("load", NewLoadStats)
 }
 
-func NewLoadStats() plugins.Plugin {
+func NewLoadStats() interface{} {
 	return new(LoadStats)
 }
 

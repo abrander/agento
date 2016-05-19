@@ -16,7 +16,7 @@ func init() {
 	plugins.Register("memory", NewMemoryStats)
 }
 
-func NewMemoryStats() plugins.Plugin {
+func NewMemoryStats() interface{} {
 	return new(MemoryStats)
 }
 

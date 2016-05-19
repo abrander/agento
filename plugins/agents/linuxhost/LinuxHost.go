@@ -28,7 +28,7 @@ func init() {
 	plugins.Register("linuxhost", NewLinuxHost)
 }
 
-func NewLinuxHost() plugins.Plugin {
+func NewLinuxHost() interface{} {
 	return new(LinuxHost)
 }
 

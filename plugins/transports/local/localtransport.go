@@ -17,7 +17,7 @@ func init() {
 	plugins.Register("localtransport", NewLocalTransport)
 }
 
-func NewLocalTransport() plugins.Plugin {
+func NewLocalTransport() interface{} {
 	return new(LocalTransport)
 }
 

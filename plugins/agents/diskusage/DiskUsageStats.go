@@ -13,7 +13,7 @@ func init() {
 	plugins.Register("diskusage", NewDiskUsageStats)
 }
 
-func NewDiskUsageStats() plugins.Plugin {
+func NewDiskUsageStats() interface{} {
 	return new(DiskUsageStats)
 }
 

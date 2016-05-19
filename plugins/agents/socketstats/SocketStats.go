@@ -14,7 +14,7 @@ func init() {
 	plugins.Register("sockets", NewSocketStats)
 }
 
-func NewSocketStats() plugins.Plugin {
+func NewSocketStats() interface{} {
 	return new(SocketStats)
 }
 
