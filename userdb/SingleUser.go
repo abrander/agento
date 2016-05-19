@@ -11,6 +11,12 @@ type (
 	}
 )
 
+var (
+	// God can be used as a user with access to everything - even in multiuser
+	// environments.
+	God = &SingleUser{}
+)
+
 func NewSingleUser(key string) *SingleUser {
 	return &SingleUser{key: key}
 }
