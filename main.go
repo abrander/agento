@@ -69,20 +69,28 @@ func main() {
 	engine := gin.New()
 
 	var store monitor.Store
-	var emitter *monitor.SimpleEmitter
-	var scheduler *monitor.Scheduler
-	var serv *server.Server
 
-	if config.Monitor.Enabled {
-		store, err = monitor.NewMongoStore(config.Monitor, emitter)
+	emitter := monitor.NewSimpleEmitter()
 
-		emitter = monitor.NewSimpleEmitter()
-		scheduler = monitor.NewScheduler(store, db)
-
-		serv, err = server.NewServer(engine, config.Server, db, store)
+	// If the user have Mongo enabled, we use that. If not, we read from
+	// configuration.
+	if config.Mongo.Enabled {
+		store, err = monitor.NewMongoStore(config.Mongo, emitter)
+		if err != nil {
+			logger.Red("agento", "Mongo error: %s", err.Error())
+			os.Exit(1)
+		}
 	} else {
-		serv, err = server.NewServer(engine, config.Server, db, nil)
+		store, err = monitor.NewConfigurationStore(&config, emitter)
+		if err != nil {
+			logger.Red("agento", "Configuration error: %s", err.Error())
+			os.Exit(1)
+		}
 	}
+
+	scheduler := monitor.NewScheduler(store, db)
+
+	serv, err := server.NewServer(engine, config.Server, db, store)
 	if err != nil {
 		logger.Red("agento", "Server error: %s", err.Error())
 		os.Exit(1)
@@ -117,23 +125,21 @@ func main() {
 		go client.GatherAndReport(config.Client)
 	}
 
-	if config.Monitor.Enabled {
-		wg.Add(1)
-		go scheduler.Loop(*wg, tsdb)
+	wg.Add(1)
+	go scheduler.Loop(*wg, tsdb)
 
-		go api.Init(engine.Group("/api"), store, emitter, db)
+	go api.Init(engine.Group("/api"), store, emitter, db)
 
-		// Website for debugging
-		templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
-		engine.SetHTMLTemplate(templ)
-		engine.GET("/", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "index.html", gin.H{
-				"sshPublicKey": ssh.PublicKey(),
-				"agentoSecret": config.Server.Secret,
-			})
+	// Website for debugging
+	templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
+	engine.SetHTMLTemplate(templ)
+	engine.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"sshPublicKey": ssh.PublicKey(),
+			"agentoSecret": config.Server.Secret,
 		})
-		engine.Static("/static", "web/")
-	}
+	})
+	engine.Static("/static", "web/")
 
 	wg.Wait()
 }

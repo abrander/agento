@@ -24,18 +24,18 @@ type (
 
 // NewMongoStore will instantiate a new MongoStore. MongoStore is as the name
 // suggest backed by a MongoDB database.
-func NewMongoStore(config configuration.MonitorConfiguration, changes Broadcaster) (*MongoStore, error) {
+func NewMongoStore(config configuration.MongoConfiguration, changes Broadcaster) (*MongoStore, error) {
 	var err error
 	m := &MongoStore{}
 
-	m.sess, err = mgo.Dial(config.Mongo.Url)
+	m.sess, err = mgo.Dial(config.Url)
 	if err != nil {
 		logger.Error("monitor", "Can't connect to mongo, go error %v", err)
 		os.Exit(1)
 	}
-	logger.Green("monitor", "Connected to mongo/%s at %s", config.Mongo.Database, config.Mongo.Url)
+	logger.Green("monitor", "Connected to mongo/%s at %s", config.Database, config.Url)
 
-	m.db = m.sess.DB(config.Mongo.Database)
+	m.db = m.sess.DB(config.Database)
 	m.hostCollection = m.db.C("hosts")
 	m.monitorCollection = m.db.C("monitors")
 

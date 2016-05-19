@@ -81,12 +81,12 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 				inFlightLock.Unlock()
 
 				go func(mon Monitor) {
-					host, err := s.store.GetHost(userdb.God, mon.HostId.String())
+					host, err := s.store.GetHost(userdb.God, mon.HostId.Hex())
 					if err != nil {
 						logger.Yellow("monitor", "GetHost(): %s", err.Error())
 					}
 
-					p, err := mon.Job.Run(host.Transport)
+					p, err := mon.Job.Run(host.Transport.(plugins.Transport))
 					if err == nil {
 						logger.Green("monitor", "%s, %s", mon.Id.Hex(), mon.Job.AgentId)
 					} else {

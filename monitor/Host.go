@@ -14,7 +14,7 @@ type (
 		Id          bson.ObjectId     `json:"id,omitempty" bson:"_id"`
 		AccountId   bson.ObjectId     `json:"accountId" bson:"accountId"`
 		Name        string            `json:"name"`
-		TransportId string            `json:"transportId" bson:"transportId"`
+		TransportId string            `toml:"transport" json:"transportId" bson:"transportId"`
 		Transport   plugins.Transport `json:"transport"`
 	}
 )

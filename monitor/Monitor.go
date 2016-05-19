@@ -39,6 +39,7 @@ type (
 		Id         bson.ObjectId   `json:"id" bson:"_id"`
 		AccountId  bson.ObjectId   `json:"accountId" bson:"accountId"`
 		HostId     bson.ObjectId   `json:"hostId" bson:"hostId"`
+		Host       string          `toml:"host" json:"-"`
 		Interval   time.Duration   `json:"interval"`
 		Job        Job             `json:"agent"` // FIXME: Rename json to "job" - maybe
 		LastCheck  time.Time       `json:"lastCheck"`

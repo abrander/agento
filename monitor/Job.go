@@ -15,7 +15,7 @@ type (
 	Job struct {
 		AgentId string        `json:"agentId" bson:"agentId"`
 		Timeout time.Duration `json:"timeout"`
-		Agent   plugins.Agent `json:"arguments" bson:"arguments"`
+		Agent   interface{}   `json:"arguments" bson:"arguments"`
 	}
 )
 
@@ -112,12 +112,12 @@ func (job *Job) SetBSON(raw bson.Raw) error {
 }
 
 func (job *Job) Run(transport plugins.Transport) ([]*client.Point, error) {
-	err := job.Agent.Gather(transport)
+	err := job.Agent.(plugins.Agent).Gather(transport)
 	if err != nil {
 		return nil, err
 	}
 
-	points := job.Agent.GetPoints()
+	points := job.Agent.(plugins.Agent).GetPoints()
 
 	return points, nil
 }
