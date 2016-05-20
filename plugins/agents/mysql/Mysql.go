@@ -13,8 +13,6 @@ import (
 	"github.com/abrander/agento/plugins"
 )
 
-var db *sql.DB
-
 type Mysql struct {
 	//General
 	Connections        int64 `json:"c" stat:"Connections"`
@@ -83,6 +81,8 @@ type Mysql struct {
 	WsrepReplicationLatencyMaximum           float64 `json:"wM"`
 	WsrepReplicationLatencyStandardDeviation float64 `json:"ws"`
 	WsrepReplicationLatencySampleSize        int64   `json:"wn"`
+
+	DSN string `toml:"dsn" json:"dsn" description:"Mysql DSN"`
 }
 
 func init() {
@@ -93,21 +93,14 @@ func NewMysql() interface{} {
 	return new(Mysql)
 }
 
-func OpenDb() error {
-	var err error
-
-	db, err = sql.Open("mysql", "root:hejhej@/mysql")
-	return err
-}
-
 func (m *Mysql) Gather(_ plugins.Transport) error {
 
-	if db == nil {
-		err := OpenDb()
-		if err != nil {
-			return err
-		}
+	db, err := sql.Open("mysql", m.DSN)
+	if err != nil {
+		return err
 	}
+
+	defer db.Close()
 
 	rows, err := db.Query("SHOW GLOBAL STATUS")
 
