@@ -115,13 +115,12 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 					}
 
 					// Run the job.
+					start := time.Now()
 					p, err := mon.Job.Run(host.Transport.(plugins.Transport))
 					if err == nil {
-						// FIXME: Print some timing.
-						logger.Green("monitor", "%s, %s", mon.Id.Hex(), mon.Job.AgentId)
+						logger.Green("monitor", "[%s] %T(%+v) ran in %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, time.Now().Sub(start))
 					} else {
-						// FIXME: Print some timing.
-						logger.Red("monitor", "%s, %s: %s", mon.Id.Hex(), mon.Job.AgentId, err.Error())
+						logger.Red("monitor", "[%s] %T(%+v) failed in %s: %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, time.Now().Sub(start), err.Error())
 					}
 
 					// Save the result
