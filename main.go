@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"math/rand"
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -39,6 +41,9 @@ import (
 var config = configuration.Configuration{}
 
 func main() {
+	// This should not be used for crypto, time.Now() is enough.
+	rand.Seed(time.Now().UnixNano())
+
 	if len(os.Args) > 1 && os.Args[1] == "gendoc" {
 		d := plugins.GetDoc()
 
