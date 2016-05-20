@@ -27,6 +27,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/linuxhost"
 	_ "github.com/abrander/agento/plugins/agents/loadstats"
 	_ "github.com/abrander/agento/plugins/agents/memorystats"
+	_ "github.com/abrander/agento/plugins/agents/mysql"
 	_ "github.com/abrander/agento/plugins/agents/netstat"
 	_ "github.com/abrander/agento/plugins/agents/openfiles"
 	_ "github.com/abrander/agento/plugins/agents/snmpstats"
