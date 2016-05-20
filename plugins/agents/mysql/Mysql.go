@@ -89,7 +89,7 @@ func init() {
 	plugins.Register("mysql", NewMysql)
 }
 
-func NewMysql() plugins.Plugin {
+func NewMysql() interface{} {
 	return new(Mysql)
 }
 
