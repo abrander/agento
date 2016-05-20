@@ -93,7 +93,7 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 			if age > mon.Interval*2 && wait < -mon.Interval {
 				checkIn := time.Duration(rand.Int63n(int64(mon.Interval)))
 				mon.NextCheck = t.Add(checkIn)
-				logger.Yellow("monitor", "%s %s: Delaying first check by %s", mon.Id.Hex(), mon.Job.AgentId, checkIn)
+				logger.Yellow("monitor", "[%s] %T:(%+v): start delayed by %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, checkIn)
 
 				err = s.store.UpdateMonitor(s.subject, &mon)
 				if err != nil {
@@ -110,7 +110,7 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 				go func(mon Monitor) {
 					host, err := s.store.GetHost(s.subject, mon.HostId.Hex())
 					if err != nil {
-						logger.Red("monitor", "GetHost(): %s", err.Error())
+						logger.Red("monitor", "[%s] %T(%+v) GetHost(): %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, err.Error())
 						return
 					}
 
@@ -133,13 +133,13 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 					// Save everything back to store.
 					err = s.store.UpdateMonitor(s.subject, &mon)
 					if err != nil {
-						logger.Red("monitor", "Error updating: %s", err.Error())
+						logger.Red("monitor", "[%s] %T(%+v) UpdateMonitor(): %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, err.Error())
 					}
 
 					// Write results to TSDB.
 					err = serv.WritePoints(p)
 					if err != nil {
-						logger.Red("monitor", "Influxdb error: %s", err.Error())
+						logger.Red("monitor", "[%s] %T(%+v) WritePoints(): %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, err.Error())
 					}
 
 					// Remove the monitor from inFlight map.
