@@ -118,10 +118,6 @@ func GenerateKey() ([]byte, error) {
 
 // Connect to a remote ssh server using public key authentication
 func (s *Ssh) Connect() (*ssh.Client, error) {
-	if s.Port == 0 {
-		s.Port = 22
-	}
-
 	dialString := fmt.Sprintf("%s:%d", s.Host, s.Port)
 	logger.Yellow("ssh", "Connecting to %s as %s", dialString, s.Username)
 

@@ -23,7 +23,7 @@ func init() {
 }
 
 func NewSshTransport() interface{} {
-	return new(SshTransport)
+	return &SshTransport{Ssh{Port: 22}}
 }
 
 func (s *SshTransport) GetDoc() *plugins.Doc {
