@@ -28,10 +28,10 @@ type SnmpStats struct {
 
 	IpForwarding      float64 `json:"-" row:"1" col:"1"`
 	IpDefaultTTL      float64 `json:"-" row:"1" col:"2"`
-	IpInReceives      float64 `json:"-" row:"1" col:"3"`
+	IpInReceives      float64 `json:"ipr" row:"1" col:"3"`
 	IpInHdrErrors     float64 `json:"-" row:"1" col:"4"`
 	IpInAddrErrors    float64 `json:"-" row:"1" col:"5"`
-	IpForwDatagrams   float64 `json:"-" row:"1" col:"6"`
+	IpForwDatagrams   float64 `json:"ipw" row:"1" col:"6"`
 	IpInUnknownProtos float64 `json:"-" row:"1" col:"7"`
 	IpInDiscards      float64 `json:"-" row:"1" col:"8"`
 	IpInDelivers      float64 `json:"-" row:"1" col:"9"`
@@ -159,9 +159,10 @@ func (stat *SnmpStats) Gather(transport plugins.Transport) error {
 }
 
 func (s *SnmpStats) GetPoints() []*client.Point {
-	points := make([]*client.Point, 0)
+	points := make([]*client.Point, 2)
 
-	// FIXME: Return something ;)
+	points[0] = plugins.SimplePoint("snmp.Received", s.IpInReceives)
+	points[1] = plugins.SimplePoint("snmp.Forwarded", s.IpForwDatagrams)
 
 	return points
 }
@@ -169,7 +170,8 @@ func (s *SnmpStats) GetPoints() []*client.Point {
 func (c *SnmpStats) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc("Various network statistics")
 
-	// FIXME: Return something ;)
+	doc.AddMeasurement("snmp.Received", "IP packets received", "packets")
+	doc.AddMeasurement("snmp.Forwarded", "IP packets forwarded", "packets")
 
 	return doc
 }
