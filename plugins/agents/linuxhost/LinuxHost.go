@@ -18,6 +18,7 @@ var agentIds = []string{
 	"hostname",
 	"load",
 	"memory",
+	"netfilter",
 	"netio",
 	"netstat",
 	"openfiles",
