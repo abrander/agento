@@ -29,6 +29,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/memorystats"
 	_ "github.com/abrander/agento/plugins/agents/mysql"
 	_ "github.com/abrander/agento/plugins/agents/netstat"
+	_ "github.com/abrander/agento/plugins/agents/null"
 	_ "github.com/abrander/agento/plugins/agents/openfiles"
 	_ "github.com/abrander/agento/plugins/agents/snmpstats"
 	_ "github.com/abrander/agento/plugins/agents/socketstats"
