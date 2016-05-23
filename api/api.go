@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 
+	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
@@ -34,7 +35,7 @@ var (
 	}
 )
 
-func wsHandler(c *gin.Context, emitter monitor.Emitter, subject userdb.Subject) {
+func wsHandler(c *gin.Context, emitter core.Emitter, subject userdb.Subject) {
 	conn, err := wsupgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
 		return
@@ -100,7 +101,7 @@ func getAccountId(c *gin.Context) string {
 	return ""
 }
 
-func Init(router gin.IRouter, store monitor.Store, emitter monitor.Emitter, db userdb.Database) {
+func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db userdb.Database) {
 	router.GET("/ws/:key", func(c *gin.Context) {
 		key := c.Param("key")
 		subject, error := db.ResolveKey(key)

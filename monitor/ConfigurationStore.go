@@ -9,6 +9,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/abrander/agento/configuration"
+	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/userdb"
 )
@@ -17,7 +18,7 @@ type (
 	// ConfigurationStore is a read-only store that will read hosts and monitors
 	// from the Agento global configuration file.
 	ConfigurationStore struct {
-		changes  Broadcaster
+		changes  core.Broadcaster
 		metadata toml.MetaData
 		hosts    map[bson.ObjectId]Host
 		monitors map[bson.ObjectId]Monitor
@@ -34,7 +35,7 @@ var (
 
 // NewConfigurationStore will instantiate a new store based on the configuration
 // file. This store is read only.
-func NewConfigurationStore(config *configuration.Configuration, changes Broadcaster) (*ConfigurationStore, error) {
+func NewConfigurationStore(config *configuration.Configuration, changes core.Broadcaster) (*ConfigurationStore, error) {
 	s := &ConfigurationStore{
 		changes:  changes,
 		hosts:    make(map[bson.ObjectId]Host),

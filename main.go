@@ -14,6 +14,7 @@ import (
 	"github.com/abrander/agento/api"
 	"github.com/abrander/agento/client"
 	"github.com/abrander/agento/configuration"
+	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
@@ -79,7 +80,7 @@ func main() {
 
 	var store monitor.Store
 
-	emitter := monitor.NewSimpleEmitter()
+	emitter := core.NewSimpleEmitter()
 
 	// If the user have Mongo enabled, we use that. If not, we read from
 	// configuration.

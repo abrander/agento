@@ -7,6 +7,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/abrander/agento/configuration"
+	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/userdb"
 )
@@ -14,7 +15,7 @@ import (
 type (
 	// MongoStore is an implementation of Store using MongoDB as a backend.
 	MongoStore struct {
-		changes           Broadcaster
+		changes           core.Broadcaster
 		sess              *mgo.Session
 		db                *mgo.Database
 		hostCollection    *mgo.Collection
@@ -24,7 +25,7 @@ type (
 
 // NewMongoStore will instantiate a new MongoStore. MongoStore is as the name
 // suggest backed by a MongoDB database.
-func NewMongoStore(config configuration.MongoConfiguration, changes Broadcaster) (*MongoStore, error) {
+func NewMongoStore(config configuration.MongoConfiguration, changes core.Broadcaster) (*MongoStore, error) {
 	var err error
 	m := &MongoStore{}
 

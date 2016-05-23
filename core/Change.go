@@ -1,4 +1,4 @@
-package monitor
+package core
 
 import (
 	"sync"
@@ -18,10 +18,10 @@ type (
 
 	SimpleEmitter struct {
 		lock      sync.Mutex
-		listeners []*Listener
+		listeners []*listener
 	}
 
-	Listener struct {
+	listener struct {
 		subject userdb.Subject
 		channel chan Change
 	}
@@ -37,7 +37,7 @@ func NewSimpleEmitter() *SimpleEmitter {
 }
 
 func (s *SimpleEmitter) Subscribe(subject userdb.Subject) chan Change {
-	listener := &Listener{
+	listener := &listener{
 		subject: subject,
 		channel: make(chan Change),
 	}
