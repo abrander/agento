@@ -139,16 +139,18 @@ func main() {
 
 	go api.Init(engine.Group("/api"), store, emitter, db)
 
-	// Website for debugging
-	templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
-	engine.SetHTMLTemplate(templ)
-	engine.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"sshPublicKey": ssh.PublicKey(),
-			"agentoSecret": config.Server.Secret,
+	if config.Server.Http.Enabled || config.Server.Https.Enabled {
+		// Website for debugging
+		templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
+		engine.SetHTMLTemplate(templ)
+		engine.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"sshPublicKey": ssh.PublicKey(),
+				"agentoSecret": config.Server.Secret,
+			})
 		})
-	})
-	engine.Static("/static", "web/")
+		engine.Static("/static", "web/")
+	}
 
 	wg.Wait()
 }
