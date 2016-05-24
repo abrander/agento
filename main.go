@@ -78,7 +78,7 @@ func main() {
 	db := userdb.NewSingleUser(config.Server.Secret)
 	engine := gin.New()
 
-	var store monitor.Store
+	var store core.Store
 
 	emitter := core.NewSimpleEmitter()
 
@@ -106,13 +106,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	var tsdb timeseries.Database
-	if config.Server.Http.Enabled || config.Server.Https.Enabled || config.Server.Udp.Enabled {
-		tsdb, err = timeseries.NewInfluxDb(&config.Server.Influxdb)
-		if err != nil {
-			logger.Red("agento", "InfluxDB error: %s", err.Error())
-			os.Exit(1)
-		}
+	tsdb, err := timeseries.NewInfluxDb(&config.Server.Influxdb)
+	if err != nil {
+		logger.Red("agento", "InfluxDB error: %s", err.Error())
+		os.Exit(1)
 	}
 
 	if config.Server.Http.Enabled {

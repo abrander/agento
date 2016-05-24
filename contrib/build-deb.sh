@@ -9,7 +9,7 @@ trap 'trap_handler ${LINENO} $?' ERR
 
 VERSION="0.0-$(date +"%Y%m%d-%H%M")-$(git log -n 1 --pretty="format:%h")"
 
-go get ./...
+go get -u ./...
 
 # Package client
 

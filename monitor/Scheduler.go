@@ -5,84 +5,92 @@ import (
 	"sync"
 	"time"
 
+	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/influxdata/influxdb/client/v2"
+)
+
+type (
+	// Scheduler is a scheduler executing probes.
+	Scheduler struct {
+		store   core.Store
+		subject userdb.Subject
+	}
 )
 
 // NewScheduler will instantiate a new scheduler. The scheduler needs a Store to
 // read/write checks. If the system is not a multiuser system, userdb.God can be
 // used as subject.
-func NewScheduler(store Store, subject userdb.Subject) *Scheduler {
+func NewScheduler(store core.Store, subject userdb.Subject) *Scheduler {
 	return &Scheduler{
 		store:   store,
 		subject: subject,
 	}
 }
 
-// Loop will simply loop through all monitors and emit changes and execute jobs.
+// Loop will simply loop through all probes and emit changes and execute jobs.
 func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 	// Make sure we have the magic localhost. Maybe we should move this somewhere else.
 	_, err := s.store.GetHost(s.subject, "000000000000000000000000")
 	if err != nil {
 		// If localhost/localtransport does not exist. Do something.
-		p, found := plugins.GetTransports()["localtransport"]
-		if !found {
-			logger.Red("monitor", "localtransport plugin not found")
+		t, err := plugins.GetTransport("localtransport")
+		if err != nil {
+			logger.Red("scheduler", "localtransport plugin not found")
 		}
 
 		// Construct the magic host.
-		host := &Host{
-			Id:          bson.ObjectIdHex("000000000000000000000000"),
-			AccountId:   bson.ObjectIdHex("000000000000000000000000"),
-			Name:        "localhost",
-			TransportId: "localtransport",
-			Transport:   p().(plugins.Transport),
+		host := &core.Host{
+			ID:        "000000000000000000000000",
+			AccountID: "000000000000000000000000",
+			Name:      "localhost",
+			Transport: t,
 		}
 
 		// Save it.
 		err = s.store.AddHost(nil, host)
 		if err != nil {
-			logger.Red("monitor", "Error inserting: %s", err.Error())
+			logger.Red("scheduler", "Error inserting: %s", err.Error())
 			wg.Done()
 			return
 		}
 
-		logger.Yellow("monitor", "Added localhost transport with id %s", host.Id.Hex())
+		logger.Yellow("scheduler", "Added localhost transport with id %s", host.ID)
 	}
 
 	// We tick ten times a second, this should be enough for now.
 	ticker := time.Tick(time.Millisecond * 100)
 
-	// inFlight is a list of monitor id's currently running
-	inFlight := make(map[bson.ObjectId]bool)
+	// inFlight is a list of probes id's currently running
+	inFlight := make(map[string]bool)
 	inFlightLock := sync.RWMutex{}
 	for t := range ticker {
-		// We start by extracting a list of all monitors. If this gets too
+		// We start by extracting a list of all probes. If this gets too
 		// expensive at some point, we can do it less frequent.
-		var monitors []Monitor
-		// FIXME: Add a function to get *ALL* monitors regardless of account.
-		monitors, err := s.store.GetAllMonitors(s.subject, "000000000000000000000000")
+
+		probes, err := s.store.GetAllProbes(s.subject, userdb.God.GetAccountId())
+
 		if err != nil {
-			logger.Red("monitor", "Error getting monitors from store: %s", err.Error())
+			logger.Red("scheduler", "Error getting probes from store: %s", err.Error())
 			continue
 		}
 
-		// We iterate the list of monitors, to see if anything needs to be done.
-		for _, mon := range monitors {
+		// We iterate the list of probes, to see if anything needs to be done.
+		for _, probe := range probes {
 			// Calculate the age of the last check, if the age is positive, it's
 			// in the past.
-			age := t.Sub(mon.LastCheck)
+			age := t.Sub(probe.LastCheck)
 
 			// Calculate how much we should wait before executing the job. If
 			// the value is positive, it's in the future.
-			wait := mon.NextCheck.Sub(t)
+			wait := probe.NextCheck.Sub(t)
 
-			// Check if the monitor is already executing.
+			// Check if the probe is already executing.
 			inFlightLock.RLock()
-			_, found := inFlight[mon.Id]
+			_, found := inFlight[probe.ID]
 			inFlightLock.RUnlock()
 
 			if found {
@@ -90,12 +98,12 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 			}
 
 			// If the check is older than two intervals, we treat it as new.
-			if age > mon.Interval*2 && wait < -mon.Interval {
-				checkIn := time.Duration(rand.Int63n(int64(mon.Interval)))
-				mon.NextCheck = t.Add(checkIn)
-				logger.Yellow("monitor", "[%s] %T:(%+v): start delayed by %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, checkIn)
+			if age > probe.Interval*2 && wait < -probe.Interval {
+				checkIn := time.Duration(rand.Int63n(int64(probe.Interval)))
+				probe.NextCheck = t.Add(checkIn)
+				logger.Yellow("scheduler", "[%s] %T:(%+v): start delayed by %s", probe.ID, probe.Agent, probe.Agent, checkIn)
 
-				err = s.store.UpdateMonitor(s.subject, &mon)
+				err = s.store.UpdateProbe(s.subject, &probe)
 				if err != nil {
 					logger.Red("Error updating: %v", err.Error())
 				}
@@ -103,50 +111,58 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 				// If we arrive here, wait is sub-zero, which means that we
 				// should execute now.
 				inFlightLock.Lock()
-				inFlight[mon.Id] = true
+				inFlight[probe.ID] = true
 				inFlightLock.Unlock()
 
-				// Execute the monitor job in its own go routine.
-				go func(mon Monitor) {
-					host, err := s.store.GetHost(s.subject, mon.HostId.Hex())
-					if err != nil {
-						logger.Red("monitor", "[%s] %T(%+v) GetHost(): %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, err.Error())
-						return
-					}
+				// Execute the probe in its own go routine.
+				go func(probe core.Probe) {
+					host := probe.Host
 
 					// Run the job.
 					start := time.Now()
-					p, err := mon.Job.Run(host.Transport.(plugins.Transport))
+
+					err = probe.Agent.(plugins.Agent).Gather(host.Transport)
 					if err == nil {
-						logger.Green("monitor", "[%s] %T(%+v) ran in %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, time.Now().Sub(start))
+						logger.Green("scheduler", "[%s] %T(%+v) ran in %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start))
 					} else {
-						logger.Red("monitor", "[%s] %T(%+v) failed in %s: %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, time.Now().Sub(start), err.Error())
+						logger.Red("scheduler", "[%s] %T(%+v) failed in %s: %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start), err.Error())
 					}
 
+					points := probe.Agent.(plugins.Agent).GetPoints()
+
 					// Save the result
-					mon.LastPoints = p
+					probe.LastPoints = points
 
 					// Save the check time and schedule next check.
-					mon.LastCheck = t
-					mon.NextCheck = t.Add(mon.Interval)
+					probe.LastCheck = t
+					probe.NextCheck = t.Add(probe.Interval)
 
 					// Save everything back to store.
-					err = s.store.UpdateMonitor(s.subject, &mon)
+					err = s.store.UpdateProbe(s.subject, &probe)
 					if err != nil {
-						logger.Red("monitor", "[%s] %T(%+v) UpdateMonitor(): %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, err.Error())
+						logger.Red("scheduler", "[%s] %T(%+v) UpdateProbe(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
+					}
+
+					// Tag all points with hostname.
+					for index, point := range points {
+						tags := point.Tags()
+
+						tags["hostname"] = host.Name
+
+						points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 					}
 
 					// Write results to TSDB.
-					err = serv.WritePoints(p)
+					err = serv.WritePoints(points)
 					if err != nil {
-						logger.Red("monitor", "[%s] %T(%+v) WritePoints(): %s", mon.Id.Hex(), mon.Job.Agent, mon.Job.Agent, err.Error())
+						logger.Red("scheduler", "[%s] %T(%+v) WritePoints(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
 					}
 
-					// Remove the monitor from inFlight map.
+					// Remove the probe from inFlight map.
 					inFlightLock.Lock()
-					delete(inFlight, mon.Id)
+					delete(inFlight, probe.ID)
 					inFlightLock.Unlock()
-				}(mon)
+				}(probe)
 			}
 		}
 	}

@@ -128,15 +128,15 @@ type ServerConfiguration struct {
 type MongoConfiguration struct {
 	Enabled  bool   `toml:"enabled"`
 	Url      string `toml:"url`
-	Database string `toml:database`
+	Database string `toml:"database"`
 }
 
 type Configuration struct {
 	Client   ClientConfiguration       `toml:"client"`
 	Server   ServerConfiguration       `toml:"server"`
-	Mongo    MongoConfiguration        `toml:mongo`
+	Mongo    MongoConfiguration        `toml:"mongo"`
 	Hosts    map[string]toml.Primitive `toml:"host"`
-	Monitors map[string]toml.Primitive `toml:"monitor"`
+	Probes   map[string]toml.Primitive `toml:"probe"`
 	metadata toml.MetaData
 }
 
@@ -211,14 +211,14 @@ func (c *Configuration) LoadFromEnvironment() {
 	}
 }
 
-// GetAllHosts will return enough for someone to decode [host.*] fields from the
-// TOML file.
-func (c *Configuration) GetAllHosts() (toml.MetaData, map[string]toml.Primitive) {
-	return c.metadata, c.Hosts
+// GetHostPrimitives will return enough for someone to decode [host.*] fields
+// from the TOML file.
+func (c *Configuration) GetHostPrimitives() map[string]toml.Primitive {
+	return c.Hosts
 }
 
-// GetAllMonitors will return enough for someone to decode [monitor.*] fields from
-// the TOML file.
-func (c *Configuration) GetAllMonitors() (toml.MetaData, map[string]toml.Primitive) {
-	return c.metadata, c.Monitors
+// GetProbePrimitives will return enough for someone to decode [probe.*]
+// fields from the TOML file.
+func (c *Configuration) GetProbePrimitives() map[string]toml.Primitive {
+	return c.Probes
 }

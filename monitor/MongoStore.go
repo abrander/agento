@@ -15,11 +15,11 @@ import (
 type (
 	// MongoStore is an implementation of Store using MongoDB as a backend.
 	MongoStore struct {
-		changes           core.Broadcaster
-		sess              *mgo.Session
-		db                *mgo.Database
-		hostCollection    *mgo.Collection
-		monitorCollection *mgo.Collection
+		changes         core.Broadcaster
+		sess            *mgo.Session
+		db              *mgo.Database
+		hostCollection  *mgo.Collection
+		probeCollection *mgo.Collection
 	}
 )
 
@@ -31,106 +31,106 @@ func NewMongoStore(config configuration.MongoConfiguration, changes core.Broadca
 
 	m.sess, err = mgo.Dial(config.Url)
 	if err != nil {
-		logger.Error("monitor", "Can't connect to mongo, go error %v", err)
+		logger.Error("mongostore", "Can't connect to mongo, go error %v", err)
 		os.Exit(1)
 	}
-	logger.Green("monitor", "Connected to mongo/%s at %s", config.Database, config.Url)
+	logger.Green("mongostore", "Connected to mongo/%s at %s", config.Database, config.Url)
 
 	m.db = m.sess.DB(config.Database)
 	m.hostCollection = m.db.C("hosts")
-	m.monitorCollection = m.db.C("monitors")
+	m.probeCollection = m.db.C("probes")
 
 	m.changes = changes
 
 	return m, nil
 }
 
-// GetAllMonitors will return all monitors belonging to accountID that is
+// GetAllProbes will return all probes belonging to accountID that is
 // accessible by subject.
-func (s *MongoStore) GetAllMonitors(subject userdb.Subject, accountID string) ([]Monitor, error) {
-	var monitors []Monitor
+func (s *MongoStore) GetAllProbes(subject userdb.Subject, accountID string) ([]core.Probe, error) {
+	var probes []core.Probe
 
 	err := subject.CanAccess(userdb.ObjectProxy(accountID))
-	if err != nil {
-		return []Monitor{}, err
-	}
-
-	err = s.monitorCollection.Find(bson.M{"accountID": bson.ObjectIdHex(accountID)}).All(&monitors)
-	if err != nil {
-		return []Monitor{}, err
-	}
-
-	return monitors, nil
-}
-
-// GetMonitor will return the monitor identified by id if accessible by subject.
-func (s *MongoStore) GetMonitor(subject userdb.Subject, id string) (*Monitor, error) {
-	var monitor Monitor
-
-	if !bson.IsObjectIdHex(id) {
-		return &monitor, ErrorInvalidId
-	}
-
-	err := s.monitorCollection.FindId(bson.ObjectIdHex(id)).One(&monitor)
-	if err != nil {
-		logger.Red("monitor", "Error getting monitor %s from Mongo: %s", id, err.Error())
-		return &monitor, err
-	}
-
-	err = subject.CanAccess(&monitor)
 	if err != nil {
 		return nil, err
 	}
 
-	return &monitor, nil
-}
-
-// UpdateMonitor will save the monitor is allowed by subject.
-func (s *MongoStore) UpdateMonitor(subject userdb.Subject, mon *Monitor) error {
-	_, err := s.GetMonitor(subject, mon.Id.Hex())
+	err = s.probeCollection.Find(bson.M{"accountID": bson.ObjectIdHex(accountID)}).All(&probes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	s.changes.Broadcast("monchange", mon)
-
-	return s.monitorCollection.UpdateId(mon.Id, mon)
+	return probes, nil
 }
 
-// AddMonitor will add a new monitor. Everyone can add monitors, but subject
-// cannot add a monitor that the subject cannot access itself.
-func (s *MongoStore) AddMonitor(subject userdb.Subject, mon *Monitor) error {
-	mon.Id = bson.NewObjectId()
+// GetProbe will return the probe identified by id if accessible by subject.
+func (s *MongoStore) GetProbe(subject userdb.Subject, id string) (*core.Probe, error) {
+	var probe core.Probe
 
-	err := subject.CanAccess(mon)
-	if err != nil {
-		return err
-	}
-
-	s.changes.Broadcast("monadd", mon)
-
-	return s.monitorCollection.Insert(mon)
-}
-
-// DeleteMonitor does exactly that. Deletes a monitor.
-func (s *MongoStore) DeleteMonitor(subject userdb.Subject, id string) error {
 	if !bson.IsObjectIdHex(id) {
-		return ErrorInvalidId
+		return nil, core.ErrProbeNotFound
 	}
 
-	mon, err := s.GetMonitor(subject, id)
+	err := s.probeCollection.FindId(bson.ObjectIdHex(id)).One(&probe)
+	if err != nil {
+		logger.Red("mongostore", "Error getting probe %s from Mongo: %s", id, err.Error())
+		return nil, err
+	}
+
+	err = subject.CanAccess(&probe)
+	if err != nil {
+		return nil, err
+	}
+
+	return &probe, nil
+}
+
+// UpdateProbe will save the probe is allowed by subject.
+func (s *MongoStore) UpdateProbe(subject userdb.Subject, probe *core.Probe) error {
+	_, err := s.GetProbe(subject, probe.ID)
 	if err != nil {
 		return err
 	}
 
-	s.changes.Broadcast("mondelete", mon)
+	s.changes.Broadcast("probechange", probe)
 
-	return s.monitorCollection.RemoveId(bson.ObjectIdHex(id))
+	return s.probeCollection.UpdateId(bson.ObjectIdHex(probe.ID), probe)
+}
+
+// AddProbe will add a new probe. Everyone can add probes, but subject
+// cannot add a probe that the subject cannot access itself.
+func (s *MongoStore) AddProbe(subject userdb.Subject, probe *core.Probe) error {
+	probe.ID = bson.NewObjectId().Hex()
+
+	err := subject.CanAccess(probe)
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("probeadd", probe)
+
+	return s.probeCollection.Insert(probe)
+}
+
+// DeleteProbe does exactly that. Deletes a probe.
+func (s *MongoStore) DeleteProbe(subject userdb.Subject, id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return core.ErrProbeNotFound
+	}
+
+	probe, err := s.GetProbe(subject, id)
+	if err != nil {
+		return err
+	}
+
+	s.changes.Broadcast("probedelete", probe)
+
+	return s.probeCollection.RemoveId(bson.ObjectIdHex(id))
 }
 
 // GetAllHosts will return all hosts accessible by subject.
-func (s *MongoStore) GetAllHosts(subject userdb.Subject, accountID string) ([]Host, error) {
-	var hosts []Host
+func (s *MongoStore) GetAllHosts(subject userdb.Subject, accountID string) ([]core.Host, error) {
+	var hosts []core.Host
 
 	err := subject.CanAccess(userdb.ObjectProxy(accountID))
 	if err != nil {
@@ -139,15 +139,15 @@ func (s *MongoStore) GetAllHosts(subject userdb.Subject, accountID string) ([]Ho
 
 	err = s.hostCollection.Find(bson.M{"accountID": bson.ObjectIdHex(accountID)}).All(&hosts)
 	if err != nil {
-		logger.Red("monitor", "Error getting hosts from Mongo: %s", err.Error())
+		logger.Red("mongostore", "Error getting hosts from Mongo: %s", err.Error())
 	}
 
 	return hosts, nil
 }
 
 // GetHostByName will return the host matching name.
-func (s *MongoStore) GetHostByName(subject userdb.Subject, name string) (*Host, error) {
-	var host Host
+func (s *MongoStore) GetHostByName(subject userdb.Subject, name string) (*core.Host, error) {
+	var host core.Host
 
 	err := s.hostCollection.Find(bson.M{"name": name}).One(&host)
 	if err != nil {
@@ -163,16 +163,16 @@ func (s *MongoStore) GetHostByName(subject userdb.Subject, name string) (*Host, 
 }
 
 // GetHost returns a host matching id.
-func (s *MongoStore) GetHost(subject userdb.Subject, id string) (*Host, error) {
-	var host Host
+func (s *MongoStore) GetHost(subject userdb.Subject, id string) (*core.Host, error) {
+	var host core.Host
 
 	if !bson.IsObjectIdHex(id) {
-		return nil, ErrorInvalidId
+		return nil, core.ErrHostNotFound
 	}
 
 	err := s.hostCollection.FindId(bson.ObjectIdHex(id)).One(&host)
 	if err != nil {
-		logger.Red("host", "Error getting host from Mongo: %s", err.Error())
+		logger.Red("mongostore", "Error getting host from Mongo: %s", err.Error())
 		return nil, err
 	}
 
@@ -187,10 +187,10 @@ func (s *MongoStore) GetHost(subject userdb.Subject, id string) (*Host, error) {
 // AddHost will add a new host. Please note that this will not ensure that host
 // is owned by subject, but merely ensure that subject is allowed to create the
 // host.
-func (s *MongoStore) AddHost(subject userdb.Subject, host *Host) error {
-	host.Id = bson.NewObjectId()
+func (s *MongoStore) AddHost(subject userdb.Subject, host *core.Host) error {
+	host.ID = bson.NewObjectId().Hex()
 
-	host.AccountId = bson.ObjectIdHex(subject.GetId())
+	host.AccountID = subject.GetId()
 	err := subject.CanAccess(host)
 	if err != nil {
 		return err
@@ -204,7 +204,7 @@ func (s *MongoStore) AddHost(subject userdb.Subject, host *Host) error {
 // DeleteHost will delete a host matching id.
 func (s *MongoStore) DeleteHost(subject userdb.Subject, id string) error {
 	if !bson.IsObjectIdHex(id) {
-		return ErrorInvalidId
+		return core.ErrHostNotFound
 	}
 
 	host, err := s.GetHost(subject, id)

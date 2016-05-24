@@ -9,8 +9,8 @@ import (
 	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
+	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
-	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/plugins/agents/hostname"
 	"github.com/abrander/agento/plugins/transports/local"
@@ -27,11 +27,11 @@ type (
 		secret    string
 		db        userdb.Database
 		tsdb      timeseries.Database
-		store     monitor.HostStore
+		store     core.HostStore
 	}
 )
 
-func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database, store monitor.HostStore) (*Server, error) {
+func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db userdb.Database, store core.HostStore) (*Server, error) {
 	s := &Server{}
 
 	router.Any("/report", s.reportHandler)
@@ -112,7 +112,10 @@ func (s *Server) reportHandler(c *gin.Context) {
 			return
 		} else if err != nil {
 			transport := localtransport.NewLocalTransport().(plugins.Transport)
-			host := monitor.NewHost(hostname, "localtransport", transport)
+			host := &core.Host{
+				Name:      hostname,
+				Transport: transport,
+			}
 
 			err = s.store.AddHost(account, host)
 			if err != nil {

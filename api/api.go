@@ -9,7 +9,6 @@ import (
 
 	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
-	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/userdb"
 )
@@ -101,7 +100,7 @@ func getAccountId(c *gin.Context) string {
 	return ""
 }
 
-func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db userdb.Database) {
+func Init(router gin.IRouter, store core.Store, emitter core.Emitter, db userdb.Database) {
 	router.GET("/ws/:key", func(c *gin.Context) {
 		key := c.Param("key")
 		subject, error := db.ResolveKey(key)
@@ -161,7 +160,7 @@ func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db user
 		})
 
 		h.POST("/new", func(c *gin.Context) {
-			var host monitor.Host
+			var host core.Host
 			subject := getSubject(c)
 
 			c.Bind(&host)
@@ -187,32 +186,30 @@ func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db user
 	}
 
 	{
-		m := router.Group("/monitor")
+		m := router.Group("/probe")
 
 		m.GET("/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			subject := getSubject(c)
 
-			mon, err := store.GetMonitor(subject, id)
-			if err == monitor.ErrorInvalidId {
-				c.AbortWithError(400, err)
-			} else if err != nil {
+			probe, err := store.GetProbe(subject, id)
+			if err != nil {
 				c.AbortWithError(404, err)
 			} else {
-				c.JSON(200, mon)
+				c.JSON(200, probe)
 			}
 		})
 
 		m.PUT("/:id", func(c *gin.Context) {
-			var mon monitor.Monitor
+			var probe core.Probe
 			subject := getSubject(c)
 
-			c.Bind(&mon)
-			err := store.UpdateMonitor(subject, &mon)
+			c.Bind(&probe)
+			err := store.UpdateProbe(subject, &probe)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
-				c.JSON(200, mon)
+				c.JSON(200, probe)
 			}
 		})
 
@@ -220,7 +217,7 @@ func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db user
 			id := c.Param("id")
 			subject := getSubject(c)
 
-			err := store.DeleteMonitor(subject, id)
+			err := store.DeleteProbe(subject, id)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
@@ -229,16 +226,16 @@ func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db user
 		})
 
 		m.POST("/new", func(c *gin.Context) {
-			var mon monitor.Monitor
+			var probe core.Probe
 			subject := getSubject(c)
 
-			c.Bind(&mon)
-			err := store.AddMonitor(subject, &mon)
+			c.Bind(&probe)
+			err := store.AddProbe(subject, &probe)
 			if err != nil {
 				logger.Yellow("api", "Error: %s", err.Error())
 				c.AbortWithError(500, err)
 			} else {
-				c.JSON(200, mon)
+				c.JSON(200, probe)
 			}
 		})
 
@@ -246,11 +243,11 @@ func Init(router gin.IRouter, store monitor.Store, emitter core.Emitter, db user
 			subject := getSubject(c)
 			accountId := getAccountId(c)
 
-			monitors, err := store.GetAllMonitors(subject, accountId)
+			probes, err := store.GetAllProbes(subject, accountId)
 			if err != nil {
 				c.AbortWithError(500, err)
 			} else {
-				c.JSON(200, monitors)
+				c.JSON(200, probes)
 			}
 		})
 	}
