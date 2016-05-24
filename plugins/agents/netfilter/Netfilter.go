@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/influxdata/influxdb/client/v2"
@@ -44,7 +45,8 @@ func (n *Netfilter) Gather(transport plugins.Transport) error {
 		return err
 	}
 
-	n.ConnTrackCount, err = strconv.ParseInt(string(contents), 10, 64)
+	trimmed := strings.TrimSpace(string(contents))
+	n.ConnTrackCount, err = strconv.ParseInt(trimmed, 10, 64)
 	if err != nil {
 		return err
 	}
