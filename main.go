@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"math/rand"
-	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -37,7 +35,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/socketstats"
 	_ "github.com/abrander/agento/plugins/agents/tcpport"
 	_ "github.com/abrander/agento/plugins/transports/local"
-	"github.com/abrander/agento/plugins/transports/ssh"
+	_ "github.com/abrander/agento/plugins/transports/ssh"
 	"github.com/abrander/agento/server"
 	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
@@ -136,19 +134,6 @@ func main() {
 	go scheduler.Loop(*wg, tsdb)
 
 	go api.Init(engine.Group("/api"), store, emitter, db)
-
-	if config.Server.Http.Enabled || config.Server.Https.Enabled {
-		// Website for debugging
-		templ := template.Must(template.New("web/index.html").Delims("[[", "]]").ParseFiles("web/index.html"))
-		engine.SetHTMLTemplate(templ)
-		engine.GET("/", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "index.html", gin.H{
-				"sshPublicKey": ssh.PublicKey(),
-				"agentoSecret": config.Server.Secret,
-			})
-		})
-		engine.Static("/static", "web/")
-	}
 
 	wg.Wait()
 }
