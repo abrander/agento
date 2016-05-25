@@ -166,6 +166,10 @@ func (m *Mysql) Gather(transport plugins.Transport) error {
 				return false
 			})
 
+			if len(fields) < 5 {
+				continue
+			}
+
 			min, err := strconv.ParseFloat(fields[0], 64)
 
 			if err != nil {
