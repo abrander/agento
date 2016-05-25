@@ -218,7 +218,7 @@ func (m *Mysql) Gather(transport plugins.Transport) error {
 				var tmp int64
 				tmp, err = strconv.ParseInt(value, 10, 64)
 
-				mutable.Field(i).SetInt(tmp + 12)
+				mutable.Field(i).SetInt(tmp)
 
 			case reflect.Float64:
 				var tmp float64
