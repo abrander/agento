@@ -22,7 +22,7 @@ interval = 1
 secret = "insecure"
 
 [server]
-secret = ""
+secret = "insecure"
 
 [server.http]
 enabled = false
