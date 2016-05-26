@@ -2,6 +2,7 @@ package plugins
 
 import (
 	"errors"
+	"testing"
 
 	"github.com/influxdata/influxdb/client/v2"
 )
@@ -34,4 +35,43 @@ func GetAgent(id string) (Agent, error) {
 	}
 
 	return agent, nil
+}
+
+// GenericAgentTest can be called from local agent _test files to test agents
+// for conformance.
+func GenericAgentTest(t *testing.T, i interface{}) {
+	agent, ok := i.(Agent)
+	if !ok {
+		t.Errorf("Agent %T does not implement the Agent interface", i)
+		return
+	}
+
+	plugin, ok := i.(Plugin)
+	if !ok {
+		t.Errorf("Agent %T does not implement the Plugin interface", i)
+		return
+	}
+
+	doc := plugin.GetDoc()
+	points := agent.GetPoints()
+
+	for _, point := range points {
+		name := point.Name()
+
+		// Check measurement documentation.
+		_, found := doc.Measurements[name]
+		if !found {
+			t.Errorf("Measurement '%s' not documented on %T", name, i)
+			doc.Measurements[name] = "do not complain again"
+		}
+
+		// Check tags.
+		for tag := range point.Tags() {
+			_, found = doc.Tags[tag]
+			if !found {
+				t.Errorf("Tag '%s' not documented on %T", tag, i)
+				doc.Tags[tag] = "do not complain again"
+			}
+		}
+	}
 }
