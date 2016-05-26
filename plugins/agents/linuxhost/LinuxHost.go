@@ -11,7 +11,6 @@ type LinuxHost struct {
 }
 
 var agentIds = []string{
-	"cpuspeed",
 	"cpustats",
 	"diskio",
 	"entropy",

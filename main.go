@@ -16,7 +16,6 @@ import (
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/monitor"
 	"github.com/abrander/agento/plugins"
-	_ "github.com/abrander/agento/plugins/agents/cpuspeed"
 	_ "github.com/abrander/agento/plugins/agents/cpustats"
 	_ "github.com/abrander/agento/plugins/agents/diskstats"
 	_ "github.com/abrander/agento/plugins/agents/diskusage"
