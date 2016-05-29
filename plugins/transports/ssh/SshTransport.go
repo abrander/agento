@@ -19,7 +19,7 @@ type (
 )
 
 func init() {
-	plugins.Register("ssh-command", NewSshTransport)
+	plugins.Register("sshtransport", NewSshTransport)
 }
 
 func NewSshTransport() interface{} {

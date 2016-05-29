@@ -28,7 +28,7 @@ func TestHostDecodeTOML(t *testing.T) {
 			Transport: localtransport.NewLocalTransport().(plugins.Transport),
 		},
 		`[host.testhost]
-        transport = "ssh-command"
+        transport = "sshtransport"
         name = "testhost2"
         host = "dev.google.com"
         `: &Host{
@@ -42,7 +42,7 @@ func TestHostDecodeTOML(t *testing.T) {
 			},
 		},
 		`[host.testhost]
-        transport = "ssh-command"
+        transport = "sshtransport"
         host = "127.0.0.1"
         port = 200
         `: &Host{
@@ -122,7 +122,7 @@ func TestHostDecodeJSON(t *testing.T) {
 		`{
 		  "_id": "",
 		  "name": "testhost2",
-		  "transport": "ssh-command",
+		  "transport": "sshtransport",
 		  "host": "dev.google.com"
 	    }`: &Host{
 			Name: "testhost2",
@@ -134,7 +134,7 @@ func TestHostDecodeJSON(t *testing.T) {
 			},
 		},
 		`{
-		  "transport": "ssh-command",
+		  "transport": "sshtransport",
 		  "host": "127.0.0.1",
 		  "port": 200
 		}`: &Host{
