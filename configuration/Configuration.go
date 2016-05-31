@@ -174,7 +174,7 @@ func (c *Configuration) LoadFromFile(path string) error {
 
 	c.LoadFromEnvironment()
 
-	if c.Client.ServerUrl == "" {
+	if c.Client.Enabled && c.Client.ServerUrl == "" {
 		return errors.New("Could not determine server URL")
 	}
 
