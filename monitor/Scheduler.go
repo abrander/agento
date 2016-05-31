@@ -129,11 +129,15 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 
 						points := probe.Agent.(plugins.Agent).GetPoints()
 
-						// Tag all points with hostname.
+						// Tag all points with hostname and arbitrary tags.
 						for index, point := range points {
 							tags := point.Tags()
 
 							tags["hostname"] = host.Name
+
+							for key, value := range probe.Tags {
+								tags[key] = value
+							}
 
 							points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 						}
