@@ -122,16 +122,31 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 					start := time.Now()
 
 					err = probe.Agent.(plugins.Agent).Gather(host.Transport)
-					if err == nil {
-						logger.Green("scheduler", "[%s] %T(%+v) ran in %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start))
-					} else {
+					if err != nil {
 						logger.Red("scheduler", "[%s] %T(%+v) failed in %s: %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start), err.Error())
+					} else {
+						logger.Green("scheduler", "[%s] %T(%+v) ran in %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start))
+
+						points := probe.Agent.(plugins.Agent).GetPoints()
+
+						// Tag all points with hostname.
+						for index, point := range points {
+							tags := point.Tags()
+
+							tags["hostname"] = host.Name
+
+							points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
+						}
+
+						// Write results to TSDB.
+						err = serv.WritePoints(points)
+						if err != nil {
+							logger.Red("scheduler", "[%s] %T(%+v) WritePoints(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
+						}
+
+						// Save the result
+						probe.LastPoints = points
 					}
-
-					points := probe.Agent.(plugins.Agent).GetPoints()
-
-					// Save the result
-					probe.LastPoints = points
 
 					// Save the check time and schedule next check.
 					probe.LastCheck = t
@@ -142,22 +157,6 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 					if err != nil {
 						logger.Red("scheduler", "[%s] %T(%+v) UpdateProbe(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
 					}
-
-					// Tag all points with hostname.
-					for index, point := range points {
-						tags := point.Tags()
-
-						tags["hostname"] = host.Name
-
-						points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
-					}
-
-					// Write results to TSDB.
-					err = serv.WritePoints(points)
-					if err != nil {
-						logger.Red("scheduler", "[%s] %T(%+v) WritePoints(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
-					}
-
 					// Remove the probe from inFlight map.
 					inFlightLock.Lock()
 					delete(inFlight, probe.ID)
