@@ -129,23 +129,25 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 
 						points := probe.Agent.(plugins.Agent).GetPoints()
 
-						// Tag all points with hostname and arbitrary tags.
-						for index, point := range points {
-							tags := point.Tags()
+						if len(points) > 0 {
+							// Tag all points with hostname and arbitrary tags.
+							for index, point := range points {
+								tags := point.Tags()
 
-							tags["hostname"] = host.Name
+								tags["hostname"] = host.Name
 
-							for key, value := range probe.Tags {
-								tags[key] = value
+								for key, value := range probe.Tags {
+									tags[key] = value
+								}
+
+								points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 							}
 
-							points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
-						}
-
-						// Write results to TSDB.
-						err = serv.WritePoints(points)
-						if err != nil {
-							logger.Red("scheduler", "[%s] %T(%+v) WritePoints(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
+							// Write results to TSDB.
+							err = serv.WritePoints(points)
+							if err != nil {
+								logger.Red("scheduler", "[%s] %T(%+v) WritePoints(): %s", probe.ID, probe.Agent, probe.Agent, err.Error())
+							}
 						}
 
 						// Save the result
