@@ -54,6 +54,7 @@ func newTransport(dialer func(network, addr string) (net.Conn, error)) *instrume
 		Proxy:               http.ProxyFromEnvironment,
 		Dial:                tr.dial,
 		TLSHandshakeTimeout: 10 * time.Second,
+		DisableKeepAlives:   true,
 	}
 
 	return tr
