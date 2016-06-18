@@ -57,15 +57,12 @@ func (i *InfluxDb) WritePoints(points []*Point) error {
 	if err != nil {
 		var retry int
 		for retry = 1; retry <= retries; retry++ {
-			logger.Red("influxdb", "Error writing to influxdb: "+err.Error()+", retry %d/%d", retry, 5)
+			logger.Yellow("influxdb", "Error writing to influxdb: "+err.Error()+", retry %d/%d", retry, 5)
 			time.Sleep(time.Millisecond * 500)
 			err = i.conn.Write(bps)
 			if err == nil {
 				break
 			}
-		}
-		if retry >= retries {
-			logger.Red("influxdb", "Error writing to influxdb: "+err.Error()+", giving up")
 		}
 	}
 
