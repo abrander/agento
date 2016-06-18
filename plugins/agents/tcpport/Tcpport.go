@@ -14,7 +14,7 @@ func init() {
 
 // Tcpport will connect to a tcp port and measure timing.
 type Tcpport struct {
-	Address         string        `json:"a" description:"The address to connect to (host:port)"`
+	Address         string        `json:"address" description:"The address to connect to (host:port)"`
 	ConnectDuration time.Duration `json:"c"`
 }
 
