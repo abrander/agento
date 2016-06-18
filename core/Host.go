@@ -2,30 +2,33 @@ package core
 
 import (
 	"encoding/json"
+	"sync"
 
 	"github.com/BurntSushi/toml"
-
 	"github.com/abrander/agento/plugins"
-	"github.com/abrander/agento/userdb"
 )
 
 type (
 	// Host represents a configured host.
 	Host struct {
-		ID        string            `json:"id"`
-		AccountID string            `json:"accountId"`
-		Name      string            `json:"name"`
-		Transport plugins.Transport `json:"transport"`
-	}
-
-	// Hostproxy is used to read TOML configuration for a host.
-	hostProxy struct {
-		ID          string `toml:"-" json:"_id"`
-		AccountID   string `toml:"-" json:"accountId"`
-		Name        string `toml:"name" json:"name"`
-		TransportID string `toml:"transport" json:"transport"`
+		ID              string                 `toml:"-" json:"id"`
+		AccountID       string                 `toml:"-" json:"accountId"`
+		Name            string                 `toml:"name" json:"name"`
+		TransportID     string                 `toml:"transport" json:"transport"`
+		TransportConfig map[string]interface{} `toml:"config" json:"config"`
 	}
 )
+
+var (
+	transportsLock sync.RWMutex
+	transports     map[string]plugins.Transport
+)
+
+func init() {
+	transportsLock.Lock()
+	transports = make(map[string]plugins.Transport)
+	transportsLock.Unlock()
+}
 
 // GetAccountId will implement userdb.Subject.
 func (h *Host) GetAccountId() string {
@@ -34,53 +37,43 @@ func (h *Host) GetAccountId() string {
 
 // DecodeTOML will try to decode a simple TOML based configuration.
 func (h *Host) DecodeTOML(prim toml.Primitive) error {
-	var proxy hostProxy
-
-	err := toml.PrimitiveDecode(prim, &proxy)
-	if err != nil {
-		return err
-	}
-	transport, err := plugins.GetTransport(proxy.TransportID)
+	err := toml.PrimitiveDecode(prim, h)
 	if err != nil {
 		return err
 	}
 
-	err = toml.PrimitiveDecode(prim, transport)
-	if err != nil {
-		return err
-	}
+	// Read configuration.
+	toml.PrimitiveDecode(prim, &h.TransportConfig)
 
-	h.ID = RandomString(20)
-	h.AccountID = userdb.God.GetAccountId()
-	h.Name = proxy.Name
-	h.Transport = transport
+	// Remove known entries. Someone should find a better method.
+	delete(h.TransportConfig, "transport")
 
 	return nil
 }
 
-// UnmarshalJSON will try to unmarshal JSON to a Host object.
-func (h *Host) UnmarshalJSON(data []byte) error {
-	var proxy hostProxy
+// Transport will return a usable transport for this host.
+func (h *Host) Transport() plugins.Transport {
+	transportsLock.RLock()
+	transport, found := transports[h.ID]
+	transportsLock.RUnlock()
 
-	err := json.Unmarshal(data, &proxy)
-	if err != nil {
-		return err
+	if !found {
+		var err error
+
+		transport, err = plugins.GetTransport(h.TransportID)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		// Use JSON as an intermediary for setting configuration. Its ugly,
+		// but it does the job for now.
+		j, _ := json.Marshal(h.TransportConfig)
+		json.Unmarshal(j, transport)
+
+		transportsLock.Lock()
+		transports[h.ID] = transport
+		transportsLock.Unlock()
 	}
 
-	transport, err := plugins.GetTransport(proxy.TransportID)
-	if err != nil {
-		return err
-	}
-
-	err = json.Unmarshal(data, transport)
-	if err != nil {
-		return err
-	}
-
-	h.ID = proxy.ID
-	h.AccountID = proxy.AccountID
-	h.Name = proxy.Name
-	h.Transport = transport
-
-	return nil
+	return transport
 }

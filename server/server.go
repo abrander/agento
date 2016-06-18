@@ -13,7 +13,6 @@ import (
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/plugins/agents/hostname"
-	"github.com/abrander/agento/plugins/transports/local"
 	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 )
@@ -111,10 +110,9 @@ func (s *Server) reportHandler(c *gin.Context) {
 			c.String(http.StatusForbidden, "The hostname belongs to another account")
 			return
 		} else if err != nil {
-			transport := localtransport.NewLocalTransport().(plugins.Transport)
 			host := &core.Host{
-				Name:      hostname,
-				Transport: transport,
+				Name:        hostname,
+				TransportID: "localtransport",
 			}
 
 			err = s.store.AddHost(account, host)

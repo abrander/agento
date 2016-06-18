@@ -7,7 +7,6 @@ import (
 
 	"github.com/abrander/agento/core"
 	"github.com/abrander/agento/logger"
-	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 	"github.com/influxdata/influxdb/client/v2"
@@ -36,18 +35,12 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 	// Make sure we have the magic localhost. Maybe we should move this somewhere else.
 	_, err := s.store.GetHost(s.subject, "000000000000000000000000")
 	if err != nil {
-		// If localhost/localtransport does not exist. Do something.
-		t, err := plugins.GetTransport("localtransport")
-		if err != nil {
-			logger.Red("scheduler", "localtransport plugin not found")
-		}
-
 		// Construct the magic host.
 		host := &core.Host{
-			ID:        "000000000000000000000000",
-			AccountID: "000000000000000000000000",
-			Name:      "localhost",
-			Transport: t,
+			ID:          "000000000000000000000000",
+			AccountID:   "000000000000000000000000",
+			Name:        "localhost",
+			TransportID: "localtransport",
 		}
 
 		// Save it.
@@ -101,7 +94,9 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 			if age > probe.Interval*2 && wait < -probe.Interval {
 				checkIn := time.Duration(rand.Int63n(int64(probe.Interval)))
 				probe.NextCheck = t.Add(checkIn)
-				logger.Yellow("scheduler", "[%s] %T:(%+v): start delayed by %s", probe.ID, probe.Agent, probe.Agent, checkIn)
+				agent := probe.Agent()
+
+				logger.Yellow("scheduler", "[%s] %T:(%+v): start delayed by %s", probe.ID, agent, agent, checkIn)
 
 				err = s.store.UpdateProbe(s.subject, &probe)
 				if err != nil {
@@ -116,18 +111,24 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 
 				// Execute the probe in its own go routine.
 				go func(probe core.Probe) {
-					host := probe.Host
+					agent := probe.Agent()
+					host, err := s.store.GetHost(userdb.God, probe.HostID)
+					if err != nil {
+						logger.Red("scheduler", "[%s] Could not get host '%s': %s", probe.ID, probe.HostID, err.Error())
+						return
+					}
 
 					// Run the job.
 					start := time.Now()
 
-					err = probe.Agent.(plugins.Agent).Gather(host.Transport)
+					transport := host.Transport()
+					err = agent.Gather(transport)
 					if err != nil {
 						logger.Red("scheduler", "[%s] %T(%+v) failed in %s: %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start), err.Error())
 					} else {
 						logger.Green("scheduler", "[%s] %T(%+v) ran in %s", probe.ID, probe.Agent, probe.Agent, time.Now().Sub(start))
 
-						points := probe.Agent.(plugins.Agent).GetPoints()
+						points := agent.GetPoints()
 
 						if len(points) > 0 {
 							// Tag all points with hostname and arbitrary tags.

@@ -2,14 +2,10 @@ package core
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/abrander/agento/plugins"
-	"github.com/abrander/agento/plugins/transports/local"
-	"github.com/abrander/agento/plugins/transports/ssh"
 	"github.com/abrander/agento/userdb"
 )
 
@@ -23,41 +19,27 @@ func TestHostDecodeTOML(t *testing.T) {
         transport = "localtransport"
         name = "testhost"
         `: &Host{
-			AccountID: userdb.God.GetAccountId(),
-			Name:      "testhost",
-			Transport: localtransport.NewLocalTransport().(plugins.Transport),
+			AccountID:   userdb.God.GetAccountId(),
+			Name:        "testhost",
+			TransportID: "localtransport",
 		},
 		`[host.testhost]
         transport = "sshtransport"
         name = "testhost2"
         host = "dev.google.com"
         `: &Host{
-			AccountID: userdb.God.GetAccountId(),
-			Name:      "testhost2",
-			Transport: &ssh.SshTransport{
-				Ssh: ssh.Ssh{
-					Host: "dev.google.com",
-					Port: 22,
-				},
-			},
+			AccountID:   userdb.God.GetAccountId(),
+			Name:        "testhost2",
+			TransportID: "sshtransport",
 		},
 		`[host.testhost]
         transport = "sshtransport"
         host = "127.0.0.1"
         port = 200
         `: &Host{
-			AccountID: userdb.God.GetAccountId(),
-			Transport: &ssh.SshTransport{
-				Ssh: ssh.Ssh{
-					Host: "127.0.0.1",
-					Port: 200,
-				},
-			},
+			AccountID:   userdb.God.GetAccountId(),
+			TransportID: "sshtransport",
 		},
-		`[host.testhost]
-        transport = "nonexisting"
-        name = "testhost4"
-        `: nil,
 	}
 
 	for conf, correct := range cases {
@@ -75,32 +57,8 @@ func TestHostDecodeTOML(t *testing.T) {
 				t.Fatalf("DecodeTOML error: %s", err.Error())
 			}
 
-			if correct == nil {
-				if err == nil {
-					t.Errorf("DecodeTOML didn't catch error")
-				}
-				break
-			}
-
-			if len(host.ID) != 20 {
-				t.Error("Failed to generate ID")
-			}
-
-			// Because of id randomization, we have to override this.
-			host.ID = ""
-
-			tStr := fmt.Sprintf("%s", host.Transport)
-			cStr := fmt.Sprintf("%s", correct.Transport)
-
-			if tStr != cStr {
-				t.Errorf("Host transport %+v doesn't match correct transport %+v", host.Transport, correct.Transport)
-			}
-
-			host.Transport = nil
-			correct.Transport = nil
-
-			if host != *correct {
-				t.Errorf("Host %+v doesn't match correct %+v", host, correct)
+			if host.TransportID != correct.TransportID {
+				t.Errorf("Host transport %+v doesn't match correct transportID %+v", host.TransportID, correct.TransportID)
 			}
 		}
 	}
@@ -114,10 +72,10 @@ func TestHostDecodeJSON(t *testing.T) {
 		  "transport": "localtransport",
 		  "accountId": "hejhejsa"
 		}`: &Host{
-			ID:        "8764786ab76dbc76e",
-			AccountID: "hejhejsa",
-			Name:      "testhost",
-			Transport: localtransport.NewLocalTransport().(plugins.Transport),
+			ID:          "8764786ab76dbc76e",
+			AccountID:   "hejhejsa",
+			Name:        "testhost",
+			TransportID: "localtransport",
 		},
 		`{
 		  "_id": "",
@@ -125,25 +83,15 @@ func TestHostDecodeJSON(t *testing.T) {
 		  "transport": "sshtransport",
 		  "host": "dev.google.com"
 	    }`: &Host{
-			Name: "testhost2",
-			Transport: &ssh.SshTransport{
-				Ssh: ssh.Ssh{
-					Host: "dev.google.com",
-					Port: 22,
-				},
-			},
+			Name:        "testhost2",
+			TransportID: "sshtransport",
 		},
 		`{
 		  "transport": "sshtransport",
 		  "host": "127.0.0.1",
 		  "port": 200
 		}`: &Host{
-			Transport: &ssh.SshTransport{
-				Ssh: ssh.Ssh{
-					Host: "127.0.0.1",
-					Port: 200,
-				},
-			},
+			TransportID: "sshtransport",
 		},
 		`{
 		  "transport": "nonexisting",
@@ -165,18 +113,8 @@ func TestHostDecodeJSON(t *testing.T) {
 			break
 		}
 
-		tStr := fmt.Sprintf("%s", host.Transport)
-		cStr := fmt.Sprintf("%s", correct.Transport)
-
-		if tStr != cStr {
-			t.Errorf("Host transport %+v doesn't match correct transport %+v", host.Transport, correct.Transport)
-		}
-
-		host.Transport = nil
-		correct.Transport = nil
-
-		if host != *correct {
-			t.Errorf("Host %+v doesn't match correct %+v", host, correct)
+		if host.TransportID != correct.TransportID {
+			t.Errorf("Host transport %+v doesn't match correct transportID %+v", host.TransportID, correct.TransportID)
 		}
 	}
 }

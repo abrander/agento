@@ -3,8 +3,6 @@ package core
 import (
 	"testing"
 
-	"github.com/abrander/agento/plugins"
-	"github.com/abrander/agento/plugins/transports/local"
 	"github.com/abrander/agento/userdb"
 )
 
@@ -22,8 +20,8 @@ func (s *mockHostStore) AddHost(subject userdb.Subject, host *Host) error {
 
 func (s *mockHostStore) GetHost(subject userdb.Subject, id string) (*Host, error) {
 	return &Host{
-		Name:      "localhost",
-		Transport: localtransport.NewLocalTransport().(plugins.Transport),
+		Name:        "localhost",
+		TransportID: "localtransport",
 	}, nil
 }
 
