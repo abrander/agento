@@ -41,14 +41,14 @@ func NewInfluxDb(cfg *configuration.InfluxdbConfiguration) (*InfluxDb, error) {
 	}, nil
 }
 
-func (i *InfluxDb) WritePoints(points []*client.Point) error {
+func (i *InfluxDb) WritePoints(points []*Point) error {
 	bps, err := client.NewBatchPoints(i.bpsConf)
 	if err != nil {
 		return err
 	}
 
 	for _, point := range points {
-		bps.AddPoint(point)
+		bps.AddPoint(point.InfluxDBPoint())
 	}
 
 	retries := i.retries

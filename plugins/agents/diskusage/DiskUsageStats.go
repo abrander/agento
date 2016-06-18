@@ -4,9 +4,8 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -58,8 +57,8 @@ func (du *DiskUsageStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (d *DiskUsageStats) GetPoints() []*client.Point {
-	points := make([]*client.Point, len(d.Disks)*5)
+func (d *DiskUsageStats) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, len(d.Disks)*5)
 
 	i := 0
 	for key, value := range d.Disks {

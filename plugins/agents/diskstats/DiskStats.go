@@ -6,10 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -55,8 +54,8 @@ func (stat *DiskStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (d *DiskStats) GetPoints() []*client.Point {
-	points := make([]*client.Point, len(d.Disks)*11)
+func (d *DiskStats) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, len(d.Disks)*11)
 
 	i := 0
 	for key, value := range d.Disks {

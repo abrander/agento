@@ -6,10 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -45,8 +44,8 @@ func (stat *OpenFiles) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (o *OpenFiles) GetPoints() []*client.Point {
-	points := make([]*client.Point, 2)
+func (o *OpenFiles) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 2)
 
 	points[0] = plugins.SimplePoint("misc.OpenFilesUsed", o.Open)
 	points[1] = plugins.SimplePoint("misc.OpenFilesFree", o.Max-o.Open)

@@ -3,19 +3,17 @@ package plugins
 import (
 	"math"
 
-	"github.com/influxdata/influxdb/client/v2"
+	"github.com/abrander/agento/timeseries"
 )
 
-func SimplePoint(key string, value interface{}) *client.Point {
-	point, _ := client.NewPoint(key, nil, map[string]interface{}{
+func SimplePoint(key string, value interface{}) *timeseries.Point {
+	return timeseries.NewPoint(key, nil, map[string]interface{}{
 		"value": value,
 	})
-
-	return point
 }
 
-func PointWithTag(key string, value interface{}, tagKey string, tagValue string) *client.Point {
-	point, _ := client.NewPoint(
+func PointWithTag(key string, value interface{}, tagKey string, tagValue string) *timeseries.Point {
+	return timeseries.NewPoint(
 		key,
 		map[string]string{
 			tagKey: tagValue,
@@ -24,8 +22,6 @@ func PointWithTag(key string, value interface{}, tagKey string, tagValue string)
 			"value": value,
 		},
 	)
-
-	return point
 }
 
 func Round(value float64, places int) float64 {

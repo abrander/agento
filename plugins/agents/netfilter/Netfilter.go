@@ -8,10 +8,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -55,8 +54,8 @@ func (n *Netfilter) Gather(transport plugins.Transport) error {
 }
 
 // GetPoints will return a single point for now.
-func (n *Netfilter) GetPoints() []*client.Point {
-	points := make([]*client.Point, 1)
+func (n *Netfilter) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 1)
 
 	points[0] = plugins.SimplePoint("netfilter.ConnectionsTracked", n.ConnTrackCount)
 

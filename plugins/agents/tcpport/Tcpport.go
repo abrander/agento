@@ -3,9 +3,8 @@ package Tcpport
 import (
 	"time"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -42,8 +41,8 @@ func (t *Tcpport) Gather(transport plugins.Transport) error {
 }
 
 // GetPoints will return a single point describing timing tagged with the address.
-func (t *Tcpport) GetPoints() []*client.Point {
-	p := make([]*client.Point, 1)
+func (t *Tcpport) GetPoints() []*timeseries.Point {
+	p := make([]*timeseries.Point, 1)
 
 	p[0] = plugins.PointWithTag("tcpport.ConnectDuration", t.ConnectDuration, "address", t.Address)
 

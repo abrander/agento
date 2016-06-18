@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/abrander/agento/plugins"
-	"github.com/influxdata/influxdb/client/v2"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -222,14 +222,14 @@ func (a *PHPFPM) Gather(transport plugins.Transport) error {
 }
 
 // GetPoints will return points suitable for further processing.
-func (a *PHPFPM) GetPoints() []*client.Point {
+func (a *PHPFPM) GetPoints() []*timeseries.Point {
 	// If no pool is set, we assume we didn't succeed in gathering metrics and
 	// return no points.
 	if a.Pool == "" {
 		return nil
 	}
 
-	points := make([]*client.Point, 9)
+	points := make([]*timeseries.Point, 9)
 
 	// Each PHP-FPM host can easily run multiple PHP-FPM pools, so we tag all
 	// measurements with the pool name.

@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -38,8 +37,8 @@ func (e *Entropy) Gather(transport plugins.Transport) error {
 	return err
 }
 
-func (h Entropy) GetPoints() []*client.Point {
-	points := make([]*client.Point, 1)
+func (h Entropy) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 1)
 
 	points[0] = plugins.SimplePoint("misc.AvailableEntropy", int(h))
 

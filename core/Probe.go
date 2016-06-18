@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
 )
 
@@ -22,7 +22,7 @@ type (
 		AgentConfig map[string]interface{} `json:"config"`
 		LastCheck   time.Time              `json:"lastCheck"`
 		NextCheck   time.Time              `json:"nextCheck"`
-		LastPoints  []*client.Point        `json:"lastResult"`
+		LastPoints  []*timeseries.Point    `json:"lastPoints"`
 		Tags        map[string]string      `json:"tags"`
 	}
 )

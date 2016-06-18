@@ -5,9 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -105,10 +104,10 @@ func (h *Http) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (h Http) GetPoints() []*client.Point {
-	p := make([]*client.Point, 1)
+func (h Http) GetPoints() []*timeseries.Point {
+	p := make([]*timeseries.Point, 1)
 
-	p[0], _ = client.NewPoint(
+	p[0] = timeseries.NewPoint(
 		"http",
 		map[string]string{
 			"url": h.Url,

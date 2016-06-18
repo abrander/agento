@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/influxdata/influxdb/client/v2"
+	"github.com/abrander/agento/timeseries"
 )
 
 type (
@@ -12,7 +12,7 @@ type (
 	// collector collecting data and/or metrics from an underlying source.
 	Agent interface {
 		Gather(transport Transport) error
-		GetPoints() []*client.Point
+		GetPoints() []*timeseries.Point
 	}
 )
 
@@ -56,17 +56,15 @@ func GenericAgentTest(t *testing.T, i interface{}) {
 	points := agent.GetPoints()
 
 	for _, point := range points {
-		name := point.Name()
-
 		// Check measurement documentation.
-		_, found := doc.Measurements[name]
+		_, found := doc.Measurements[point.Name]
 		if !found {
-			t.Errorf("Measurement '%s' not documented on %T", name, i)
-			doc.Measurements[name] = "do not complain again"
+			t.Errorf("Measurement '%s' not documented on %T", point.Name, i)
+			doc.Measurements[point.Name] = "do not complain again"
 		}
 
 		// Check tags.
-		for tag := range point.Tags() {
+		for tag := range point.Tags {
 			_, found = doc.Tags[tag]
 			if !found {
 				t.Errorf("Tag '%s' not documented on %T", tag, i)

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/abrander/agento/logger"
-	"github.com/influxdata/influxdb/client/v2"
+	"github.com/abrander/agento/timeseries"
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -81,8 +81,8 @@ func (s *Server) ReportToInfluxdb() {
 			continue
 		}
 
-		points := make([]*client.Point, 1)
-		points[0], _ = client.NewPoint(
+		points := make([]*timeseries.Point, 1)
+		points[0] = timeseries.NewPoint(
 			value.Identifier,
 			value.Tags,
 			map[string]interface{}{

@@ -10,9 +10,9 @@ import (
 	"unicode/utf8"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 type Mysql struct {
@@ -257,8 +257,8 @@ func (m *Mysql) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (m *Mysql) GetPoints() []*client.Point {
-	points := make([]*client.Point, 58)
+func (m *Mysql) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 58)
 
 	points[0] = plugins.SimplePoint("mysql.Connections", m.Connections)
 	points[1] = plugins.SimplePoint("mysql.AccessDeniedErrors", m.AccessDeniedErrors)

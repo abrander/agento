@@ -1,9 +1,8 @@
 package linuxhost
 
 import (
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 type LinuxHost struct {
@@ -51,8 +50,8 @@ func (l *LinuxHost) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (l *LinuxHost) GetPoints() []*client.Point {
-	points := make([]*client.Point, 0, 300)
+func (l *LinuxHost) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 0, 300)
 
 	for _, p := range l.Agents {
 		agent, ok := p.(plugins.Agent)

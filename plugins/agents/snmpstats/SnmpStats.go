@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -158,8 +157,8 @@ func (stat *SnmpStats) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-func (s *SnmpStats) GetPoints() []*client.Point {
-	points := make([]*client.Point, 2)
+func (s *SnmpStats) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 2)
 
 	points[0] = plugins.SimplePoint("snmp.Received", s.IpInReceives)
 	points[1] = plugins.SimplePoint("snmp.Forwarded", s.IpForwDatagrams)

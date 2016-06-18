@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/influxdata/influxdb/client/v2"
 
 	"github.com/abrander/agento/configuration"
 	"github.com/abrander/agento/core"
@@ -58,18 +57,12 @@ func (s *Server) sendToInflux(stats plugins.Results, id string) error {
 
 	// Add hostname tag to all points
 	hostname := string(*stats["hostname"].(*hostname.Hostname))
-	for index, point := range points {
-		// FIXME: We do this hack while we wait for InfluxDB PR 5387:
-		// https://github.com/influxdata/influxdb/pull/5387
-		tags := point.Tags()
-
-		tags["hostname"] = hostname
+	for _, point := range points {
+		point.Tags["hostname"] = hostname
 
 		if id != "000000000000000000000000" {
-			tags["id"] = id
+			point.Tags["id"] = id
 		}
-
-		points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 	}
 
 	return s.tsdb.WritePoints(points)

@@ -9,7 +9,6 @@ import (
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/timeseries"
 	"github.com/abrander/agento/userdb"
-	"github.com/influxdata/influxdb/client/v2"
 )
 
 type (
@@ -132,16 +131,12 @@ func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
 
 						if len(points) > 0 {
 							// Tag all points with hostname and arbitrary tags.
-							for index, point := range points {
-								tags := point.Tags()
-
-								tags["hostname"] = host.Name
+							for _, point := range points {
+								point.Tags["hostname"] = host.Name
 
 								for key, value := range probe.Tags {
-									tags[key] = value
+									point.Tags[key] = value
 								}
-
-								points[index], _ = client.NewPoint(point.Name(), tags, point.Fields())
 							}
 
 							// Write results to TSDB.

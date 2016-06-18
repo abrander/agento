@@ -3,15 +3,14 @@ package plugins
 import (
 	"encoding/json"
 
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/logger"
+	"github.com/abrander/agento/timeseries"
 )
 
 type Results map[string]interface{}
 
-func (r Results) GetPoints() []*client.Point {
-	points := make([]*client.Point, 0, 300)
+func (r Results) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 0, 300)
 
 	for _, p := range r {
 		pp := p.(Plugin)

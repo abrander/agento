@@ -4,9 +4,8 @@ package null
 // structured. It's not really useful for anything else.
 
 import (
-	"github.com/influxdata/influxdb/client/v2"
-
 	"github.com/abrander/agento/plugins"
+	"github.com/abrander/agento/timeseries"
 )
 
 func init() {
@@ -35,8 +34,8 @@ func (n *Null) Gather(transport plugins.Transport) error {
 }
 
 // GetPoints will return exactly one point. The number of bytes read.
-func (n *Null) GetPoints() []*client.Point {
-	points := make([]*client.Point, 1)
+func (n *Null) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, 1)
 
 	points[0] = plugins.SimplePoint("Null.Length", n.Length)
 
