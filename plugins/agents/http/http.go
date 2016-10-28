@@ -40,6 +40,7 @@ func (h Http) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc("Check response from http and https servers")
 
 	doc.AddMeasurement("http", "Timing and status. Three values are provided: \"ConnectDuration\", \"RequestDuration\" and \"Status\"", "ms")
+	doc.AddTag("url", "The requested URL")
 
 	return doc
 }
