@@ -18,7 +18,7 @@ import (
 
 type (
 	Server struct {
-		inventory map[string]*Inventory
+		inventory map[string]*inventory
 		http      configuration.HttpConfiguration
 		https     configuration.HttpsConfiguration
 		udp       configuration.UdpConfiguration
@@ -47,7 +47,7 @@ func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db use
 	}
 	s.store = store
 
-	s.inventory = make(map[string]*Inventory)
+	s.inventory = make(map[string]*inventory)
 
 	return s, nil
 }

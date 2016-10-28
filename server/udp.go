@@ -8,12 +8,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/rcrowley/go-metrics"
+
 	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/timeseries"
-	"github.com/rcrowley/go-metrics"
 )
 
 type (
+	// Sample is a single sampe received from a client.
 	Sample struct {
 		Type        int               `json:"t"`
 		Probability float64           `json:"p"`
@@ -22,7 +24,7 @@ type (
 		Value       float64           `json:"v"`
 	}
 
-	Inventory struct {
+	inventory struct {
 		Histogram  metrics.Histogram
 		Identifier string
 		Tags       map[string]string
@@ -33,7 +35,7 @@ func (s *Sample) computeKey() string {
 	sortedKeys := make([]string, len(s.Tags))
 
 	i := 0
-	for key, _ := range s.Tags {
+	for key := range s.Tags {
 		sortedKeys[i] = key
 		i++
 	}
@@ -48,7 +50,7 @@ func (s *Sample) computeKey() string {
 	return fmt.Sprintf("%d:%s:%s", s.Type, s.Identifier, tags)
 }
 
-func (s *Server) addUdpSample(sample *Sample) error {
+func (s *Server) addUDPSample(sample *Sample) error {
 	key := sample.computeKey()
 	intValue := int64(sample.Value * 1000000.0)
 
@@ -56,7 +58,7 @@ func (s *Server) addUdpSample(sample *Sample) error {
 	if !found {
 		hist := metrics.GetOrRegisterHistogram(key, metrics.DefaultRegistry, metrics.NewUniformSample(1001))
 
-		i = &Inventory{
+		i = &inventory{
 			Histogram:  hist,
 			Identifier: sample.Identifier,
 			Tags:       sample.Tags,
@@ -99,6 +101,7 @@ func (s *Server) reportToInfluxdb() {
 	}
 }
 
+// ListenAndServeUDP starts the listener.
 func (s *Server) ListenAndServeUDP() {
 	samples := make(chan *Sample)
 
@@ -138,7 +141,7 @@ func (s *Server) ListenAndServeUDP() {
 	for {
 		select {
 		case sample := <-samples:
-			s.addUdpSample(sample)
+			s.addUDPSample(sample)
 		case <-c:
 			s.reportToInfluxdb()
 		}
