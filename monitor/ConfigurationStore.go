@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/BurntSushi/toml"
 
@@ -14,10 +15,12 @@ type (
 	// ConfigurationStore is a read-only store that will read hosts and probes
 	// from the Agento global configuration file.
 	ConfigurationStore struct {
-		changes  core.Broadcaster
-		metadata toml.MetaData
-		hosts    map[string]core.Host
-		probes   map[string]core.Probe
+		changes    core.Broadcaster
+		metadata   toml.MetaData
+		hostsLock  sync.RWMutex
+		hosts      map[string]core.Host
+		probesLock sync.RWMutex
+		probes     map[string]core.Probe
 	}
 )
 
@@ -70,11 +73,13 @@ func (s *ConfigurationStore) GetAllHosts(_ userdb.Subject, _ string) ([]core.Hos
 	l := len(s.hosts)
 	hosts := make([]core.Host, l, l)
 	i := 0
+	s.probesLock.RLock()
 	for _, host := range s.hosts {
 		hosts[i] = host
 
 		i++
 	}
+	s.probesLock.RUnlock()
 
 	return hosts, nil
 }
@@ -82,7 +87,10 @@ func (s *ConfigurationStore) GetAllHosts(_ userdb.Subject, _ string) ([]core.Hos
 // AddHost adds a host to memory, not to the configuration file.
 func (s *ConfigurationStore) AddHost(_ userdb.Subject, host *core.Host) error {
 	host.ID = core.RandomString(20)
+
+	s.hostsLock.Lock()
 	s.hosts[host.ID] = *host
+	s.hostsLock.Unlock()
 
 	s.changes.Broadcast("hostadd", host)
 
@@ -91,6 +99,9 @@ func (s *ConfigurationStore) AddHost(_ userdb.Subject, host *core.Host) error {
 
 // GetHost will return the host with the given id.
 func (s *ConfigurationStore) GetHost(_ userdb.Subject, id string) (*core.Host, error) {
+	s.hostsLock.RLock()
+	defer s.hostsLock.RUnlock()
+
 	host, found := s.hosts[id]
 	if !found {
 		return nil, core.ErrHostNotFound
@@ -101,6 +112,9 @@ func (s *ConfigurationStore) GetHost(_ userdb.Subject, id string) (*core.Host, e
 
 // GetHostByName searches for a host named name.
 func (s *ConfigurationStore) GetHostByName(_ userdb.Subject, name string) (*core.Host, error) {
+	s.hostsLock.RLock()
+	defer s.hostsLock.RUnlock()
+
 	for _, host := range s.hosts {
 		if host.Name == name {
 			return &host, nil
@@ -112,12 +126,15 @@ func (s *ConfigurationStore) GetHostByName(_ userdb.Subject, name string) (*core
 
 // DeleteHost will remove a host from memory, but not from configuration file.
 func (s *ConfigurationStore) DeleteHost(_ userdb.Subject, id string) error {
+	s.hostsLock.Lock()
 	host, found := s.hosts[id]
 	if !found {
 		return core.ErrHostNotFound
 	}
 
 	delete(s.hosts, id)
+
+	s.hostsLock.Unlock()
 
 	s.changes.Broadcast("hostdelete", &host)
 
@@ -129,11 +146,14 @@ func (s *ConfigurationStore) GetAllProbes(_ userdb.Subject, _ string) ([]core.Pr
 	l := len(s.probes)
 	probes := make([]core.Probe, l, l)
 	i := 0
+
+	s.probesLock.RLock()
 	for _, probe := range s.probes {
 		probes[i] = probe
 
 		i++
 	}
+	s.probesLock.RUnlock()
 
 	return probes, nil
 }
@@ -141,7 +161,10 @@ func (s *ConfigurationStore) GetAllProbes(_ userdb.Subject, _ string) ([]core.Pr
 // AddProbe adds a probe to memory.
 func (s *ConfigurationStore) AddProbe(_ userdb.Subject, probe *core.Probe) error {
 	probe.ID = core.RandomString(20)
+
+	s.probesLock.Lock()
 	s.probes[probe.ID] = *probe
+	s.probesLock.Unlock()
 
 	s.changes.Broadcast("probeadd", probe)
 
@@ -150,6 +173,9 @@ func (s *ConfigurationStore) AddProbe(_ userdb.Subject, probe *core.Probe) error
 
 // GetProbe will return a probe identified by id if found.
 func (s *ConfigurationStore) GetProbe(_ userdb.Subject, id string) (*core.Probe, error) {
+	s.probesLock.RLock()
+	defer s.probesLock.RUnlock()
+
 	probe, found := s.probes[id]
 	if !found {
 		return nil, core.ErrProbeNotFound
@@ -160,7 +186,9 @@ func (s *ConfigurationStore) GetProbe(_ userdb.Subject, id string) (*core.Probe,
 
 // UpdateProbe accepts the write but otherwise does no writing to disk.
 func (s *ConfigurationStore) UpdateProbe(_ userdb.Subject, probe *core.Probe) error {
+	s.probesLock.Lock()
 	s.probes[probe.ID] = *probe
+	s.probesLock.Unlock()
 
 	s.changes.Broadcast("probechange", probe)
 
@@ -169,6 +197,9 @@ func (s *ConfigurationStore) UpdateProbe(_ userdb.Subject, probe *core.Probe) er
 
 // DeleteProbe does delete the probe from memory but not from file.
 func (s *ConfigurationStore) DeleteProbe(_ userdb.Subject, id string) error {
+	s.probesLock.Lock()
+	defer s.probesLock.Unlock()
+
 	probe, found := s.probes[id]
 	if !found {
 		return core.ErrProbeNotFound
