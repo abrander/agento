@@ -48,7 +48,7 @@ func (s *Sample) computeKey() string {
 	return fmt.Sprintf("%d:%s:%s", s.Type, s.Identifier, tags)
 }
 
-func (s *Server) AddUdpSample(sample *Sample) error {
+func (s *Server) addUdpSample(sample *Sample) error {
 	key := sample.computeKey()
 	intValue := int64(sample.Value * 1000000.0)
 
@@ -73,7 +73,7 @@ func (s *Server) AddUdpSample(sample *Sample) error {
 	return nil
 }
 
-func (s *Server) ReportToInfluxdb() {
+func (s *Server) reportToInfluxdb() {
 	for key, value := range s.inventory {
 		// If the histogram was unused for a cycle, we remove it from inventory
 		if value.Histogram.Count() == 0 {
@@ -138,9 +138,9 @@ func (s *Server) ListenAndServeUDP() {
 	for {
 		select {
 		case sample := <-samples:
-			s.AddUdpSample(sample)
+			s.addUdpSample(sample)
 		case <-c:
-			s.ReportToInfluxdb()
+			s.reportToInfluxdb()
 		}
 	}
 }
