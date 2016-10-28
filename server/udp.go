@@ -31,6 +31,14 @@ type (
 	}
 )
 
+const (
+	// We receive float values from clients. Internally we store them as
+	// integers. We do this by multiplying the input by 'exponent' before
+	// committing them to the histogram.
+	// Before writing the data, we divide by this exponent.
+	exponent = 1000000.0
+)
+
 func (s *Sample) computeKey() string {
 	sortedKeys := make([]string, len(s.Tags))
 
@@ -52,7 +60,7 @@ func (s *Sample) computeKey() string {
 
 func (s *Server) addUDPSample(sample *Sample) error {
 	key := sample.computeKey()
-	intValue := int64(sample.Value * 1000000.0)
+	intValue := int64(sample.Value * exponent)
 
 	i, found := s.inventory[key]
 	if !found {
@@ -88,11 +96,11 @@ func (s *Server) reportToInfluxdb() {
 			value.Identifier,
 			value.Tags,
 			map[string]interface{}{
-				"min":  float64(value.Histogram.Min()) / 1000000.0,
-				"max":  float64(value.Histogram.Max()) / 1000000.0,
-				"mean": float64(value.Histogram.Mean()) / 1000000.0,
-				"p99":  float64(value.Histogram.Percentile(0.99) / 1000000.0),
-				"p90":  float64(value.Histogram.Percentile(0.90) / 1000000.0),
+				"min":  float64(value.Histogram.Min()) / exponent,
+				"max":  float64(value.Histogram.Max()) / exponent,
+				"mean": float64(value.Histogram.Mean()) / exponent,
+				"p99":  float64(value.Histogram.Percentile(0.99) / exponent),
+				"p90":  float64(value.Histogram.Percentile(0.90) / exponent),
 			},
 		)
 		value.Histogram.Sample().Clear()
