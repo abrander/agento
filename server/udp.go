@@ -101,6 +101,11 @@ func (s *Server) reportToInfluxdb() {
 				"mean": float64(value.Histogram.Mean()) / exponent,
 				"p99":  float64(value.Histogram.Percentile(0.99) / exponent),
 				"p90":  float64(value.Histogram.Percentile(0.90) / exponent),
+
+				// Count and sum doesn't make much sense in most cases, but
+				// we'll add them based on popular demand. While we cry ;-)
+				"count": value.Histogram.Count(),
+				"sum":   value.Histogram.Sum() / exponent,
 			},
 		)
 		value.Histogram.Sample().Clear()
