@@ -22,6 +22,14 @@ func NewPoint(name string, tags map[string]string, fields map[string]interface{}
 		T = t[0]
 	}
 
+	if tags == nil {
+		tags = make(map[string]string)
+	}
+
+	if fields == nil {
+		fields = make(map[string]interface{})
+	}
+
 	return &Point{
 		Time:   T,
 		Name:   name,
