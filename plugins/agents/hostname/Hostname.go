@@ -1,10 +1,12 @@
 package hostname
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/abrander/agento/configuration"
+	"github.com/abrander/agento/logger"
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
 )
@@ -20,16 +22,38 @@ func NewHostname() interface{} {
 }
 
 func (h *Hostname) Gather(transport plugins.Transport) error {
-	path := filepath.Join(configuration.ProcPath, "/sys/kernel/hostname")
-	b, err := transport.ReadFile(path)
-	if err != nil {
-		return err
+	hostname := os.Getenv("AGENTO_HOSTNAME")
+	hostnamePath := os.Getenv("AGENTO_HOSTNAME_PATH")
+
+	// If we got no hostname from AGENTO_HOSTNAME, try AGENTO_HOSTNAME_PATH
+	if hostname == "" && hostnamePath != "" {
+		b, err := transport.ReadFile(hostnamePath)
+		if err != nil {
+			return err
+		}
+
+		hostname = strings.TrimSpace(string(b))
 	}
 
-	hostname := strings.TrimSpace(string(b))
+	// If we still don't know our hostname, ask proc.
+	if hostname == "" {
+		path := filepath.Join(configuration.ProcPath, "/sys/kernel/hostname")
+		b, err := transport.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		hostname = strings.TrimSpace(string(b))
+	}
+
+	// If we don't know the hostname by now, something is wrong.
+	if hostname == "" {
+		logger.Error("config", "Unable to read hostname\n")
+	}
+
 	*h = Hostname(hostname)
 
-	return err
+	return nil
 }
 
 func (h Hostname) GetPoints() []*timeseries.Point {
