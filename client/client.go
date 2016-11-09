@@ -16,8 +16,10 @@ import (
 	"github.com/abrander/agento/plugins/transports/local"
 )
 
+// GatherAndReport will gather metrics at regular intervals and report to an
+// Agento server.
 func GatherAndReport(clientConfig configuration.ClientConfiguration) {
-	logger.Yellow("client", "agento client started, reporting to %s", clientConfig.ServerUrl)
+	logger.Yellow("client", "agento client started, reporting to %s", clientConfig.ServerURL)
 
 	// Randomize our start time to avoid a big cluster reporting at the exact same time
 	time.Sleep(time.Duration(rand.Intn(int(time.Second) * clientConfig.Interval)))
@@ -26,17 +28,17 @@ func GatherAndReport(clientConfig configuration.ClientConfiguration) {
 	for _ = range c {
 		l := linuxhost.LinuxHost{}
 		t := localtransport.NewLocalTransport().(plugins.Transport)
-		err := l.Gather(t)
-		if err != nil {
-			logger.Error("client", "gather Failed: %s", err.Error())
+		e := l.Gather(t)
+		if e != nil {
+			logger.Error("client", "gather Failed: %s", e.Error())
 			continue
 		}
 
-		json, err := json.Marshal(l.Agents)
+		json, e := json.Marshal(l.Agents)
 
-		if err == nil {
+		if e == nil {
 			client := &http.Client{}
-			req, err := http.NewRequest("POST", clientConfig.ServerUrl, bytes.NewReader(json))
+			req, err := http.NewRequest("POST", clientConfig.ServerURL, bytes.NewReader(json))
 			if err != nil {
 				logger.Error("client", "%s", err.Error())
 				continue
@@ -58,8 +60,7 @@ func GatherAndReport(clientConfig configuration.ClientConfiguration) {
 			io.Copy(ioutil.Discard, res.Body)
 			res.Body.Close()
 		} else {
-			logger.Error("client", "%s", err.Error())
+			logger.Error("client", "%s", e.Error())
 		}
-
 	}
 }

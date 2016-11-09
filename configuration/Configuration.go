@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// StateDir is the path where Agento's state will be saves.
 	StateDir = "/var/lib/agento/"
 )
 
@@ -56,7 +57,12 @@ url = "127.0.0.1"
 database = "agento"
 `
 
-	ProcPath  string
+	// ProcPath is the path where Agento will expect the proc filesystem to be.
+	// Will be /proc by default.
+	ProcPath string
+
+	// SysfsPath is the path where Agento expects to find the sys filesystem.
+	// Default is /sys.
 	SysfsPath string
 )
 
@@ -80,8 +86,9 @@ func init() {
 	}
 }
 
+// InfluxdbConfiguration stores the configuration for the InfluxDB connection.
 type InfluxdbConfiguration struct {
-	Url             string `toml:"url"`
+	URL             string `toml:"url"`
 	Username        string `toml:"username"`
 	Password        string `toml:"password"`
 	Database        string `toml:"database"`
@@ -89,20 +96,23 @@ type InfluxdbConfiguration struct {
 	Retries         int    `toml:"retries"`
 }
 
+// ClientConfiguration stores the configuration for Agento as a client.
 type ClientConfiguration struct {
 	Enabled   bool   `toml:"enabled"`
 	Interval  int    `toml:"interval"`
 	Secret    string `toml:"secret"`
-	ServerUrl string `toml:"server-url"`
+	ServerURL string `toml:"server-url"`
 }
 
-type HttpConfiguration struct {
+// HTTPConfiguration is the configuration for the built-in HTTP server.
+type HTTPConfiguration struct {
 	Enabled bool   `toml:"enabled"`
 	Bind    string `toml:"bind"`
 	Port    int16  `toml:"port"`
 }
 
-type HttpsConfiguration struct {
+// HTTPSConfiguration is the configuration for the built-in HTTPS server.
+type HTTPSConfiguration struct {
 	Enabled  bool   `toml:"enabled"`
 	Bind     string `toml:"bind"`
 	Port     int16  `toml:"port"`
@@ -110,27 +120,31 @@ type HttpsConfiguration struct {
 	CertPath string `toml:"cert"`
 }
 
-type UdpConfiguration struct {
+// UDPConfiguration is the configuration for the UDP receiver.
+type UDPConfiguration struct {
 	Enabled  bool   `toml:"enabled"`
 	Bind     string `toml:"bind"`
 	Port     int16  `toml:"port"`
 	Interval int    `toml:"interval"`
 }
 
+// ServerConfiguration stores the configuration for Agento as a server.
 type ServerConfiguration struct {
 	Influxdb InfluxdbConfiguration `toml:"influxdb"`
-	Http     HttpConfiguration     `toml:"http"`
-	Https    HttpsConfiguration    `toml:"https"`
+	HTTP     HTTPConfiguration     `toml:"http"`
+	HTTPS    HTTPSConfiguration    `toml:"https"`
 	Secret   string                `toml:"secret"`
-	Udp      UdpConfiguration      `toml:"udp"`
+	UDP      UDPConfiguration      `toml:"udp"`
 }
 
+// MongoConfiguration is the configuration for Agento's MongoDB client.
 type MongoConfiguration struct {
 	Enabled  bool   `toml:"enabled"`
-	Url      string `toml:"url`
+	URL      string `toml:"url"`
 	Database string `toml:"database"`
 }
 
+// Configuration is Agento's main configuration object.
 type Configuration struct {
 	Client   ClientConfiguration       `toml:"client"`
 	Server   ServerConfiguration       `toml:"server"`
@@ -149,6 +163,7 @@ func fileExists(name string) bool {
 	return true
 }
 
+// LoadFromFile loads configuration from TOML file at path.
 func (c *Configuration) LoadFromFile(path string) error {
 	c.LoadDefaults()
 
@@ -161,7 +176,7 @@ func (c *Configuration) LoadFromFile(path string) error {
 
 	firstDot := strings.Index(hostname, ".")
 	if firstDot > 0 {
-		c.Client.ServerUrl = "http://agento" + hostname[firstDot:] + ":12345/report"
+		c.Client.ServerURL = "http://agento" + hostname[firstDot:] + ":12345/report"
 	}
 
 	// Read values from config file if it exists
@@ -174,13 +189,15 @@ func (c *Configuration) LoadFromFile(path string) error {
 
 	c.LoadFromEnvironment()
 
-	if c.Client.Enabled && c.Client.ServerUrl == "" {
+	if c.Client.Enabled && c.Client.ServerURL == "" {
 		return errors.New("Could not determine server URL")
 	}
 
 	return nil
 }
 
+// LoadDefaults sets the default configuration. Can later be overridden by
+// LoadFromFile() and LoadFromEnvironment().
 func (c *Configuration) LoadDefaults() {
 	// Start by loading default values - should never err
 	if _, err := toml.Decode(defaultConfig, &c); err != nil {
@@ -188,6 +205,7 @@ func (c *Configuration) LoadDefaults() {
 	}
 }
 
+// LoadFromEnvironment reads configuration from environment variables.
 func (c *Configuration) LoadFromEnvironment() {
 	envSecret := os.Getenv("AGENTO_SECRET")
 	if envSecret != "" {
@@ -197,17 +215,17 @@ func (c *Configuration) LoadFromEnvironment() {
 
 	envServer := os.Getenv("AGENTO_SERVER_URL")
 	if envServer != "" {
-		c.Client.ServerUrl = envServer
+		c.Client.ServerURL = envServer
 	}
 
-	envInfluxdbUrl := os.Getenv("AGENTO_INFLUXDB_URL")
-	if envInfluxdbUrl != "" {
-		c.Server.Influxdb.Url = envInfluxdbUrl
+	envInfluxdbURL := os.Getenv("AGENTO_INFLUXDB_URL")
+	if envInfluxdbURL != "" {
+		c.Server.Influxdb.URL = envInfluxdbURL
 	}
 
-	envMongoUrl := os.Getenv("AGENTO_MONGO_URL")
-	if envMongoUrl != "" {
-		c.Mongo.Url = envMongoUrl
+	envMongoURL := os.Getenv("AGENTO_MONGO_URL")
+	if envMongoURL != "" {
+		c.Mongo.URL = envMongoURL
 	}
 }
 

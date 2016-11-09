@@ -19,7 +19,7 @@ type (
 
 func NewInfluxDb(cfg *configuration.InfluxdbConfiguration) (*InfluxDb, error) {
 	conf := client.HTTPConfig{
-		Addr:      cfg.Url,
+		Addr:      cfg.URL,
 		Username:  cfg.Username,
 		Password:  cfg.Password,
 		UserAgent: "agento-server",
@@ -41,6 +41,7 @@ func NewInfluxDb(cfg *configuration.InfluxdbConfiguration) (*InfluxDb, error) {
 	}, nil
 }
 
+// WritePoints Implements Database.
 func (i *InfluxDb) WritePoints(points []*Point) error {
 	bps, err := client.NewBatchPoints(i.bpsConf)
 	if err != nil {

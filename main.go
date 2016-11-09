@@ -110,17 +110,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	if config.Server.Http.Enabled {
+	if config.Server.HTTP.Enabled {
 		wg.Add(1)
 		go serv.ListenAndServe(engine)
 	}
 
-	if config.Server.Https.Enabled {
+	if config.Server.HTTPS.Enabled {
 		wg.Add(1)
 		go serv.ListenAndServeTLS(engine)
 	}
 
-	if config.Server.Udp.Enabled {
+	if config.Server.UDP.Enabled {
 		wg.Add(1)
 		go serv.ListenAndServeUDP()
 	}

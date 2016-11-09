@@ -19,9 +19,9 @@ import (
 type (
 	Server struct {
 		inventory map[string]*inventory
-		http      configuration.HttpConfiguration
-		https     configuration.HttpsConfiguration
-		udp       configuration.UdpConfiguration
+		http      configuration.HTTPConfiguration
+		https     configuration.HTTPSConfiguration
+		udp       configuration.UDPConfiguration
 		secret    string
 		db        userdb.Database
 		tsdb      timeseries.Database
@@ -36,9 +36,9 @@ func NewServer(router gin.IRouter, cfg configuration.ServerConfiguration, db use
 	router.Any("/health", s.healthHandler)
 
 	var err error
-	s.http = cfg.Http
-	s.https = cfg.Https
-	s.udp = cfg.Udp
+	s.http = cfg.HTTP
+	s.https = cfg.HTTPS
+	s.udp = cfg.UDP
 	s.secret = cfg.Secret
 	s.db = db
 	s.tsdb, err = timeseries.NewInfluxDb(&cfg.Influxdb)

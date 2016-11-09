@@ -29,12 +29,12 @@ func NewMongoStore(config configuration.MongoConfiguration, changes core.Broadca
 	var err error
 	m := &MongoStore{}
 
-	m.sess, err = mgo.Dial(config.Url)
+	m.sess, err = mgo.Dial(config.URL)
 	if err != nil {
 		logger.Error("mongostore", "Can't connect to mongo, go error %v", err)
 		os.Exit(1)
 	}
-	logger.Green("mongostore", "Connected to mongo/%s at %s", config.Database, config.Url)
+	logger.Green("mongostore", "Connected to mongo/%s at %s", config.Database, config.URL)
 
 	m.db = m.sess.DB(config.Database)
 	m.hostCollection = m.db.C("hosts")
