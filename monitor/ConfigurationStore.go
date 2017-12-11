@@ -86,7 +86,9 @@ func (s *ConfigurationStore) GetAllHosts(_ userdb.Subject, _ string) ([]core.Hos
 
 // AddHost adds a host to memory, not to the configuration file.
 func (s *ConfigurationStore) AddHost(_ userdb.Subject, host *core.Host) error {
-	host.ID = core.RandomString(20)
+	if host.ID == "" {
+		host.ID = core.RandomString(20)
+	}
 
 	s.hostsLock.Lock()
 	s.hosts[host.ID] = *host
