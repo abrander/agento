@@ -34,7 +34,7 @@ func Printf(pkg string, format string, args ...interface{}) {
 }
 
 func Red(pkg string, format string, args ...interface{}) {
-	Printf(pkg, "\033[31m"+format+"\033[0m", args...)
+	log.Printf("\033[35m"+pkg+"\033[0m: "+format+"\n", args...)
 }
 
 func Yellow(pkg string, format string, args ...interface{}) {
