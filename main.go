@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
 
 	"github.com/abrander/agento/api"
 	"github.com/abrander/agento/client"
@@ -41,30 +42,59 @@ import (
 	"github.com/abrander/agento/userdb"
 )
 
+var configPath = "/etc/agento.conf"
 var config = configuration.Configuration{}
 
-func main() {
+func init() {
 	// This should not be used for crypto, time.Now() is enough.
 	rand.Seed(time.Now().UnixNano())
+}
 
-	if len(os.Args) > 1 && os.Args[1] == "gendoc" {
-		d := plugins.GetDoc()
-
-		for _, doc := range d {
-			fmt.Printf("| %-40s | %-110s |\n", doc.Info.Description, "")
-			fmt.Printf("|------------------------------------------|----------------------------------------------------------------------------------------------------------------|\n")
-			for name, description := range doc.Tags {
-				fmt.Printf("| %-40s | %-110s |\n", "Tag: "+name, description)
-			}
-			for name, description := range doc.Measurements {
-				fmt.Printf("| %-40s | %-110s |\n", name, description)
-			}
-			fmt.Printf("\n")
-		}
-		os.Exit(0)
+func main() {
+	rootCommand := &cobra.Command{
+		Use:   os.Args[0],
+		Short: "Agento is a Client/server platform collecting near realtime metrics.",
 	}
 
-	err := config.LoadFromFile("/etc/agento.conf")
+	gendocCommand := &cobra.Command{
+		Use:    "gendoc",
+		Short:  "Generate markdown documentation for all agents",
+		Run:    gendoc,
+		Args:   cobra.NoArgs,
+		Hidden: true,
+	}
+	rootCommand.AddCommand(gendocCommand)
+
+	runCommand := &cobra.Command{
+		Use:   "run",
+		Short: "Run an Agento node",
+		Run:   run,
+		Args:  cobra.NoArgs,
+	}
+	rootCommand.AddCommand(runCommand)
+
+	rootCommand.PersistentFlags().StringVar(&configPath, "config", configPath, "The configuration file to use")
+	rootCommand.Execute()
+}
+
+func gendoc(_ *cobra.Command, _ []string) {
+	d := plugins.GetDoc()
+
+	for _, doc := range d {
+		fmt.Printf("| %-40s | %-110s |\n", doc.Info.Description, "")
+		fmt.Printf("|------------------------------------------|----------------------------------------------------------------------------------------------------------------|\n")
+		for name, description := range doc.Tags {
+			fmt.Printf("| %-40s | %-110s |\n", "Tag: "+name, description)
+		}
+		for name, description := range doc.Measurements {
+			fmt.Printf("| %-40s | %-110s |\n", name, description)
+		}
+		fmt.Printf("\n")
+	}
+}
+
+func run(_ *cobra.Command, _ []string) {
+	err := config.LoadFromFile(configPath)
 
 	if err != nil {
 		logger.Red("agento", "Configuration error: %s", err.Error())

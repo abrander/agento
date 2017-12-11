@@ -41,7 +41,7 @@ script
         export AGENTO_SECRET AGENTO_SERVER_URL AGENTO_INFLUXDB_URL AGENTO_MONGO_URL
     fi
 
-    exec /usr/sbin/agento
+    exec /usr/sbin/agento run
 end script
 EOF
 
