@@ -53,7 +53,11 @@ func NewConfigurationStore(config *configuration.Configuration, changes core.Bro
 	primitiveProbes := config.GetProbePrimitives()
 
 	for id, primitiveProbe := range primitiveProbes {
-		probe := core.Probe{}
+		probe := core.Probe{
+			// Let the default localhost be the default. It makes sense for
+			// simple setups.
+			HostID: "000000000000000000000000",
+		}
 
 		err := probe.DecodeTOML(s, primitiveProbe)
 		if err != nil {
