@@ -27,7 +27,7 @@ type (
 )
 
 var (
-	StartTime  = time.Now()
+	startTime  = time.Now()
 	wsupgrader = websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
@@ -44,14 +44,14 @@ func wsHandler(c *gin.Context, emitter core.Emitter, subject userdb.Subject) {
 	changes := emitter.Subscribe(subject)
 
 	status := Status{
-		Started: StartTime,
+		Started: startTime,
 	}
 
 	for {
 		select {
 		case t := <-ticker:
 			status.Clock = t
-			status.Uptime = t.Sub(StartTime)
+			status.Uptime = t.Sub(startTime)
 			err := conn.WriteJSON(Message{Type: "status", Payload: status})
 			if err != nil {
 				goto unsubscribe
