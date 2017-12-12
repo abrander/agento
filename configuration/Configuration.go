@@ -18,7 +18,7 @@ const (
 var (
 	defaultConfig = `
 [client]
-enabled = true
+enabled = false
 interval = 1
 secret = "insecure"
 
