@@ -73,6 +73,15 @@ func main() {
 	}
 	rootCommand.AddCommand(runCommand)
 
+	runOnceCommand := &cobra.Command{
+		Use:   "runonce",
+		Short: "Run all probes once, then exit",
+		Long:  "Tries to run all probes once and output gathered statistics in a format suitable for InfluxDB.",
+		Run:   runOnce,
+		Args:  cobra.NoArgs,
+	}
+	rootCommand.AddCommand(runOnceCommand)
+
 	rootCommand.PersistentFlags().StringVar(&configPath, "config", configPath, "The configuration file to use")
 	rootCommand.Execute()
 }
@@ -93,38 +102,50 @@ func gendoc(_ *cobra.Command, _ []string) {
 	}
 }
 
-func run(_ *cobra.Command, _ []string) {
+func loadConfig() {
 	err := config.LoadFromFile(configPath)
 
 	if err != nil {
 		logger.Red("agento", "Configuration error: %s", err.Error())
 		os.Exit(1)
 	}
+}
 
-	wg := &sync.WaitGroup{}
-
-	db := userdb.NewSingleUser(config.Server.Secret)
-	engine := gin.New()
-
+func getStore(broadcaster core.Broadcaster) core.Store {
+	var err error
 	var store core.Store
-
-	emitter := core.NewSimpleEmitter()
 
 	// If the user have Mongo enabled, we use that. If not, we read from
 	// configuration.
 	if config.Mongo.Enabled {
-		store, err = monitor.NewMongoStore(config.Mongo, emitter)
+		store, err = monitor.NewMongoStore(config.Mongo, broadcaster)
 		if err != nil {
 			logger.Red("agento", "Mongo error: %s", err.Error())
 			os.Exit(1)
 		}
 	} else {
-		store, err = monitor.NewConfigurationStore(&config, emitter)
+		store, err = monitor.NewConfigurationStore(&config, broadcaster)
 		if err != nil {
 			logger.Red("agento", "Configuration error: %s", err.Error())
 			os.Exit(1)
 		}
 	}
+
+	return store
+}
+
+func run(_ *cobra.Command, _ []string) {
+	var err error
+	wg := &sync.WaitGroup{}
+
+	loadConfig()
+
+	db := userdb.NewSingleUser(config.Server.Secret)
+	engine := gin.New()
+
+	emitter := core.NewSimpleEmitter()
+
+	store := getStore(emitter)
 
 	scheduler := monitor.NewScheduler(store, db)
 
@@ -166,4 +187,37 @@ func run(_ *cobra.Command, _ []string) {
 	go api.Init(engine.Group("/api"), store, emitter, db)
 
 	wg.Wait()
+}
+
+func runOnce(_ *cobra.Command, _ []string) {
+	loadConfig()
+
+	emitter := core.NewSimpleEmitter()
+
+	store := getStore(emitter)
+	core.AddLocalhost(userdb.God, store)
+
+	probes, _ := store.GetAllProbes(userdb.God, userdb.God.GetId())
+	fmt.Printf("Probes: %d\n", len(probes))
+	for _, probe := range probes {
+		logger.Green("agento", "Gathering for probe %s", probe.ID)
+
+		agent := probe.Agent()
+
+		host, err := store.GetHost(userdb.God, probe.HostID)
+		if err != nil {
+			logger.Red("agento", "Error finding host %s: %s", probe.HostID, err.Error())
+			continue
+		}
+
+		err = agent.Gather(host.Transport())
+		if err != nil {
+			logger.Red("agento", "Error gathering %s: %s", probe.ID, err.Error())
+			continue
+		}
+
+		for _, point := range agent.GetPoints() {
+			fmt.Printf("%s\n", point.InfluxDBPoint().String())
+		}
+	}
 }
