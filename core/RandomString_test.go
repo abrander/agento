@@ -5,7 +5,7 @@ import (
 )
 
 func TestRandomString(t *testing.T) {
-	for l := 1; l < 100; l++ {
+	for l := 0; l < 100; l++ {
 		str := RandomString(l)
 
 		if len(str) != l {
