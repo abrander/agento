@@ -217,6 +217,12 @@ func runOnce(_ *cobra.Command, _ []string) {
 		}
 
 		for _, point := range agent.GetPoints() {
+			// Tag all points with hostname and arbitrary tags.
+			point.Tags["hostname"] = host.Name
+			for key, value := range probe.Tags {
+				point.Tags[key] = value
+			}
+
 			fmt.Printf("%s\n", point.InfluxDBPoint().String())
 		}
 	}
