@@ -53,11 +53,11 @@ type (
 
 var (
 	// Will be returned from CanAccess() if the Object doesn't have access.
-	ErrorNoAccess error = errors.New("access forbidden")
+	ErrorNoAccess = errors.New("access forbidden")
 
 	// Error indicating an invalid account id.
-	ErrorInvalidAccountId error = errors.New("invalid account id")
+	ErrorInvalidAccountId = errors.New("invalid account id")
 
 	// Error indicating an invalid user id.
-	ErrorInvalidUserId error = errors.New("invalid user id")
+	ErrorInvalidUserId = errors.New("invalid user id")
 )
