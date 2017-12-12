@@ -19,3 +19,25 @@ var (
 	// ErrHostNotFound will be returned iof the host cannot be found.
 	ErrHostNotFound = errors.New("Host not found")
 )
+
+// AddLocalhost will add the magic localhost to the store if needed.
+func AddLocalhost(subject userdb.Subject, store HostStore) error {
+	_, err := store.GetHost(subject, "000000000000000000000000")
+	if err != nil {
+		// Construct the magic host.
+		host := &Host{
+			ID:          "000000000000000000000000",
+			AccountID:   "000000000000000000000000",
+			Name:        "localhost",
+			TransportID: "localtransport",
+		}
+
+		// Save it.
+		err = store.AddHost(nil, host)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

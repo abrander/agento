@@ -31,27 +31,13 @@ func NewScheduler(store core.Store, subject userdb.Subject) *Scheduler {
 
 // Loop will simply loop through all probes and emit changes and execute jobs.
 func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
-	// Make sure we have the magic localhost. Maybe we should move this somewhere else.
-	_, err := s.store.GetHost(s.subject, "000000000000000000000000")
+	err := core.AddLocalhost(s.subject, s.store)
 	if err != nil {
-		// Construct the magic host.
-		host := &core.Host{
-			ID:          "000000000000000000000000",
-			AccountID:   "000000000000000000000000",
-			Name:        "localhost",
-			TransportID: "localtransport",
-		}
-
-		// Save it.
-		err = s.store.AddHost(nil, host)
-		if err != nil {
-			logger.Red("scheduler", "Error inserting: %s", err.Error())
-			wg.Done()
-			return
-		}
-
-		logger.Yellow("scheduler", "Added localhost transport with id %s", host.ID)
+		logger.Red("Failed to add localhost: %s", err.Error())
+		wg.Done()
+		return
 	}
+	// Make sure we have the magic localhost. Maybe we should move this somewhere else.
 
 	// We tick ten times a second, this should be enough for now.
 	ticker := time.Tick(time.Millisecond * 100)
