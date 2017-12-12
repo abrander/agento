@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"os"
 
 	"github.com/abrander/agento/userdb"
 )
@@ -22,13 +23,14 @@ var (
 
 // AddLocalhost will add the magic localhost to the store if needed.
 func AddLocalhost(subject userdb.Subject, store HostStore) error {
+	hostname, _ := os.Hostname()
 	_, err := store.GetHost(subject, "000000000000000000000000")
 	if err != nil {
 		// Construct the magic host.
 		host := &Host{
 			ID:          "000000000000000000000000",
 			AccountID:   "000000000000000000000000",
-			Name:        "localhost",
+			Name:        hostname,
 			TransportID: "localtransport",
 		}
 
