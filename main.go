@@ -136,7 +136,7 @@ func getStore(broadcaster core.Broadcaster) core.Store {
 
 func run(_ *cobra.Command, _ []string) {
 	var err error
-	wg := &sync.WaitGroup{}
+	wg := sync.WaitGroup{}
 
 	loadConfig()
 
@@ -182,7 +182,7 @@ func run(_ *cobra.Command, _ []string) {
 	}
 
 	wg.Add(1)
-	go scheduler.Loop(*wg, tsdb)
+	go scheduler.Loop(&wg, tsdb)
 
 	go api.Init(engine.Group("/api"), store, emitter, db)
 

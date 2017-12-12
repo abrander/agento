@@ -30,7 +30,7 @@ func NewScheduler(store core.Store, subject userdb.Subject) *Scheduler {
 }
 
 // Loop will simply loop through all probes and emit changes and execute jobs.
-func (s *Scheduler) Loop(wg sync.WaitGroup, serv timeseries.Database) {
+func (s *Scheduler) Loop(wg *sync.WaitGroup, serv timeseries.Database) {
 	err := core.AddLocalhost(s.subject, s.store)
 	if err != nil {
 		logger.Red("Failed to add localhost: %s", err.Error())
