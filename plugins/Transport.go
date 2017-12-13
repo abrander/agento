@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"net"
+	"net/http"
 	"syscall"
 )
 
@@ -39,4 +40,14 @@ func GetTransport(id string) (Transport, error) {
 	}
 
 	return transport, nil
+}
+
+// HTTPClient is a simple helper that will return a http.Client using the
+// supplied transport.
+func HTTPClient(transport Transport) *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: transport.Dial,
+		},
+	}
 }
