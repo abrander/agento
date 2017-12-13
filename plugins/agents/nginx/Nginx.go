@@ -2,6 +2,7 @@ package nginx
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
@@ -43,6 +44,10 @@ func (n *Nginx) Gather(transport plugins.Transport) error {
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("%s returned %d", n.URL, resp.StatusCode)
+	}
 
 	fmt.Fscanf(resp.Body, stubFormat,
 		&n.ActiveConnections,
