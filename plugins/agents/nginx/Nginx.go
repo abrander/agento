@@ -61,13 +61,13 @@ func (n *Nginx) Gather(transport plugins.Transport) error {
 func (n *Nginx) GetPoints() []*timeseries.Point {
 	points := make([]*timeseries.Point, 7)
 
-	points[0] = plugins.SimplePoint("Nginx.ActiveConnections", n.ActiveConnections)
-	points[1] = plugins.SimplePoint("Nginx.Accepts", n.Accepts)
-	points[2] = plugins.SimplePoint("Nginx.Handled", n.Handled)
-	points[3] = plugins.SimplePoint("Nginx.Requests", n.Requests)
-	points[4] = plugins.SimplePoint("Nginx.Reading", n.Reading)
-	points[5] = plugins.SimplePoint("Nginx.Writing", n.Writing)
-	points[6] = plugins.SimplePoint("Nginx.Waiting", n.Waiting)
+	points[0] = plugins.SimplePoint("nginx.ActiveConnections", n.ActiveConnections)
+	points[1] = plugins.SimplePoint("nginx.Accepts", n.Accepts)
+	points[2] = plugins.SimplePoint("nginx.Handled", n.Handled)
+	points[3] = plugins.SimplePoint("nginx.Requests", n.Requests)
+	points[4] = plugins.SimplePoint("nginx.Reading", n.Reading)
+	points[5] = plugins.SimplePoint("nginx.Writing", n.Writing)
+	points[6] = plugins.SimplePoint("nginx.Waiting", n.Waiting)
 
 	return points
 }
@@ -76,15 +76,13 @@ func (n *Nginx) GetPoints() []*timeseries.Point {
 func (n *Nginx) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc("Nginx stub status")
 
-	doc.AddMeasurement("Nginx.Length", "Number of bytes read from /dev/null", "b")
-
-	doc.AddMeasurement("Nginx.ActiveConnections", "The current number of active client connections including Waiting connections.", "n")
-	doc.AddMeasurement("Nginx.Accepts", "The total number of accepted client connections.", "n")
-	doc.AddMeasurement("Nginx.Handled", "The total number of handled connections. Generally, the parameter value is the same as accepts unless some resource limits have been reached (for example, the worker_connections limit).", "n")
-	doc.AddMeasurement("Nginx.Requests", "The total number of client requests.", "n")
-	doc.AddMeasurement("Nginx.Reading", "The current number of connections where nginx is reading the request header.", "n")
-	doc.AddMeasurement("Nginx.Writing", "The current number of connections where nginx is writing the response back to the client.", "n")
-	doc.AddMeasurement("Nginx.Waiting", "The current number of idle client connections waiting for a request.", "n")
+	doc.AddMeasurement("nginx.ActiveConnections", "The current number of active client connections including Waiting connections.", "n")
+	doc.AddMeasurement("nginx.Accepts", "The total number of accepted client connections.", "n")
+	doc.AddMeasurement("nginx.Handled", "The total number of handled connections. Generally, the parameter value is the same as accepts unless some resource limits have been reached (for example, the worker_connections limit).", "n")
+	doc.AddMeasurement("nginx.Requests", "The total number of client requests.", "n")
+	doc.AddMeasurement("nginx.Reading", "The current number of connections where nginx is reading the request header.", "n")
+	doc.AddMeasurement("nginx.Writing", "The current number of connections where nginx is writing the response back to the client.", "n")
+	doc.AddMeasurement("nginx.Waiting", "The current number of idle client connections waiting for a request.", "n")
 
 	return doc
 }
