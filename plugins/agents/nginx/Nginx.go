@@ -11,7 +11,7 @@ func init() {
 	plugins.Register("nginx", newNginx)
 }
 
-// Nginx will store the number of bytes read from /dev/null.
+// Nginx will retrieve stub status.
 type Nginx struct {
 	URL string `toml:"url" description:"Nginx status URL"`
 
