@@ -51,7 +51,7 @@ func (p *Probe) DecodeTOML(hostStore HostStore, prim toml.Primitive) error {
 	if p.Interval == 0 {
 		p.Interval = time.Second * 10
 	} else {
-		p.Interval = time.Second
+		p.Interval = time.Second * p.Interval
 	}
 
 	return nil
