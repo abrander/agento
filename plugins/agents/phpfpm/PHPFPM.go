@@ -36,7 +36,7 @@ type (
 		IdleProcesses       int64  `json:"ip"`
 		ActiveProcesses     int64  `json:"ap"`
 		MaxActiveProcesses  int64  `json:"map"`
-		MacChildrenReached  int64  `json:"mcr"`
+		MaxChildrenReached  int64  `json:"mcr"`
 		SlowRequests        int64  `json:"sr"`
 	}
 
@@ -206,7 +206,7 @@ func (a *PHPFPM) Gather(transport plugins.Transport) error {
 				case "max active processes":
 					a.MaxActiveProcesses = valueInt
 				case "max children reached":
-					a.MacChildrenReached = valueInt
+					a.MaxChildrenReached = valueInt
 				case "slow requests":
 					a.SlowRequests = valueInt
 				}
@@ -240,7 +240,7 @@ func (a *PHPFPM) GetPoints() []*timeseries.Point {
 	points[4] = plugins.PointWithTag("phpfpm.IdleProcesses", a.IdleProcesses, "pool", a.Pool)
 	points[5] = plugins.PointWithTag("phpfpm.ActiveProcesses", a.ActiveProcesses, "pool", a.Pool)
 	points[6] = plugins.PointWithTag("phpfpm.MaxActiveProcesses", a.MaxActiveProcesses, "pool", a.Pool)
-	points[7] = plugins.PointWithTag("phpfpm.MacChildrenReached", a.MacChildrenReached, "pool", a.Pool)
+	points[7] = plugins.PointWithTag("phpfpm.MaxChildrenReached", a.MaxChildrenReached, "pool", a.Pool)
 	points[8] = plugins.PointWithTag("phpfpm.SlowRequests", a.SlowRequests, "pool", a.Pool)
 
 	return points
@@ -261,7 +261,7 @@ func (a *PHPFPM) GetDoc() *plugins.Doc {
 	doc.AddMeasurement("phpfpm.IdleProcesses", "The number of idle FPM processes", "n")
 	doc.AddMeasurement("phpfpm.ActiveProcesses", "The number of active FPM processes", "n")
 	doc.AddMeasurement("phpfpm.MaxActiveProcesses", "The maximum number of active processes since FPM has started", "n")
-	doc.AddMeasurement("phpfpm.MacChildrenReached", "Number of times, the process limit has been reached, when pm tries to start more children. If that value is not zero, then you may need to increase max process limit for your PHP-FPM pool (only relevant for dynamic or ondemand modes)", "n")
+	doc.AddMeasurement("phpfpm.MaxChildrenReached", "Number of times, the process limit has been reached, when pm tries to start more children. If that value is not zero, then you may need to increase max process limit for your PHP-FPM pool (only relevant for dynamic or ondemand modes)", "n")
 	doc.AddMeasurement("phpfpm.SlowRequests", "The number of \"slow\" requests since FPM was started", "n")
 
 	return doc
