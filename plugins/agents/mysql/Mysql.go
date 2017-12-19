@@ -105,6 +105,7 @@ func init() {
 	// driver will experience problems. In this way at least they will have a
 	// chance of discovering what's wrong.
 	mysql.RegisterDial("tcp", panicDialer)
+	mysql.RegisterDial("unix", panicDialer)
 }
 
 func NewMysql() interface{} {
@@ -122,6 +123,16 @@ func (m *Mysql) Gather(transport plugins.Transport) error {
 		conn, err := transport.Dial("tcp", addr)
 
 		mysql.RegisterDial("tcp", panicDialer)
+
+		dialLock.Unlock()
+
+		return conn, err
+	})
+
+	mysql.RegisterDial("unix", func(addr string) (net.Conn, error) {
+		conn, err := transport.Dial("unix", addr)
+
+		mysql.RegisterDial("unix", panicDialer)
 
 		dialLock.Unlock()
 
