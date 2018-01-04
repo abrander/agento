@@ -109,11 +109,11 @@ func (m *MysqlSlave) GetPoints() []*timeseries.Point {
 }
 
 func (m *MysqlSlave) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc("MysqlSlave")
+	doc := plugins.NewDoc("Mysql slave statistics")
 
 	doc.AddTag("connection", "The connection name from MySQL")
-	doc.AddMeasurement("mysqlslave.SecondsBehindMaster", "Difference between the timestamp logged on the master for the event that the slave is currently processing, and the current timestamp on the slave. Zero if the slave is not currently processing an event.", "")
-	doc.AddMeasurement("mysqlslave.ExecutedLogEntries", "How many log entries the slave has executed.", "")
+	doc.AddMeasurement("mysqlslave.SecondsBehindMaster", "Difference between the timestamp logged on the master for the event that the slave is currently processing, and the current timestamp on the slave. Zero if the slave is not currently processing an event.", "s")
+	doc.AddMeasurement("mysqlslave.ExecutedLogEntries", "How many log entries the slave has executed.", "n")
 	return doc
 }
 
