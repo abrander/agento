@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"regexp"
 	"strconv"
-	"sync"
 
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
@@ -17,7 +16,6 @@ func init() {
 // Exec will retrieve stub status.
 type Exec struct {
 	KeyValue []KeyValue `json:"c"`
-	wg       sync.WaitGroup
 }
 
 type KeyValue struct {
@@ -31,32 +29,27 @@ func newExec() interface{} {
 
 // Gather will measure how many bytes can be read from /dev/null.
 func (e *Exec) Gather(transport plugins.Transport) error {
-	e.wg.Add(1)
 	stdout, _, _ := transport.Exec("./plugins/agents/exec/example.sh", "")
 
 	scanner := bufio.NewScanner(stdout)
-	go func() {
-		defer e.wg.Done()
-		for scanner.Scan() {
-			re := regexp.MustCompile("^(.*).value ([0-9]+(\\.([0-9])*)?)$")
-			matches := re.FindAllStringSubmatch(scanner.Text(), -1)
+	for scanner.Scan() {
+		re := regexp.MustCompile("^(.*).value ([0-9]+(\\.([0-9])*)?)$")
+		matches := re.FindAllStringSubmatch(scanner.Text(), -1)
 
-			value, _ := strconv.ParseFloat(matches[0][2], 64)
+		value, _ := strconv.ParseFloat(matches[0][2], 64)
 
-			kv := KeyValue{}
-			kv.key = matches[0][1]
-			kv.value = value
+		kv := KeyValue{}
+		kv.key = matches[0][1]
+		kv.value = value
 
-			e.KeyValue = append(e.KeyValue, kv)
-		}
-	}()
+		e.KeyValue = append(e.KeyValue, kv)
+	}
 
 	return nil
 }
 
 // GetPoints will return exactly one point. The number of bytes read.
 func (e *Exec) GetPoints() []*timeseries.Point {
-	e.wg.Wait()
 	points := make([]*timeseries.Point, len(e.KeyValue))
 
 	for i, kv := range e.KeyValue {
