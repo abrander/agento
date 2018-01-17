@@ -29,7 +29,9 @@ func newExec() interface{} {
 	return new(Exec)
 }
 
-// Gather will measure how many bytes can be read from /dev/null.
+// Gather will execute command (with arguments) and read each line in output.
+// Gather expect output to be munin plugin style:
+// http://munin-monitoring.org/wiki/HowToWritePlugins
 func (e *Exec) Gather(transport plugins.Transport) error {
 	stdout, _, _ := transport.Exec(e.Cmd, e.Arg)
 
@@ -52,7 +54,7 @@ func (e *Exec) Gather(transport plugins.Transport) error {
 	return nil
 }
 
-// GetPoints will return exactly one point. The number of bytes read.
+// GetPoints will return one point per line (keys) in output from command.
 func (e *Exec) GetPoints() []*timeseries.Point {
 	points := make([]*timeseries.Point, len(e.kv))
 
