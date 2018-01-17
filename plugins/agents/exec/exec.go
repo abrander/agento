@@ -60,11 +60,8 @@ func (e *Exec) GetPoints() []*timeseries.Point {
 	return points
 }
 
-// GetDoc explains the returned points from GetPoints().
 func (e *Exec) GetDoc() *plugins.Doc {
-	doc := plugins.NewDoc("Exec stub status")
-
-	doc.AddMeasurement("nginx.ActiveConnections", "The current number of active client connections including Waiting connections.", "n")
+	doc := plugins.NewDoc("Exec doesn't have any measurements, but will read munin plugin format and use key and values.")
 
 	return doc
 }
