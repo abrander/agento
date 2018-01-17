@@ -1,4 +1,4 @@
-package MuninPluginRunner
+package muninpluginrunner
 
 import (
 	"bufio"
@@ -32,8 +32,8 @@ func newMuninPluginRunner() interface{} {
 // Gather will execute command (with arguments) and read each line in output.
 // Gather expect output to be munin plugin style:
 // http://munin-monitoring.org/wiki/HowToWritePlugins
-func (e *MuninPluginRunner) Gather(transport plugins.Transport) error {
-	stdout, _, _ := transport.Exec(e.Cmd, e.Arg)
+func (m *MuninPluginRunner) Gather(transport plugins.Transport) error {
+	stdout, _, _ := transport.Exec(m.Cmd, m.Arg)
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
@@ -47,7 +47,7 @@ func (e *MuninPluginRunner) Gather(transport plugins.Transport) error {
 			kv.key = matches[0][1]
 			kv.value = value
 
-			e.kv = append(e.kv, kv)
+			m.kv = append(m.kv, kv)
 		}
 	}
 
@@ -55,16 +55,16 @@ func (e *MuninPluginRunner) Gather(transport plugins.Transport) error {
 }
 
 // GetPoints will return one point per line (keys) in output from command.
-func (e *MuninPluginRunner) GetPoints() []*timeseries.Point {
-	points := make([]*timeseries.Point, len(e.kv))
+func (m *MuninPluginRunner) GetPoints() []*timeseries.Point {
+	points := make([]*timeseries.Point, len(m.kv))
 
-	for i, kv := range e.kv {
+	for i, kv := range m.kv {
 		points[i] = plugins.SimplePoint(kv.key, kv.value)
 	}
 	return points
 }
 
-func (e *MuninPluginRunner) GetDoc() *plugins.Doc {
+func (m *MuninPluginRunner) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc("Munin-plugin-runner doesn't have any measurements, but will read munin plugin format and use key and values.")
 
 	return doc
