@@ -15,7 +15,8 @@ func init() {
 
 // Exec will retrieve stub status.
 type Exec struct {
-	KeyValue []KeyValue `json:"c"`
+	Cmd string `toml:"cmd" json:"cmd" description:"Command to run"`
+	kv  []KeyValue
 }
 
 type KeyValue struct {
@@ -29,7 +30,7 @@ func newExec() interface{} {
 
 // Gather will measure how many bytes can be read from /dev/null.
 func (e *Exec) Gather(transport plugins.Transport) error {
-	stdout, _, _ := transport.Exec("./plugins/agents/exec/example.sh", "")
+	stdout, _, _ := transport.Exec(e.Cmd, "")
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
@@ -42,7 +43,7 @@ func (e *Exec) Gather(transport plugins.Transport) error {
 		kv.key = matches[0][1]
 		kv.value = value
 
-		e.KeyValue = append(e.KeyValue, kv)
+		e.kv = append(e.kv, kv)
 	}
 
 	return nil
@@ -50,9 +51,9 @@ func (e *Exec) Gather(transport plugins.Transport) error {
 
 // GetPoints will return exactly one point. The number of bytes read.
 func (e *Exec) GetPoints() []*timeseries.Point {
-	points := make([]*timeseries.Point, len(e.KeyValue))
+	points := make([]*timeseries.Point, len(e.kv))
 
-	for i, kv := range e.KeyValue {
+	for i, kv := range e.kv {
 		points[i] = plugins.SimplePoint(kv.key, kv.value)
 	}
 	return points
