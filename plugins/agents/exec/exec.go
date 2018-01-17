@@ -38,13 +38,15 @@ func (e *Exec) Gather(transport plugins.Transport) error {
 		re := regexp.MustCompile("^(.*).value ([0-9]+(\\.([0-9])*)?)$")
 		matches := re.FindAllStringSubmatch(scanner.Text(), -1)
 
-		value, _ := strconv.ParseFloat(matches[0][2], 64)
+		if len(matches) == 1 {
+			value, _ := strconv.ParseFloat(matches[0][2], 64)
 
-		kv := KeyValue{}
-		kv.key = matches[0][1]
-		kv.value = value
+			kv := KeyValue{}
+			kv.key = matches[0][1]
+			kv.value = value
 
-		e.kv = append(e.kv, kv)
+			e.kv = append(e.kv, kv)
+		}
 	}
 
 	return nil
