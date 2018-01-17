@@ -21,6 +21,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/diskstats"
 	_ "github.com/abrander/agento/plugins/agents/diskusage"
 	_ "github.com/abrander/agento/plugins/agents/entropy"
+	_ "github.com/abrander/agento/plugins/agents/exec"
 	_ "github.com/abrander/agento/plugins/agents/hostname"
 	_ "github.com/abrander/agento/plugins/agents/http"
 	_ "github.com/abrander/agento/plugins/agents/linuxhost"
