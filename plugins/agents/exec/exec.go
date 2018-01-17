@@ -2,9 +2,6 @@ package exec
 
 import (
 	"bufio"
-	"fmt"
-	"os"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"sync"
@@ -35,25 +32,16 @@ func newExec() interface{} {
 // Gather will measure how many bytes can be read from /dev/null.
 func (e *Exec) Gather(transport plugins.Transport) error {
 	e.wg.Add(1)
-	cmd := exec.Command("./plugins/agents/exec/example.sh", "")
-	cmdReader, err := cmd.StdoutPipe()
-	if err != nil {
+	stdout, _, _ := transport.Exec("./plugins/agents/exec/example.sh", "")
 
-		fmt.Fprintln(os.Stderr, "Error creating StdoutPipe for Cmd", err)
-		os.Exit(1)
-	}
-
-	scanner := bufio.NewScanner(cmdReader)
+	scanner := bufio.NewScanner(stdout)
 	go func() {
 		defer e.wg.Done()
 		for scanner.Scan() {
 			re := regexp.MustCompile("^(.*).value ([0-9]+(\\.([0-9])*)?)$")
 			matches := re.FindAllStringSubmatch(scanner.Text(), -1)
 
-			value, err2 := strconv.ParseFloat(matches[0][2], 64)
-			if err2 != nil {
-				//
-			}
+			value, _ := strconv.ParseFloat(matches[0][2], 64)
 
 			kv := KeyValue{}
 			kv.key = matches[0][1]
@@ -62,18 +50,6 @@ func (e *Exec) Gather(transport plugins.Transport) error {
 			e.KeyValue = append(e.KeyValue, kv)
 		}
 	}()
-
-	err = cmd.Start()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error starting Cmd", err)
-		os.Exit(1)
-	}
-
-	err = cmd.Wait()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error waiting for Cmd", err)
-		os.Exit(1)
-	}
 
 	return nil
 }
