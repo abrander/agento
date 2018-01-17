@@ -16,6 +16,7 @@ func init() {
 // Exec will retrieve stub status.
 type Exec struct {
 	Cmd string `toml:"cmd" json:"cmd" description:"Command to run"`
+	Arg string `toml:"arg" json:"arg" description:"Arguments to command"`
 	kv  []KeyValue
 }
 
@@ -30,7 +31,7 @@ func newExec() interface{} {
 
 // Gather will measure how many bytes can be read from /dev/null.
 func (e *Exec) Gather(transport plugins.Transport) error {
-	stdout, _, _ := transport.Exec(e.Cmd, "")
+	stdout, _, _ := transport.Exec(e.Cmd, e.Arg)
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
