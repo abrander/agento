@@ -33,8 +33,11 @@ func newMuninPluginRunner() interface{} {
 // Gather expect output to be munin plugin style:
 // http://munin-monitoring.org/wiki/HowToWritePlugins
 func (m *MuninPluginRunner) Gather(transport plugins.Transport) error {
-	stdout, _, _ := transport.Exec(m.Command, m.Arguments)
+	stdout, _, err := transport.Exec(m.Command, m.Arguments)
 
+	if err != nil {
+		return err
+	}
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
 		re := regexp.MustCompile("^(.*).value ([0-9]+(\\.([0-9])*)?)$")
