@@ -17,10 +17,10 @@ func init() {
 type MuninPluginRunner struct {
 	Cmd string `toml:"cmd" json:"cmd" description:"Command to run"`
 	Arg string `toml:"arg" json:"arg" description:"Arguments to command"`
-	kv  []KeyValue
+	kv  []keyValue
 }
 
-type KeyValue struct {
+type keyValue struct {
 	key   string
 	value float64
 }
@@ -43,7 +43,7 @@ func (m *MuninPluginRunner) Gather(transport plugins.Transport) error {
 		if len(matches) == 1 {
 			value, _ := strconv.ParseFloat(matches[0][2], 64)
 
-			kv := KeyValue{}
+			kv := keyValue{}
 			kv.key = matches[0][1]
 			kv.value = value
 
