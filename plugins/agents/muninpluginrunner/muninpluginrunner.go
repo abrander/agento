@@ -17,7 +17,9 @@ func init() {
 type MuninPluginRunner struct {
 	Command   string `toml:"command" json:"command" description:"Command to run"`
 	Arguments string `toml:"arguments" json:"arguments" description:"Arguments to command"`
-	kv        []keyValue
+	Prefix    string `toml:"prefix" json:"prefix" description:"Prefix to output variables"`
+
+	kv []keyValue
 }
 
 type keyValue struct {
@@ -66,7 +68,15 @@ func (m *MuninPluginRunner) GetPoints() []*timeseries.Point {
 	points := make([]*timeseries.Point, len(m.kv))
 
 	for i, kv := range m.kv {
-		points[i] = plugins.SimplePoint(kv.key, kv.value)
+
+		var key string
+		if m.Prefix != "" {
+			key = m.Prefix + "." + kv.key
+		} else {
+			key = kv.key
+		}
+
+		points[i] = plugins.SimplePoint(key, kv.value)
 	}
 	return points
 }
