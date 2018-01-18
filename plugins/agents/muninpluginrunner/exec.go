@@ -44,7 +44,11 @@ func (m *MuninPluginRunner) Gather(transport plugins.Transport) error {
 		matches := re.FindAllStringSubmatch(scanner.Text(), -1)
 
 		if len(matches) == 1 {
-			value, _ := strconv.ParseFloat(matches[0][2], 64)
+			value, err := strconv.ParseFloat(matches[0][2], 64)
+
+			if err != nil {
+				return err
+			}
 
 			kv := keyValue{}
 			kv.key = matches[0][1]
