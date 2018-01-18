@@ -15,9 +15,9 @@ func init() {
 
 // MuninPluginRunner will retrieve stub status.
 type MuninPluginRunner struct {
-	Cmd string `toml:"cmd" json:"cmd" description:"Command to run"`
-	Arg string `toml:"arg" json:"arg" description:"Arguments to command"`
-	kv  []keyValue
+	Command   string `toml:"command" json:"command" description:"Command to run"`
+	Arguments string `toml:"arguments" json:"arguments" description:"Arguments to command"`
+	kv        []keyValue
 }
 
 type keyValue struct {
@@ -33,7 +33,7 @@ func newMuninPluginRunner() interface{} {
 // Gather expect output to be munin plugin style:
 // http://munin-monitoring.org/wiki/HowToWritePlugins
 func (m *MuninPluginRunner) Gather(transport plugins.Transport) error {
-	stdout, _, _ := transport.Exec(m.Cmd, m.Arg)
+	stdout, _, _ := transport.Exec(m.Command, m.Arguments)
 
 	scanner := bufio.NewScanner(stdout)
 	for scanner.Scan() {
