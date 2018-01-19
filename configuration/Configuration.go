@@ -18,6 +18,9 @@ const (
 
 var (
 	defaultConfig = `
+[agento]
+includedir = "/etc/agento.d/"
+
 [client]
 enabled = false
 interval = 1
