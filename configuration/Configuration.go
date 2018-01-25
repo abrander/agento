@@ -209,12 +209,10 @@ func (c *Configuration) LoadFromFile(path string) error {
 			return err
 		}
 
-		if matches != nil {
-			for _, match := range matches {
-				c.metadata, err = toml.DecodeFile(match, &c)
-				if err != nil {
-					return err
-				}
+		for _, match := range matches {
+			c.metadata, err = toml.DecodeFile(match, &c)
+			if err != nil {
+				return err
 			}
 		}
 	}
