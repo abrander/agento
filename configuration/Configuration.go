@@ -3,6 +3,7 @@ package configuration
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/BurntSushi/toml"
@@ -17,6 +18,9 @@ const (
 
 var (
 	defaultConfig = `
+[main]
+includedir = "/etc/agento.d/"
+
 [client]
 enabled = false
 interval = 1
@@ -144,6 +148,11 @@ type MongoConfiguration struct {
 	Database string `toml:"database"`
 }
 
+// MainConfiguration is the configuration for main behaviour of Agento.
+type MainConfiguration struct {
+	Includedir string `toml:"includedir"`
+}
+
 // Configuration is Agento's main configuration object.
 type Configuration struct {
 	Client   ClientConfiguration       `toml:"client"`
@@ -151,6 +160,7 @@ type Configuration struct {
 	Mongo    MongoConfiguration        `toml:"mongo"`
 	Hosts    map[string]toml.Primitive `toml:"host"`
 	Probes   map[string]toml.Primitive `toml:"probe"`
+	Main     MainConfiguration         `toml:"main"`
 	metadata toml.MetaData
 }
 
@@ -191,6 +201,20 @@ func (c *Configuration) LoadFromFile(path string) error {
 
 	if c.Client.Enabled && c.Client.ServerURL == "" {
 		return errors.New("Could not determine server URL")
+	}
+
+	if c.Main.Includedir != "" {
+		matches, err := filepath.Glob(c.Main.Includedir + "/*.conf")
+		if err != nil {
+			return err
+		}
+
+		for _, match := range matches {
+			c.metadata, err = toml.DecodeFile(match, &c)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
