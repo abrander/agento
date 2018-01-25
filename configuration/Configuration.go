@@ -160,7 +160,7 @@ type Configuration struct {
 	Mongo    MongoConfiguration        `toml:"mongo"`
 	Hosts    map[string]toml.Primitive `toml:"host"`
 	Probes   map[string]toml.Primitive `toml:"probe"`
-	Main     MainConfiguration         `toml:"agento"`
+	Main     MainConfiguration         `toml:"main"`
 	metadata toml.MetaData
 }
 
