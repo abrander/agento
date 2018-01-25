@@ -18,7 +18,7 @@ const (
 
 var (
 	defaultConfig = `
-[agento]
+[main]
 includedir = "/etc/agento.d/"
 
 [client]
@@ -148,7 +148,8 @@ type MongoConfiguration struct {
 	Database string `toml:"database"`
 }
 
-type AgentoConfiguration struct {
+// MainConfiguration is the configuration for main behaviour of Agento.
+type MainConfiguration struct {
 	Includedir string `toml:"includedir"`
 }
 
@@ -159,7 +160,7 @@ type Configuration struct {
 	Mongo    MongoConfiguration        `toml:"mongo"`
 	Hosts    map[string]toml.Primitive `toml:"host"`
 	Probes   map[string]toml.Primitive `toml:"probe"`
-	Agento   AgentoConfiguration       `toml:"agento"`
+	Main     MainConfiguration         `toml:"agento"`
 	metadata toml.MetaData
 }
 
@@ -202,8 +203,8 @@ func (c *Configuration) LoadFromFile(path string) error {
 		return errors.New("Could not determine server URL")
 	}
 
-	if c.Agento.Includedir != "" {
-		matches, err := filepath.Glob(c.Agento.Includedir + "/*.conf")
+	if c.Main.Includedir != "" {
+		matches, err := filepath.Glob(c.Main.Includedir + "/*.conf")
 		if err != nil {
 			return err
 		}
