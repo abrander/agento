@@ -21,10 +21,15 @@ type Mysql struct {
 	BytesSent          int64 `json:"gbs" stat:"Bytes_sent"`
 
 	//Binlog stuff
-	BinlogCacheDiskUse int64 `json:"bcdu" stat:"Binlog_cache_disk_use"`
-	BinlogCacheUse     int64 `json:"bcu" stat:"Binlog_cache_use"`
-	MaBinlogSize       int64 `json:"mbs" stat:"ma_binlog_size"`
-	RelayLogSpace      int64 `json:"rls" stat:"relay_log_space"`
+	BinlogCacheDiskUse               int64 `json:"bcdu" stat:"Binlog_cache_disk_use"`
+	BinlogCacheUse                   int64 `json:"bcu" stat:"Binlog_cache_use"`
+	BinlogCommits                    int64 `json:"bc" stat:"Binlog_commits"`
+	BinlogGroupCommits               int64 `json:"bgc" stat:"Binlog_group_commits"`
+	BinlogGroupCommitTriggerCount    int64 `json:"bgctc" stat:"Binlog_group_commit_trigger_count"`
+	BinlogGroupCommitTriggerLockWait int64 `json:"bgctlw" stat:"Binlog_group_commit_trigger_lock_wait"`
+	BinlogGroupCommitTriggerTimeout  int64 `json:"bgctt" stat:"Binlog_group_commit_trigger_timeout"`
+	MaBinlogSize                     int64 `json:"mbs" stat:"ma_binlog_size"`
+	RelayLogSpace                    int64 `json:"rls" stat:"relay_log_space"`
 
 	//query counters
 	ComDelete           int64 `json:"ccd" stat:"Com_delete"`
