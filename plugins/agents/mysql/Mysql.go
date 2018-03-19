@@ -226,7 +226,7 @@ func (m *Mysql) Gather(transport plugins.Transport) error {
 }
 
 func (m *Mysql) GetPoints() []*timeseries.Point {
-	points := make([]*timeseries.Point, 34, 62)
+	points := make([]*timeseries.Point, 35, 63)
 
 	points[0] = plugins.SimplePoint("mysql.Connections", m.Connections)
 	points[1] = plugins.SimplePoint("mysql.AccessDeniedErrors", m.AccessDeniedErrors)
