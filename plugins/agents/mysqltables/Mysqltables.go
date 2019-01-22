@@ -7,16 +7,15 @@ import (
 )
 
 type Table struct {
-	TableSchema   string `json:"ts"`
-	TableName     string `json:"tn"`
-	TableType     string `json:"tt"`
-	Engine        string `json:"e"`
-	TableRows     uint64 `json:"tr"`
-	AvgRowLength  uint64 `json:"arl"`
-	DataLength    uint64 `json:"dl"`
-	MaxDataLength uint64 `json:"mdl"`
-	IndexLength   uint64 `json:"il"`
-	DataFree      uint64 `json:"df"`
+	TableSchema  string `json:"ts"`
+	TableName    string `json:"tn"`
+	TableType    string `json:"tt"`
+	Engine       string `json:"e"`
+	TableRows    int64  `json:"tr"`
+	AvgRowLength int64  `json:"arl"`
+	DataLength   int64  `json:"dl"`
+	IndexLength  int64  `json:"il"`
+	DataFree     int64  `json:"df"`
 }
 
 type MysqlTables struct {
@@ -41,7 +40,7 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 
 	defer db.Close()
 
-	rows, err := db.Query("SELECT TABLE_SCHEMA,TABLE_NAME,TABLE_TYPE,ENGINE,IFNULL(TABLE_ROWS, 0) as TABLE_ROWS,AVG_ROW_LENGTH,DATA_LENGTH,MAX_DATA_LENGTH,INDEX_LENGTH,DATA_FREE FROM information_schema.TABLES")
+	rows, err := db.Query("SELECT TABLE_SCHEMA,TABLE_NAME,TABLE_TYPE,ENGINE,IFNULL(TABLE_ROWS, 0) as TABLE_ROWS,AVG_ROW_LENGTH,DATA_LENGTH,INDEX_LENGTH,DATA_FREE FROM information_schema.TABLES")
 	if err != nil {
 		return err
 	}
@@ -49,8 +48,8 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 
 	for rows.Next() {
 		var tableSchema, tableName, tableType, engine string
-		var tableRows, avgRowLength, dataLength, maxDataLength, indexLength, dataFree uint64
-		err = rows.Scan(&tableSchema, &tableName, &tableType, &engine, &tableRows, &avgRowLength, &dataLength, &maxDataLength, &indexLength, &dataFree)
+		var tableRows, avgRowLength, dataLength, indexLength, dataFree int64
+		err = rows.Scan(&tableSchema, &tableName, &tableType, &engine, &tableRows, &avgRowLength, &dataLength, &indexLength, &dataFree)
 		if err != nil {
 			return err
 		}
@@ -63,7 +62,6 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 		table.TableRows = tableRows
 		table.AvgRowLength = avgRowLength
 		table.DataLength = dataLength
-		table.MaxDataLength = maxDataLength
 		table.IndexLength = indexLength
 		table.DataFree = dataFree
 
@@ -93,7 +91,6 @@ func (m *MysqlTables) GetDoc() *plugins.Doc {
 	doc.AddMeasurement("mysqltables.TableRows", "The number of rows. Some storage engines, such as MyISAM, store the exact count. For other storage engines, such as InnoDB, this value is an approximation, and may vary from the actual value by as much as 40% to 50%. In such cases, use SELECT COUNT(*) to obtain an accurate count.", "n")
 	doc.AddMeasurement("mysqltables.AvgRowLength", "The average row length.", "n")
 	doc.AddMeasurement("mysqltables.DataLength", "For MyISAM, DATA_LENGTH is the length of the data file, in bytes. For InnoDB, DATA_LENGTH is the approximate amount of memory allocated for the clustered index, in bytes. Specifically, it is the clustered index size, in pages, multiplied by the InnoDB page size.", "n")
-	doc.AddMeasurement("mysqltables.MaxDataLength", "For MyISAM, MAX_DATA_LENGTH is maximum length of the data file. This is the total number of bytes of data that can be stored in the table, given the data pointer size used. Unused for InnoDB.", "n")
 	doc.AddMeasurement("mysqltables.IndexLength", "For MyISAM, INDEX_LENGTH is the length of the index file, in bytes. For InnoDB, INDEX_LENGTH is the approximate amount of memory allocated for non-clustered indexes, in bytes. Specifically, it is the sum of non-clustered index sizes, in pages, multiplied by the InnoDB page size.", "n")
 	doc.AddMeasurement("mysqltables.DataFree", "The number of allocated but unused bytes. InnoDB tables report the free space of the tablespace to which the table belongs. For a table located in the shared tablespace, this is the free space of the shared tablespace. If you are using multiple tablespaces and the table has its own tablespace, the free space is for only that table. Free space means the number of bytes in completely free extents minus a safety margin. Even if free space displays as 0, it may be possible to insert rows as long as new extents need not be allocated.", "n")
 
