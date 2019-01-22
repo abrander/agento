@@ -1,6 +1,8 @@
 package mysqltables
 
 import (
+	"strings"
+
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/plugins/agents/mysql"
 	"github.com/abrander/agento/timeseries"
@@ -53,6 +55,9 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 		if err != nil {
 			return err
 		}
+
+		// replace spaces from TABLE_TYPE with underscores to work with InfluxDB
+		tableType = strings.Replace(tableType, " ", "_", -1)
 
 		table := Table{}
 		table.TableSchema = tableSchema
