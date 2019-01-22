@@ -72,14 +72,21 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 }
 
 func (m *MysqlTables) GetPoints() []*timeseries.Point {
-	points := make([]*timeseries.Point, len(m.Tables)*6)
+	points := make([]*timeseries.Point, len(m.Tables)*5)
 	for i, tables := range m.Tables {
-		points[i*6+0] = plugins.PointWithTag("mysqltables.TableRows."+tables.Engine, tables.TableRows, "table", tables.TableSchema+"."+tables.TableName)
-		points[i*6+1] = plugins.PointWithTag("mysqltables.AvgRowLength."+tables.Engine, tables.AvgRowLength, "table", tables.TableSchema+"."+tables.TableName)
-		points[i*6+2] = plugins.PointWithTag("mysqltables.DataLength."+tables.Engine, tables.DataLength, "table", tables.TableSchema+"."+tables.TableName)
-		points[i*6+3] = plugins.PointWithTag("mysqltables.MaxDataLength."+tables.Engine, tables.MaxDataLength, "table", tables.TableSchema+"."+tables.TableName)
-		points[i*6+4] = plugins.PointWithTag("mysqltables.IndexLength."+tables.Engine, tables.IndexLength, "table", tables.TableSchema+"."+tables.TableName)
-		points[i*6+5] = plugins.PointWithTag("mysqltables.DataFree."+tables.Engine, tables.DataFree, "table", tables.TableSchema+"."+tables.TableName)
+
+		tags := map[string]string{
+			"engine":      tables.Engine,
+			"tableType":   tables.TableType,
+			"tableSchema": tables.TableSchema,
+			"tableName":   tables.TableName,
+		}
+
+		points[i*5+0] = plugins.PointWithTags("mysqltables.TableRows", tables.TableRows, tags)
+		points[i*5+1] = plugins.PointWithTags("mysqltables.AvgRowLength", tables.AvgRowLength, tags)
+		points[i*5+2] = plugins.PointWithTags("mysqltables.DataLength", tables.DataLength, tags)
+		points[i*5+3] = plugins.PointWithTags("mysqltables.IndexLength", tables.IndexLength, tags)
+		points[i*5+4] = plugins.PointWithTags("mysqltables.DataFree", tables.DataFree, tags)
 	}
 	return points
 }
