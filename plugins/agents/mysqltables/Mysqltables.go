@@ -47,12 +47,6 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 	}
 	defer rows.Close()
 
-	//columns, err := rows.Columns()
-	//if err != nil {
-	//	return err
-	//}
-
-	//row := make([]interface{}, len(columns), len(columns))
 	for rows.Next() {
 		var tableSchema, tableName, tableType, engine string
 		var tableRows, avgRowLength, dataLength, maxDataLength, indexLength, dataFree uint64
@@ -96,10 +90,6 @@ func (m *MysqlTables) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc("Mysql slave statistics")
 
 	doc.AddTag("connection", "The connection name from MySQL")
-	doc.AddMeasurement("mysqltables.TableSchema", "The name of the schema (database) to which the table belongs.", "s")
-	doc.AddMeasurement("mysqltables.TableName", "The name of the table.", "n")
-	doc.AddMeasurement("mysqltables.TableType", "BASE TABLE for a table, VIEW for a view, or SYSTEM VIEW for an INFORMATION_SCHEMA table.", "n")
-	doc.AddMeasurement("mysqltables.Engine", "The storage engine for the table.", "n")
 	doc.AddMeasurement("mysqltables.TableRows", "The number of rows. Some storage engines, such as MyISAM, store the exact count. For other storage engines, such as InnoDB, this value is an approximation, and may vary from the actual value by as much as 40% to 50%. In such cases, use SELECT COUNT(*) to obtain an accurate count.", "n")
 	doc.AddMeasurement("mysqltables.AvgRowLength", "The average row length.", "n")
 	doc.AddMeasurement("mysqltables.DataLength", "For MyISAM, DATA_LENGTH is the length of the data file, in bytes. For InnoDB, DATA_LENGTH is the approximate amount of memory allocated for the clustered index, in bytes. Specifically, it is the clustered index size, in pages, multiplied by the InnoDB page size.", "n")
