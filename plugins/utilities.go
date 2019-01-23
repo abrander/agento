@@ -25,13 +25,21 @@ func PointWithTag(key string, value interface{}, tagKey string, tagValue string)
 }
 
 func PointWithTags(key string, value interface{}, tags map[string]string) *timeseries.Point {
-       return timeseries.NewPoint(
-               key,
-               tags,
-               map[string]interface{}{
-                       "value": value,
-               },
-       )
+	return timeseries.NewPoint(
+		key,
+		tags,
+		map[string]interface{}{
+			"value": value,
+		},
+	)
+}
+
+func PointsWithTags(key string, values map[string]interface{}, tags map[string]string) *timeseries.Point {
+	return timeseries.NewPoint(
+		key,
+		tags,
+		values,
+	)
 }
 
 func Round(value float64, places int) float64 {
