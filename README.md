@@ -6,12 +6,16 @@ Client/server collecting near realtime metrics from Linux hosts. Uses influxdb a
 # development/debugging
 
 ## Agento
-`DEBUG=* agento runonce`
+```
+DEBUG=* agento runonce
+```
 
 
 
 ## MySQL
-`docker run --name agento-mysql -e MYSQL_ROOT_PASSWORD=agento -e MYSQL_USER=agento -e MYSQL_PASSWORD=agento -e MYSQL_DATABASE=mysql -p 3306:3306 -d mariadb:latest`
+```
+docker run --name agento-mysql -e MYSQL_ROOT_PASSWORD=agento -e MYSQL_USER=agento -e MYSQL_PASSWORD=agento -e MYSQL_DATABASE=mysql -p 3306:3306 -d mariadb:latest
+```
 
 ```
 [probe.mysqltables]
@@ -23,7 +27,9 @@ agent = "mysqltables"
 
 
 ## InfluxDB
-`docker run --name agento-influxdb -p 8086:8086 -e INFLUXDB_DB=agento -e INFLUXDB_ADMIN_USER=agento -e INFLUXDB_ADMIN_PASSWORD=agento -d influxdb:latest`
+```
+docker run --name agento-influxdb -p 8086:8086 -e INFLUXDB_DB=agento -e INFLUXDB_ADMIN_USER=agento -e INFLUXDB_ADMIN_PASSWORD=agento -d influxdb:latest
+```
 
 ```
 [server.influxdb]
