@@ -34,7 +34,7 @@ func PointWithTags(key string, value interface{}, tags map[string]string) *times
 	)
 }
 
-func PointsWithTags(key string, values map[string]interface{}, tags map[string]string) *timeseries.Point {
+func PointValuesWithTags(key string, values map[string]interface{}, tags map[string]string) *timeseries.Point {
 	return timeseries.NewPoint(
 		key,
 		tags,
