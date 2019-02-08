@@ -77,7 +77,7 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 }
 
 func (m *MysqlTables) GetPoints() []*timeseries.Point {
-	points := make([]*timeseries.Point, len(m.Tables)*5)
+	points := make([]*timeseries.Point, len(m.Tables))
 	for i, tables := range m.Tables {
 
 		tags := map[string]string{
@@ -87,11 +87,15 @@ func (m *MysqlTables) GetPoints() []*timeseries.Point {
 			"tableName":   tables.TableName,
 		}
 
-		points[i*5+0] = plugins.PointWithTags("mysqltables.TableRows", tables.TableRows, tags)
-		points[i*5+1] = plugins.PointWithTags("mysqltables.AvgRowLength", tables.AvgRowLength, tags)
-		points[i*5+2] = plugins.PointWithTags("mysqltables.DataLength", tables.DataLength, tags)
-		points[i*5+3] = plugins.PointWithTags("mysqltables.IndexLength", tables.IndexLength, tags)
-		points[i*5+4] = plugins.PointWithTags("mysqltables.DataFree", tables.DataFree, tags)
+		values := map[string]interface{}{
+			"TableRows":    tables.TableRows,
+			"AvgRowLength": tables.AvgRowLength,
+			"DataLength":   tables.DataLength,
+			"IndexLength":  tables.IndexLength,
+			"DataFree":     tables.DataFree,
+		}
+
+		points[i] = plugins.PointValuesWithTags("mysqltables", values, tags)
 	}
 	return points
 }
