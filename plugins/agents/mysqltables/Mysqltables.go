@@ -81,10 +81,9 @@ func (m *MysqlTables) GetPoints() []*timeseries.Point {
 	for i, tables := range m.Tables {
 
 		tags := map[string]string{
-			"engine":      tables.Engine,
-			"tableType":   tables.TableType,
-			"tableSchema": tables.TableSchema,
-			"tableName":   tables.TableName,
+			"engine":    tables.Engine,
+			"tableType": tables.TableType,
+			"tableName": tables.TableSchema + "." + tables.TableName,
 		}
 
 		values := map[string]interface{}{
