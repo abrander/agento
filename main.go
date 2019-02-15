@@ -29,6 +29,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/muninpluginrunner"
 	_ "github.com/abrander/agento/plugins/agents/mysql"
 	_ "github.com/abrander/agento/plugins/agents/mysqlslave"
+	_ "github.com/abrander/agento/plugins/agents/mysqltables"
 	_ "github.com/abrander/agento/plugins/agents/netfilter"
 	_ "github.com/abrander/agento/plugins/agents/netstat"
 	_ "github.com/abrander/agento/plugins/agents/nginx"
