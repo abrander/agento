@@ -1,21 +1,25 @@
 package dnsresponsetime
 
 import (
+	"strings"
+
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
 	"github.com/miekg/dns"
 )
 
 type Data struct {
-	Loss int   `json:"loss"`
-	Time int64 `json:"time"`
+	Loss   int    `json:"loss"`
+	Time   int64  `json:"time"`
+	Domain string `json:"domain"`
+	Server string `json:"server"`
 }
 
 type DnsResponseTime struct {
 	Data []Data `json:"data"`
 
-	Domain string `toml:"domain" json:"domain" description:"Domain(s) to query"`
-	Server string `toml:"server" json:"server" description:"The server(s) to query"`
+	Domains string `toml:"domain" json:"domain" description:"Domain(s) to query"`
+	Servers string `toml:"server" json:"server" description:"The server(s) to query"`
 }
 
 func init() {
@@ -27,21 +31,33 @@ func NewDnsResponseTime() interface{} {
 }
 
 func (d *DnsResponseTime) Gather(transport plugins.Transport) error {
-	data := Data{}
 
-	c := dns.Client{}
-	m := dns.Msg{}
-	m.SetQuestion(d.Domain+".", dns.TypeA)
-	_, t, err := c.Exchange(&m, d.Server+":53")
-	if err != nil {
-		data.Time = 0
-		data.Loss = 100
-	} else {
-		data.Time = t.Nanoseconds()
-		data.Loss = 0
+	domains := strings.Split(d.Domains, ",")
+	servers := strings.Split(d.Servers, ",")
+
+	for _, domain := range domains {
+		for _, server := range servers {
+
+			data := Data{}
+
+			c := dns.Client{}
+			m := dns.Msg{}
+			m.SetQuestion(domain+".", dns.TypeA)
+			_, t, err := c.Exchange(&m, server+":53")
+			if err != nil {
+				data.Time = 0
+				data.Loss = 100
+			} else {
+				data.Time = t.Nanoseconds()
+				data.Loss = 0
+			}
+
+			data.Domain = domain
+			data.Server = server
+
+			d.Data = append(d.Data, data)
+		}
 	}
-
-	d.Data = append(d.Data, data)
 
 	return nil
 }
@@ -51,8 +67,8 @@ func (d *DnsResponseTime) GetPoints() []*timeseries.Point {
 	for i, data := range d.Data {
 
 		tags := map[string]string{
-			"domain": d.Domain,
-			"server": d.Server,
+			"domain": data.Domain,
+			"server": data.Server,
 		}
 
 		values := map[string]interface{}{
