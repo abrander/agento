@@ -72,8 +72,8 @@ func (d *DnsResponseTime) GetPoints() []*timeseries.Point {
 		}
 
 		values := map[string]interface{}{
-			"loss": data.Loss,
-			"time": data.Time,
+			"loss":        data.Loss,
+			"nanoseconds": data.Time,
 		}
 
 		points[i] = plugins.PointValuesWithTags("dnsresponsetime", values, tags)
