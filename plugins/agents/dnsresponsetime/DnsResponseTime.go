@@ -18,8 +18,8 @@ type Data struct {
 type DnsResponseTime struct {
 	Data []Data `json:"data"`
 
-	Domains string `toml:"domain" json:"domain" description:"Domain(s) to query"`
-	Servers string `toml:"server" json:"server" description:"The server(s) to query"`
+	Domains string `toml:"domain" json:"domain" description:"The domain(s) name to query (multiple can be separated by comma)"`
+	Servers string `toml:"server" json:"server" description:"The server(s) to query (multiple can be separated by comma)"`
 }
 
 func init() {
@@ -82,8 +82,8 @@ func (d *DnsResponseTime) GetPoints() []*timeseries.Point {
 func (m *DnsResponseTime) GetDoc() *plugins.Doc {
 	doc := plugins.NewDoc("DNS Response Time")
 
-	doc.AddTag("domain", "The domain name to query")
-	doc.AddTag("server", "The server to query")
+	doc.AddTag("domain", "The domain(s) name to query (multiple can be separated by comma)")
+	doc.AddTag("server", "The server(s) to query (multiple can be separated by comma)")
 	doc.AddMeasurement("dnsresponsetime.time", "Time it took to query the server in nanoseconds", "n")
 	doc.AddMeasurement("dnsresponsetime.loss", "Amount of loss (timeouts) in percent", "n")
 
