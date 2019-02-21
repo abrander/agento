@@ -20,6 +20,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/cpustats"
 	_ "github.com/abrander/agento/plugins/agents/diskstats"
 	_ "github.com/abrander/agento/plugins/agents/diskusage"
+	_ "github.com/abrander/agento/plugins/agents/dnsresponsetime"
 	_ "github.com/abrander/agento/plugins/agents/entropy"
 	_ "github.com/abrander/agento/plugins/agents/hostname"
 	_ "github.com/abrander/agento/plugins/agents/http"
