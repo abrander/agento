@@ -19,6 +19,11 @@ type (
 // GetAgent will return an agent of type id or nil plus an error if the
 // agent was not found.
 func GetAgent(id string) (Agent, error) {
+	// Let the user know an agent is missing in configuration element
+	if id == "" {
+		return nil, errors.New("Agent missing in configuration")
+	}
+
 	// Try to find a constructor.
 	c, found := pluginConstructors[id]
 	if !found {
