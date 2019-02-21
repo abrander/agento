@@ -31,13 +31,11 @@ func NewDnsResponseTime() interface{} {
 }
 
 func (d *DnsResponseTime) Gather(transport plugins.Transport) error {
-
 	domains := strings.Split(d.Domains, ",")
 	servers := strings.Split(d.Servers, ",")
 
 	for _, domain := range domains {
 		for _, server := range servers {
-
 			data := Data{}
 
 			c := dns.Client{}
@@ -65,7 +63,6 @@ func (d *DnsResponseTime) Gather(transport plugins.Transport) error {
 func (d *DnsResponseTime) GetPoints() []*timeseries.Point {
 	points := make([]*timeseries.Point, len(d.Data))
 	for i, data := range d.Data {
-
 		tags := map[string]string{
 			"domain": data.Domain,
 			"server": data.Server,
@@ -78,6 +75,7 @@ func (d *DnsResponseTime) GetPoints() []*timeseries.Point {
 
 		points[i] = plugins.PointValuesWithTags("dnsresponsetime", values, tags)
 	}
+
 	return points
 }
 
