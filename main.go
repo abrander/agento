@@ -37,6 +37,7 @@ import (
 	_ "github.com/abrander/agento/plugins/agents/null"
 	_ "github.com/abrander/agento/plugins/agents/openfiles"
 	_ "github.com/abrander/agento/plugins/agents/phpfpm"
+	_ "github.com/abrander/agento/plugins/agents/ping"
 	_ "github.com/abrander/agento/plugins/agents/snmpstats"
 	_ "github.com/abrander/agento/plugins/agents/socketstats"
 	_ "github.com/abrander/agento/plugins/agents/tcpport"
