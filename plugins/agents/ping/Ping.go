@@ -24,7 +24,7 @@ type Data struct {
 type Ping struct {
 	Data []Data `json:"data"`
 
-	Ip    string `toml:"ip" json:"ip" description:"The ip(s) to ping (multiple can be separated by comma)"`
+	IP    string `toml:"ip" json:"ip" description:"The ip(s) to ping (multiple can be separated by comma)"`
 	Count int    `toml:"count" json:"count" description:"Number of packages to send"`
 }
 
@@ -45,7 +45,7 @@ func (p *Ping) Gather(transport plugins.Transport) error {
 		count = p.Count
 	}
 
-	ips := strings.Split(p.Ip, ",")
+	ips := strings.Split(p.IP, ",")
 	for _, ip := range ips {
 		data := Data{}
 		ip = strings.TrimSpace(ip)
