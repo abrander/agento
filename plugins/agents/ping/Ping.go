@@ -16,7 +16,7 @@ type Data struct {
 	TimeAvg int64  `json:"timeavg"`
 	TimeMin int64  `json:"timemin"`
 	TimeMax int64  `json:"timemax"`
-	Ip      string `json:"server"`
+	IP      string `json:"server"`
 }
 
 type Ping struct {
@@ -65,7 +65,7 @@ func (p *Ping) Gather(transport plugins.Transport) error {
 		data.TimeMin = summary.Min.Nanoseconds()
 		data.TimeMax = summary.Max.Nanoseconds()
 
-		data.Ip = ip
+		data.IP = ip
 
 		p.Data = append(p.Data, data)
 	}
@@ -76,7 +76,7 @@ func (p *Ping) GetPoints() []*timeseries.Point {
 	points := make([]*timeseries.Point, len(p.Data))
 	for i, data := range p.Data {
 		tags := map[string]string{
-			"ip": data.Ip,
+			"ip": data.IP,
 		}
 
 		values := map[string]interface{}{
