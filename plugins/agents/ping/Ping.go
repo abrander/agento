@@ -6,10 +6,10 @@ import (
 
 	"github.com/abrander/agento/plugins"
 	"github.com/abrander/agento/timeseries"
-	gping "github.com/gansoi/gansoi/plugins/agents/ping"
+	gansoiPing "github.com/gansoi/gansoi/plugins/agents/ping"
 )
 
-var pinger *gping.ICMPService
+var pinger *gansoiPing.ICMPService
 
 type Data struct {
 	Loss    int    `json:"loss"`
@@ -30,7 +30,7 @@ type Ping struct {
 
 func init() {
 	plugins.Register("ping", NewPing)
-	pinger = gping.NewICMPService()
+	pinger = gansoiPing.NewICMPService()
 	pinger.Start()
 }
 
