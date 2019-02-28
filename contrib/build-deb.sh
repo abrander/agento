@@ -56,5 +56,5 @@ exec setcap CAP_NET_RAW=ep /usr/sbin/agento
 EOF
 chmod 755 deb/DEBIAN/postinst
 
-dpkg-deb --build deb $(pwd)
+dpkg-deb -Zgzip --build deb $(pwd)
 rm -rf deb
