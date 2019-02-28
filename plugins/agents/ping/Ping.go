@@ -9,6 +9,8 @@ import (
 	gping "github.com/gansoi/gansoi/plugins/agents/ping"
 )
 
+var pinger *gping.ICMPService
+
 type Data struct {
 	Loss    int    `json:"loss"`
 	Sent    int    `json:"sent"`
@@ -20,8 +22,7 @@ type Data struct {
 }
 
 type Ping struct {
-	Data   []Data `json:"data"`
-	pinger *gping.ICMPService
+	Data []Data `json:"data"`
 
 	Ip    string `toml:"ip" json:"ip" description:"The ip(s) to ping (multiple can be separated by comma)"`
 	Count int    `toml:"count" json:"count" description:"Number of packages to send"`
@@ -29,6 +30,8 @@ type Ping struct {
 
 func init() {
 	plugins.Register("ping", NewPing)
+	pinger = gping.NewICMPService()
+	pinger.Start()
 }
 
 func NewPing() interface{} {
@@ -36,12 +39,6 @@ func NewPing() interface{} {
 }
 
 func (p *Ping) Gather(transport plugins.Transport) error {
-	// Create and start the ICMP pinger service
-	if p.pinger == nil {
-		p.pinger = gping.NewICMPService()
-		p.pinger.Start()
-	}
-
 	// Default to "one ping only" if nothing else is specified in config
 	count := 1
 	if p.Count > 0 {
@@ -53,7 +50,7 @@ func (p *Ping) Gather(transport plugins.Transport) error {
 		data := Data{}
 		ip = strings.TrimSpace(ip)
 
-		summary, err := p.pinger.Ping(ip, count, time.Second)
+		summary, err := pinger.Ping(ip, count, time.Second)
 
 		if err != nil {
 			return err
