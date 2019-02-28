@@ -49,5 +49,12 @@ go build .
 mkdir -p deb/usr/sbin/
 cp -a agento deb/usr/sbin/agento
 
+cat <<EOF > deb/DEBIAN/postinst
+#!/bin/sh
+
+exec setcap CAP_NET_RAW=ep /usr/sbin/agento
+EOF
+chmod 755 deb/DEBIAN/postinst
+
 dpkg-deb --build deb $(pwd)
 rm -rf deb
