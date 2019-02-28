@@ -51,6 +51,7 @@ func (p *Ping) Gather(transport plugins.Transport) error {
 	ips := strings.Split(p.Ip, ",")
 	for _, ip := range ips {
 		data := Data{}
+		ip = strings.TrimSpace(ip)
 
 		summary, err := p.pinger.Ping(ip, count, time.Second)
 
