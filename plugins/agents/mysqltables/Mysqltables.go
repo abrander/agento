@@ -42,7 +42,10 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 
 	defer db.Close()
 
-	rows, err := db.Query("SELECT TABLE_SCHEMA,TABLE_NAME,TABLE_TYPE,ENGINE,IFNULL(TABLE_ROWS, 0) as TABLE_ROWS,AVG_ROW_LENGTH,DATA_LENGTH,INDEX_LENGTH,DATA_FREE FROM information_schema.TABLES")
+	tx, err := db.Begin()                      // We need to use a transaction to make sure the session variables are set to the correct connection.
+	tx.Query("SET tokudb_empty_scan=disabled") // https://www.percona.com/blog/2014/07/09/tokudb-gotchas-slow-information_schema-tables/
+	tx.Query("SET innodb_stats_on_metadata=0") // https://www.percona.com/blog/2011/12/23/solving-information_schema-slowness/
+	rows, err := tx.Query("SELECT TABLE_SCHEMA,TABLE_NAME,TABLE_TYPE,ENGINE,IFNULL(TABLE_ROWS, 0) as TABLE_ROWS,AVG_ROW_LENGTH,DATA_LENGTH,INDEX_LENGTH,DATA_FREE FROM information_schema.TABLES")
 	if err != nil {
 		return err
 	}
