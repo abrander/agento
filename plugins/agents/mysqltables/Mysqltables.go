@@ -50,6 +50,7 @@ func (m *MysqlTables) Gather(transport plugins.Transport) error {
 		return err
 	}
 	defer rows.Close()
+	defer tx.Commit()
 
 	for rows.Next() {
 		var tableSchema, tableName, tableType, engine string
